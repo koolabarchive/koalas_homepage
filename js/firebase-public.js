@@ -422,11 +422,11 @@ if (isConfigured) {
     }
 
     // 연구 페이지: 최근 성과 하이라이트
-    const recentPubs = document.getElementById("research-recent-pubs");
-    if (recentPubs) {
+    const researchRecentBox = document.getElementById("research-recent-pubs");
+    if (researchRecentBox) {
       try {
         const pubs = await fetchVisiblePubs();
-        recentPubs.innerHTML = pubs.length
+        researchRecentBox.innerHTML = pubs.length
           ? pubs.slice(0, 4).map((p) => pubItemHtml(p)).join("")
           : '<div class="pub-item"><div></div><div class="pub-meta">등록된 성과가 없습니다.</div></div>';
       } catch (_) {}
