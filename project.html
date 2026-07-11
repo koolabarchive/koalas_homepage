@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>프로젝트 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="research.html">연구</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 헤더 -->
+  <section class="detail-head">
+    <div class="container">
+      <a href="research.html" style="font-size:0.84rem; color:var(--muted);">← 연구 페이지</a>
+      <div style="margin-top:14px;">
+        <span class="status" id="pj-status">—</span>
+        <h1 id="pj-title">불러오는 중…</h1>
+        <div class="detail-meta" id="pj-meta"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 소개 (홍보) -->
+  <section class="section" style="padding: 44px 0;">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:16px; display:flex; align-items:center; gap:12px;">
+        <h2 style="font-size:1.2rem;">프로젝트 소개</h2>
+        <button class="btn-sm" id="btn-edit-intro" style="display:none;">✎ 소개 수정</button>
+      </div>
+      <div id="pj-intro" class="md-body" style="max-width:860px;"></div>
+    </div>
+  </section>
+
+  <!-- 연구 참가 신청 · 문의 (외부 방문자용) -->
+  <section class="section alt" style="padding: 44px 0;" id="pj-inquiry-section">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h2 style="font-size:1.2rem;">연구 참가 신청 · 문의</h2>
+        <p>이 연구에 참가를 원하시거나 궁금한 점이 있으면 남겨 주세요. 연구팀이 남겨주신 연락처로 회신드립니다.</p>
+      </div>
+      <div class="card" style="max-width:860px;">
+        <div class="field-row">
+          <div class="field">
+            <label for="pi-name">이름</label>
+            <input type="text" id="pi-name" placeholder="홍길동" />
+          </div>
+          <div class="field">
+            <label for="pi-contact">연락처 (이메일 또는 전화)</label>
+            <input type="text" id="pi-contact" placeholder="email@example.com / 010-0000-0000" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="pi-message">신청 · 문의 내용</label>
+          <textarea id="pi-message" rows="4" placeholder="참가 신청 또는 문의 내용을 적어 주세요."></textarea>
+        </div>
+        <div class="form-actions" style="margin-top:4px;">
+          <button class="btn-sm primary" id="pi-send">보내기</button>
+        </div>
+        <div class="form-msg" id="pi-msg"></div>
+      </div>
+
+      <!-- 프로젝트 리더용: 마이페이지 안내 -->
+      <div id="pj-inquiry-leader" style="display:none; margin-top:18px; max-width:860px;"></div>
+
+
+    </div>
+  </section>
+
+  <!-- 참여 인력 -->
+  <section class="section alt" style="padding: 44px 0;">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h2 style="font-size:1.2rem; display:inline;">연구팀</h2>
+        <span id="pj-joined-badge" style="margin-left:10px; vertical-align:2px;"></span>
+      </div>
+      <div id="pj-people" style="max-width:860px;"><p style="color:var(--muted); font-size:0.9rem;">—</p></div>
+      <div id="pj-join" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:18px;"></div>
+      <div class="form-msg" id="pj-join-msg"></div>
+    </div>
+  </section>
+
+  <!-- 프로젝트 달력 (참여자 전용) -->
+  <section class="section" style="padding: 44px 0; display:none;" id="pj-calendar-section">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h2 style="font-size:1.2rem;">프로젝트 달력</h2>
+        <p>참여 연구원 누구나 일정을 등록·수정하고 참석 여부를 표시할 수 있습니다.</p>
+      </div>
+      <div class="cal-toolbar" style="max-width:860px;">
+        <div class="cal-nav">
+          <button class="btn-sm" id="cal-prev">◀</button>
+          <strong id="cal-title" style="font-size:1rem; min-width:120px; text-align:center;"></strong>
+          <button class="btn-sm" id="cal-next">▶</button>
+          <button class="btn-sm" id="cal-today">오늘</button>
+        </div>
+        <button class="btn-sm primary" id="btn-add-event">＋ 일정 등록</button>
+      </div>
+      <div class="cal-grid" id="pj-calendar" style="max-width:860px;"></div>
+    </div>
+  </section>
+
+  <!-- 공지 · 모집 -->
+  <section class="section" style="padding: 44px 0;">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h2 style="font-size:1.2rem;">공지사항</h2>
+        <p id="pj-posts-hint">이 프로젝트의 공지입니다. 🔒 표시가 있는 글은 참여 연구원에게만 보입니다.</p>
+      </div>
+      <div class="board-list" id="pj-posts" style="max-width:860px;">
+        <p style="color:var(--muted); font-size:0.9rem; padding:12px 4px;">불러오는 중…</p>
+      </div>
+      <div class="board-toolbar" id="pj-post-toolbar" style="display:none; max-width:860px;">
+        <button class="btn-sm primary" id="btn-write-ppost">✎ 공지 글쓰기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 내부 자료 · 회의록 (참여자 전용) -->
+  <section class="section alt" style="padding: 44px 0; display:none;" id="pj-internal-section">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h2 style="font-size:1.2rem;">연구 DB</h2>
+        <p>참여 연구원과 관리자만 볼 수 있는 공간입니다. 회의록, 데이터, 문서를 올리고 검색으로 빠르게 찾아보세요.</p>
+      </div>
+
+      <div class="db-toolbar" style="max-width:860px;">
+        <div class="pub-filter" id="pj-mat-filter" style="margin-bottom:0;">
+          <button class="active" data-cat="all">전체</button>
+          <button data-cat="회의록">회의록</button>
+          <button data-cat="데이터">데이터</button>
+          <button data-cat="문서">문서</button>
+          <button data-cat="기타">기타</button>
+        </div>
+        <input type="search" id="pj-mat-search" class="db-search" placeholder="🔍 제목·내용·작성자 검색" />
+      </div>
+
+      <div class="board-list" id="pj-materials" style="max-width:860px;">
+        <p style="color:var(--muted); font-size:0.9rem; padding:12px 4px;">불러오는 중…</p>
+      </div>
+      <div class="board-toolbar" style="max-width:860px;">
+        <button class="btn-sm primary" id="btn-write-pmat">⇧ 자료 올리기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 공지 글쓰기 모달 -->
+  <div class="modal-backdrop" id="ppost-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ppost-modal-title">
+      <h3 id="ppost-modal-title">프로젝트 공지 글쓰기</h3>
+      <div class="field-row">
+        <div class="field">
+          <label for="pp-when">작성일시</label>
+          <input type="datetime-local" id="pp-when" />
+        </div>
+        <div class="field">
+          <label for="pp-author">작성자</label>
+          <input type="text" id="pp-author" placeholder="이름" />
+        </div>
+      </div>
+      <div class="field" id="pp-scope-field">
+        <label for="pp-scope">공개 범위</label>
+        <select id="pp-scope">
+          <option value="public">공개 — 연구참여자 등 누구나 볼 수 있음</option>
+          <option value="internal">🔒 내부 — 참여 연구원만 볼 수 있음</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pp-title">제목</label>
+        <input type="text" id="pp-title" placeholder="예: 연구참여자 모집 안내" />
+      </div>
+      <div class="field">
+        <label for="pp-content">내용</label>
+        <textarea id="pp-content" rows="5" placeholder="공지 내용을 입력해 주세요."></textarea>
+      </div>
+      <div class="field">
+        <label for="pp-files">첨부파일 <span class="hint" style="display:inline;">— 파일당 최대 10MB · 5개까지 · 참여자만 열람</span></label>
+        <input type="file" id="pp-files" class="file-input" multiple />
+        <div class="file-list" id="pp-file-list"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="pp-cancel">취소</button>
+        <button class="btn-sm primary" id="pp-add">올리기</button>
+      </div>
+      <div class="form-msg" id="pp-msg"></div>
+    </div>
+  </div>
+
+  <!-- 자료 올리기 모달 -->
+  <div class="modal-backdrop" id="pmat-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pmat-modal-title">
+      <h3 id="pmat-modal-title">자료 · 회의록 올리기</h3>
+      <div class="field-row">
+        <div class="field">
+          <label for="pm-when">작성일시</label>
+          <input type="datetime-local" id="pm-when" />
+        </div>
+        <div class="field">
+          <label for="pm-author">작성자</label>
+          <input type="text" id="pm-author" placeholder="이름" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="pm-cat">분류</label>
+          <select id="pm-cat">
+            <option>회의록</option>
+            <option>데이터</option>
+            <option>문서</option>
+            <option>기타</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pm-title">제목</label>
+          <input type="text" id="pm-title" placeholder="예: 7월 1차 회의록" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="pm-note">내용 · 메모 (선택)</label>
+        <textarea id="pm-note" rows="3"></textarea>
+      </div>
+      <div class="field">
+        <label for="pm-link">링크 (선택)</label>
+        <input type="text" id="pm-link" placeholder="https:// 외부 문서 링크" />
+      </div>
+      <div class="field">
+        <label for="pm-files">첨부파일 (선택) <span class="hint" style="display:inline;">— 파일당 최대 10MB · 5개까지</span></label>
+        <input type="file" id="pm-files" class="file-input" multiple />
+        <div class="file-list" id="pm-file-list"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="pm-cancel">취소</button>
+        <button class="btn-sm primary" id="pm-add">등록</button>
+      </div>
+      <div class="form-msg" id="pm-msg"></div>
+    </div>
+  </div>
+
+  <!-- 일정 등록·수정 모달 -->
+  <div class="modal-backdrop" id="ev-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ev-modal-title">
+      <h3 id="ev-modal-title">일정 등록</h3>
+      <div class="field">
+        <label for="ev-title">일정 제목</label>
+        <input type="text" id="ev-title" placeholder="예: 2차 데이터 수집" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="ev-start">시작 일정</label>
+          <input type="date" id="ev-start" />
+        </div>
+        <div class="field">
+          <label for="ev-start-time">시작 시간 (선택)</label>
+          <input type="time" id="ev-start-time" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="ev-end">종료 일정</label>
+          <input type="date" id="ev-end" />
+        </div>
+        <div class="field">
+          <label for="ev-end-time">종료 시간 (선택)</label>
+          <input type="time" id="ev-end-time" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="ev-cat">카테고리</label>
+        <select id="ev-cat">
+          <option>회의</option>
+          <option>데이터 수집</option>
+          <option>참여자 모집</option>
+          <option>분석</option>
+          <option>마감</option>
+          <option>기타</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="ev-cancel">취소</button>
+        <button class="btn-sm primary" id="ev-save">저장</button>
+      </div>
+      <div class="form-msg" id="ev-msg"></div>
+    </div>
+  </div>
+
+  <!-- 일정 상세 모달 -->
+  <div class="modal-backdrop" id="ev-view-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ev-view-title">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+        <h3 id="ev-view-title"></h3>
+        <button class="btn-sm" id="ev-view-close">닫기 ✕</button>
+      </div>
+      <div id="ev-view-info" style="margin-top:10px; font-size:0.9rem;"></div>
+      <h4 style="font-size:0.9rem; font-weight:700; margin:18px 0 8px; padding-top:14px; border-top:1px solid var(--line);">내 참석 여부</h4>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-sm" id="ev-att-yes">✓ 참석</button>
+        <button class="btn-sm" id="ev-att-no">✗ 불참</button>
+      </div>
+      <div id="ev-view-att" style="margin-top:14px; font-size:0.86rem;"></div>
+      <div class="form-actions">
+        <button class="btn-sm danger" id="ev-view-del">삭제</button>
+        <button class="btn-sm" id="ev-view-edit">수정</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 소개 수정 모달 (관리자·프로젝트 리더) -->
+  <div class="modal-backdrop" id="intro-modal">
+    <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="intro-modal-title">
+      <h3 id="intro-modal-title">프로젝트 소개 수정</h3>
+      <div class="field">
+        <label for="in-md">소개 내용</label>
+        <textarea id="in-md" rows="14" placeholder="연구대상, 연구방법 등 소개를 적어 주세요."></textarea>
+        <div class="hint">마크다운 지원: # 큰제목 · ## 중간제목 · **굵게** · *기울임* · - 목록 · 1. 번호 목록 · &gt; 인용 · [텍스트](https://링크) · --- 구분선</div>
+      </div>
+      <div class="field">
+        <button class="btn-sm" id="in-img-btn" type="button">🖼 이미지 삽입</button>
+        <input type="file" id="in-img-file" accept="image/*" style="display:none;" />
+        <div class="hint">이미지는 자동으로 1000px 이하로 줄여 본문에 삽입됩니다. 커서 위치에 들어가요.</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="in-cancel">취소</button>
+        <button class="btn-sm primary" id="in-save">저장</button>
+      </div>
+      <div class="form-msg" id="in-msg"></div>
+    </div>
+  </div>
+
+  <!-- 채팅방 만들기 모달 -->
+  <div class="modal-backdrop" id="room-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="room-modal-title">
+      <h3 id="room-modal-title">채팅방 만들기</h3>
+      <div class="field">
+        <label for="rm-name">채팅방 이름</label>
+        <input type="text" id="rm-name" placeholder="예: 설문 제작팀, 3주차 발제 준비" />
+      </div>
+      <div class="field">
+        <label>함께할 멤버 <span class="hint" style="display:inline;">— 나는 자동으로 포함됩니다</span></label>
+        <div class="member-check-list" id="rm-members"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="rm-cancel">취소</button>
+        <button class="btn-sm primary" id="rm-create">만들기</button>
+      </div>
+      <div class="form-msg" id="rm-msg"></div>
+    </div>
+  </div>
+
+  <!-- 팀 채팅 플로팅 위젯 (참여자 전용) -->
+  <div class="chat-fab-wrap" id="team-chat-section" style="display:none;">
+    <div class="chat-popup" id="chat-popup">
+      <div class="chat-context" id="chat-context"></div>
+      <div class="chat-rooms" id="chat-rooms"></div>
+      <div class="chat-panel">
+        <div class="dm-thread-head">
+          <strong id="chat-room-title">💬 전체 채팅</strong>
+          <span id="chat-room-sub" class="hint" style="display:inline; margin-left:8px;"></span>
+          <button class="icon-btn" id="chat-members-btn" title="대화 멤버 보기" style="margin-left:auto;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M15.5 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </button>
+          <button class="chat-close" id="chat-close" aria-label="채팅 닫기">✕</button>
+          <div class="members-pop" id="chat-members-pop" style="display:none;"></div>
+        </div>
+        <div class="dm-messages" id="chat-messages"></div>
+        <div class="dm-input">
+          <textarea id="chat-text" rows="1" placeholder="메시지 입력 (Enter 전송 · Shift+Enter 줄바꿈)"></textarea>
+          <button class="btn-sm primary" id="chat-send">보내기</button>
+        </div>
+      </div>
+    </div>
+    <button class="chat-fab" id="chat-fab" aria-label="팀 채팅 열기">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 11.6a7.8 7.8 0 0 1-8.4 7.7c-1.2-.05-2.35-.35-3.35-.9L4 19.5l1.15-4.1A7.8 7.8 0 1 1 21 11.6z"/>
+      </svg>
+      <span class="nav-badge" id="chat-fab-badge" style="display:none;"></span>
+    </button>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hjkoo@hs.ac.kr</p>
+      </div>
+      <div class="f-links">
+        <a href="research.html">연구</a>
+        <a href="dashboard.html">마이페이지</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+  <script type="module" src="js/project-page.js"></script>
+</body>
+</html>

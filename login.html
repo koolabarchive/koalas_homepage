@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>멤버 로그인 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="research.html">연구</a>
+        <a href="members.html">구성원</a>
+        <a href="publications.html">성과</a>
+        <a href="notice.html">공지</a>
+        <a href="login.html" class="btn-login active">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="auth-wrap">
+    <div class="auth-card">
+
+      <!-- 로그인 폼 -->
+      <div id="login-panel">
+        <h1>멤버 로그인</h1>
+        <p class="auth-sub">연구실 구성원 전용 공간입니다.</p>
+
+        <div class="field">
+          <label for="login-email">이메일</label>
+          <input type="email" id="login-email" autocomplete="email" placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label for="login-password">비밀번호</label>
+          <input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••" />
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-login">로그인</button>
+        <div class="form-msg" id="login-msg"></div>
+
+        <div class="auth-links">
+          <a href="#" id="link-signup">가입 신청</a>
+          <a href="#" id="link-reset">비밀번호 재설정</a>
+        </div>
+      </div>
+
+      <!-- 가입 신청 폼 (기본 숨김) -->
+      <div id="signup-panel" style="display:none;">
+        <h1>가입 신청</h1>
+        <p class="auth-sub">가입 후 관리자 승인이 완료되면 멤버 기능을 사용할 수 있습니다.</p>
+
+        <div class="field">
+          <label for="su-name">이름</label>
+          <input type="text" id="su-name" placeholder="홍길동" />
+        </div>
+        <div class="field">
+          <label for="su-affil">소속</label>
+          <select id="su-affil"></select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="su-position">직책</label>
+            <select id="su-position"></select>
+          </div>
+          <div class="field">
+            <label for="su-status">상태</label>
+            <select id="su-status"></select>
+          </div>
+        </div>
+        <div class="field" id="su-affil-etc-wrap" style="display:none;">
+          <label for="su-affil-etc">소속 직접 입력</label>
+          <input type="text" id="su-affil-etc" placeholder="소속을 입력해 주세요" />
+        </div>
+        <div class="field">
+          <label for="su-email">이메일</label>
+          <input type="email" id="su-email" autocomplete="email" placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label for="su-password">비밀번호 (6자 이상)</label>
+          <input type="password" id="su-password" autocomplete="new-password" placeholder="••••••••" />
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-signup">가입 신청하기</button>
+        <div class="form-msg" id="signup-msg"></div>
+
+        <div class="auth-links">
+          <a href="#" id="link-back-login">로그인으로 돌아가기</a>
+        </div>
+      </div>
+
+      <div class="auth-notice">
+        가입 신청은 관리자 승인 후 활성화됩니다. 승인 관련 문의는 연구실 이메일로 연락해 주세요.<br />
+        <a href="admin.html" style="font-weight:600; text-decoration:underline;">관리자 화면 미리보기 →</a>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hjkoo@hs.ac.kr</p>
+      </div>
+      <div class="f-links">
+        <a href="research.html">연구</a>
+        <a href="publications.html">성과</a>
+        <a href="login.html">멤버 로그인</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>

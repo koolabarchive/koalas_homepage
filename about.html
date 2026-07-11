@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>연구실 소개 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="notice.html">공지</a>
+        <a href="members.html">구성원</a>
+        <a href="research.html">연구</a>
+        <a href="publications.html">성과</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">About</span>
+      <h1>연구실 소개</h1>
+      <p>한신대학교 심리학과 임상심리 연구실을 소개합니다.</p>
+    </div>
+  </section>
+
+  <!-- 학과 · 연구실 소개 -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:20px;">
+        <h2 style="font-size:1.3rem;">한신대학교 심리학과</h2>
+      </div>
+      <!-- ✏️ 아래 소개 문구는 자유롭게 수정해 주세요 -->
+      <div class="md-body">
+        <p>한신대학교 심리아동학부 심리학전공은 인간의 마음과 행동을 과학적으로 탐구하고,
+        이를 바탕으로 개인과 공동체의 심리적 안녕에 기여하는 전문가를 양성합니다.
+        학부 과정과 함께 일반대학원 심리학과(임상 및 상담심리 전공), 정신분석대학원,
+        교육대학원 과정을 통해 이론과 실무를 아우르는 교육을 제공합니다.</p>
+        <p>임상심리 연구실은 인지행동치료와 트라우마 연구를 기반으로,
+        AI 시대의 심리상담 교육과 실천을 탐구합니다. 정서장애의 심리적 기제 규명부터
+        근거기반 개입의 개발과 검증, LLM 기반 상담자 훈련 플랫폼 연구까지 —
+        과학자-실무자 모델(scientist-practitioner model)에 따라 연구와 임상 현장을 잇는
+        작업을 이어가고 있습니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 지도교수 소개 -->
+  <section class="section alt">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:24px;">
+        <h2 style="font-size:1.3rem;">지도교수</h2>
+      </div>
+      <div class="about-prof">
+        <div class="prof-photo" id="prof-photo">
+          <div class="prof-photo-placeholder" id="prof-photo-ph">사진</div>
+        </div>
+        <div style="min-width:0;">
+          <div id="prof-profile"><p style="color:var(--muted); font-size:0.9rem;">불러오는 중…</p></div>
+          <button class="btn-sm" id="btn-edit-profile" style="display:none; margin-top:12px;">✎ 프로필 수정</button>
+        </div>
+      </div>
+
+      <div class="prof-cv" style="margin-top:34px;">
+        <div class="grid grid-2" style="align-items:start;">
+          <div class="md-body prof-sec" style="font-size:0.9rem;">
+            <h3>학력 <button class="btn-sm sec-edit" data-sec="education" style="display:none;">✎</button></h3>
+            <div id="sec-education"></div>
+            <h3>자격 <button class="btn-sm sec-edit" data-sec="licensure" style="display:none;">✎</button></h3>
+            <div id="sec-licensure"></div>
+          </div>
+          <div class="md-body prof-sec" style="font-size:0.9rem;">
+            <h3>주요 경력 <button class="btn-sm sec-edit" data-sec="career" style="display:none;">✎</button></h3>
+            <div id="sec-career"></div>
+          </div>
+        </div>
+
+        <div class="md-body prof-sec" style="font-size:0.9rem; margin-top:10px;" id="wrap-awards">
+          <h3>수상 <button class="btn-sm sec-edit" data-sec="awards" style="display:none;">✎</button></h3>
+          <div id="sec-awards"></div>
+        </div>
+
+        <div class="md-body prof-sec" style="font-size:0.9rem; margin-top:10px;">
+          <h3>저서 <button class="btn-sm sec-edit" data-sec="books" style="display:none;">✎</button></h3>
+          <div id="sec-books"></div>
+        </div>
+
+        <div class="md-body" style="font-size:0.9rem; margin-top:10px;">
+          <h3>논문 (최근 5년)</h3>
+          <div class="pub-list" id="prof-recent-papers" style="margin-top:12px;">
+            <div class="pub-item"><div></div><div class="pub-meta">불러오는 중…</div></div>
+          </div>
+          <p style="margin-top:14px;"><a href="publications.html" class="btn-sm" style="text-decoration:none;">연구 성과 전체 보기 →</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 찾아오시는 길 -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:24px;">
+        <h2 style="font-size:1.3rem;">찾아오시는 길</h2>
+      </div>
+      <div class="grid grid-2" style="align-items:start;">
+        <div class="about-map">
+          <iframe
+            src="https://www.google.com/maps?q=%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90&output=embed"
+            width="100%" height="340" style="border:0; border-radius:14px;"
+            allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+            title="한신대학교 위치 지도"></iframe>
+        </div>
+        <div class="md-body" style="font-size:0.93rem;">
+          <h3>주소</h3>
+          <p>경기도 오산시 한신대길 137<br>한신대학교 심리학과<br>
+          <a href="https://map.kakao.com/?q=한신대학교" target="_blank" rel="noopener noreferrer">카카오맵에서 보기 ↗</a> ·
+          <a href="https://map.naver.com/p/search/한신대학교" target="_blank" rel="noopener noreferrer">네이버지도에서 보기 ↗</a></p>
+          <h3>대중교통</h3>
+          <p>지하철 1호선 <strong>병점역</strong> 하차 후 셔틀버스 또는 버스 환승<br>
+          지하철 1호선 <strong>오산대역</strong>에서 버스 이용 가능</p>
+          <!-- ✏️ 셔틀·버스 노선 등 상세 교통편은 실제 정보로 보완해 주세요 -->
+          <h3>연락처</h3>
+          <p>📧 hjkoo@hs.ac.kr<br>
+          연구 참가 문의는 각 <a href="research.html">프로젝트 페이지</a>의 신청 폼을 이용해 주세요.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 섹션 내용 수정 모달 (학력·자격·경력·수상·저서 공용) -->
+  <div class="modal-backdrop" id="sec-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sec-modal-title">
+      <h3 id="sec-modal-title">수정</h3>
+      <div class="field">
+        <textarea id="sec-md" rows="12"></textarea>
+        <div class="hint">한 줄에 하나씩 "- " 로 시작하면 목록으로 표시됩니다. **굵게**, *기울임*, [링크](https://…) 마크다운을 지원해요.</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="sec-cancel">취소</button>
+        <button class="btn-sm primary" id="sec-save">저장</button>
+      </div>
+      <div class="form-msg" id="sec-msg"></div>
+    </div>
+  </div>
+
+  <!-- 프로필 수정 모달 (이름·직함·연락처·소개·사진) -->
+  <div class="modal-backdrop" id="prof-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="prof-modal-title">
+      <h3 id="prof-modal-title">지도교수 프로필 수정</h3>
+      <div class="field-row">
+        <div class="field">
+          <label for="pf-name">이름</label>
+          <input type="text" id="pf-name" placeholder="구훈정" />
+        </div>
+        <div class="field">
+          <label for="pf-name-en">영문 이름·학위</label>
+          <input type="text" id="pf-name-en" placeholder="Koo Hoon Jung, Ph.D." />
+        </div>
+      </div>
+      <div class="field">
+        <label for="pf-title">직함 줄</label>
+        <input type="text" id="pf-title" placeholder="한신대학교 심리학과 교수 · 정신분석대학원장 · …" />
+      </div>
+      <div class="field">
+        <label for="pf-contact">연락처 줄</label>
+        <input type="text" id="pf-contact" placeholder="📧 이메일 · ☎ 전화 · 🏢 연구실 위치" />
+      </div>
+      <div class="field">
+        <label for="pf-intro">소개 문단 (마크다운)</label>
+        <textarea id="pf-intro" rows="5"></textarea>
+      </div>
+      <div class="field">
+        <label>사진</label>
+        <div class="file-list" id="pf-photo-preview" style="margin-bottom:6px;"></div>
+        <input type="file" id="pf-photo" class="file-input" accept="image/*" />
+        <div class="hint">업로드하면 자동으로 512px 이하로 줄여 저장됩니다.</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="pf-cancel">취소</button>
+        <button class="btn-sm primary" id="pf-save">저장</button>
+      </div>
+      <div class="form-msg" id="pf-msg"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hjkoo@hs.ac.kr</p>
+      </div>
+      <div class="f-links">
+        <a href="research.html">연구</a>
+        <a href="archive.html">자료실</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+  <script type="module" src="js/about-page.js"></script>
+</body>
+</html>

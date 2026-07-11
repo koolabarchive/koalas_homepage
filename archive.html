@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>자료실 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="notice.html">공지</a>
+        <a href="members.html">구성원</a>
+        <a href="research.html">연구</a>
+        <a href="publications.html">성과</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">Archive</span>
+      <h1>자료실</h1>
+      <p>연구실의 양식, 발표자료, 유용한 문서와 링크를 모아둔 공간입니다.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding: 44px 0 90px;">
+    <div class="container">
+      <div class="db-toolbar" style="max-width:920px;">
+        <div class="pub-filter" id="ar-filter" style="margin-bottom:0;">
+          <button class="active" data-cat="all">전체</button>
+          <button data-cat="양식·서식">양식·서식</button>
+          <button data-cat="발표자료">발표자료</button>
+          <button data-cat="문서">문서</button>
+          <button data-cat="링크">링크</button>
+          <button data-cat="기타">기타</button>
+        </div>
+        <input type="search" id="ar-search" class="db-search" placeholder="🔍 제목·내용 검색" />
+      </div>
+      <div class="panel-toolbar" id="ar-admin-bar" style="display:none; max-width:920px;">
+        <span class="hint">관리자: 자료를 등록·삭제할 수 있습니다. 🔒 표시는 멤버 전용 자료입니다.</span>
+        <button class="btn-sm primary" id="btn-write-ar">⇧ 자료 등록</button>
+      </div>
+      <div class="board-list" id="ar-list" style="max-width:920px;">
+        <p style="color:var(--muted); font-size:0.9rem; padding:12px 4px;">불러오는 중…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 자료 등록 모달 (관리자) -->
+  <div class="modal-backdrop" id="ar-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ar-modal-title">
+      <h3 id="ar-modal-title">자료 등록</h3>
+      <div class="field-row">
+        <div class="field">
+          <label for="ar-cat">분류</label>
+          <select id="ar-cat">
+            <option>양식·서식</option>
+            <option>발표자료</option>
+            <option>문서</option>
+            <option>링크</option>
+            <option>기타</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ar-scope">공개 범위</label>
+          <select id="ar-scope">
+            <option value="public">공개 — 누구나 열람·다운로드</option>
+            <option value="member">🔒 멤버 전용</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="ar-title">제목</label>
+        <input type="text" id="ar-title" placeholder="예: 연구참여 동의서 양식" />
+      </div>
+      <div class="field">
+        <label for="ar-note">설명 (선택)</label>
+        <textarea id="ar-note" rows="3" placeholder="자료에 대한 간단한 설명"></textarea>
+      </div>
+      <div class="field">
+        <label for="ar-link">링크 (선택)</label>
+        <input type="text" id="ar-link" placeholder="https:// 외부 자료 링크" />
+      </div>
+      <div class="field">
+        <label for="ar-files">첨부파일 (선택) <span class="hint" style="display:inline;">— 파일당 최대 10MB · 5개까지</span></label>
+        <input type="file" id="ar-files" class="file-input" multiple />
+        <div class="file-list" id="ar-file-list"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="ar-cancel">취소</button>
+        <button class="btn-sm primary" id="ar-save">등록</button>
+      </div>
+      <div class="form-msg" id="ar-msg"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hjkoo@hs.ac.kr</p>
+      </div>
+      <div class="f-links">
+        <a href="about.html">연구실 소개</a>
+        <a href="dashboard.html">마이페이지</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+  <script type="module" src="js/archive-page.js"></script>
+</body>
+</html>

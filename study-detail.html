@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>스터디 상세 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 헤더: 제목/메타/미팅/타임라인 -->
+  <section class="detail-head">
+    <div class="container">
+      <a href="study.html" style="font-size:0.84rem; color:var(--muted);">← 스터디 목록</a>
+      <div style="margin-top:14px;">
+        <span class="status" id="sd-status-badge">—</span>
+        <h1 id="sd-title">불러오는 중…</h1>
+        <div class="detail-meta" id="sd-meta"></div>
+        <div id="sd-meeting"></div>
+      </div>
+      <div class="timeline-wrap" id="sd-timeline-wrap" style="display:none;">
+        <div class="timeline" id="sd-timeline"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 소개 + 참여자 + 참여 버튼 + 리더 관리 -->
+  <section class="section" style="padding: 44px 0;">
+    <div class="container">
+      <p id="sd-desc" style="font-size:0.95rem; color:var(--muted); white-space:pre-line; max-width:720px;"></p>
+      <div class="study-meta" id="sd-participants" style="margin-top:16px;"></div>
+      <div id="sd-actions" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:18px;"></div>
+
+      <div id="sd-manage" class="card" style="display:none; margin-top:22px; max-width:720px;">
+        <h3 style="font-size:0.95rem;">리더 관리</h3>
+        <div class="field" style="margin-top:14px;">
+          <label for="sd-meeting-url">온라인 미팅 링크</label>
+          <input type="text" id="sd-meeting-url" placeholder="https://zoom.us/... (비우면 버튼이 표시되지 않습니다)" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="sd-mode">진행 방식</label>
+            <select id="sd-mode">
+              <option value="online">온라인</option>
+              <option value="offline">오프라인</option>
+              <option value="hybrid">온·오프라인 병행</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sd-opened">개설일</label>
+            <input type="date" id="sd-opened" />
+          </div>
+          <div class="field">
+            <label for="sd-status">상태</label>
+            <select id="sd-status">
+              <option value="recruiting">모집 중</option>
+              <option value="active">운영 중</option>
+              <option value="ended">종료</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="sd-weeks">총 주차</label>
+            <input type="text" id="sd-weeks" placeholder="예: 10" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label for="sd-start">시작일</label>
+            <input type="date" id="sd-start" />
+          </div>
+        </div>
+        <div class="field">
+          <label>진행 요일 <span class="hint" style="display:inline;">— 선택하면 타임라인에 회차별로 표시됩니다</span></label>
+          <div class="day-picker" id="sd-days"></div>
+        </div>
+        <div class="field">
+          <label for="sd-add-member">참여자 추가</label>
+          <div class="field-row" style="align-items:stretch;">
+            <div class="field" style="margin-bottom:0;">
+              <select id="sd-add-member"></select>
+            </div>
+            <button class="btn-sm primary" id="sd-add-member-btn" style="flex:none;">추가</button>
+          </div>
+          <div class="hint">아직 참여하지 않은 멤버를 명단에 추가합니다.</div>
+        </div>
+        <div class="field">
+          <label for="sd-leader">리더 지정</label>
+          <select id="sd-leader"></select>
+          <div class="hint">참여자 중에서 선택합니다. 리더를 변경하면 스터디 관리 권한이 새 리더에게 이전됩니다.</div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-sm danger" id="sd-delete">스터디 삭제</button>
+          <button class="btn-sm primary" id="sd-manage-save">저장</button>
+        </div>
+        <div class="form-msg" id="sd-msg"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 공지 -->
+  <section class="section alt" style="padding: 44px 0;">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:18px;">
+        <h2 style="font-size:1.2rem;">스터디 공지</h2>
+        <p>제목을 클릭하면 내용과 첨부파일을 볼 수 있습니다.</p>
+      </div>
+      <div class="board-list" id="sd-posts" style="max-width:820px;">
+        <p style="color:var(--muted); font-size:0.9rem; padding:12px 4px;">불러오는 중…</p>
+      </div>
+      <div class="board-toolbar" id="sd-post-toolbar" style="display:none; max-width:820px;">
+        <button class="btn-sm primary" id="btn-write-post">✎ 공지 글쓰기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 자료 -->
+  <section class="section" style="padding: 44px 0;">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:18px;">
+        <h2 style="font-size:1.2rem;">스터디 자료</h2>
+        <p>참여 멤버 누구나 파일을 직접 올리고 내려받을 수 있습니다.</p>
+      </div>
+      <div class="board-list" id="sd-materials" style="max-width:820px;">
+        <p style="color:var(--muted); font-size:0.9rem; padding:12px 4px;">불러오는 중…</p>
+      </div>
+      <div class="board-toolbar" style="max-width:820px;">
+        <button class="btn-sm primary" id="btn-write-mat">⇧ 자료 올리기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 공지 글쓰기 모달 -->
+  <div class="modal-backdrop" id="post-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="post-modal-title">
+      <h3 id="post-modal-title">스터디 공지 글쓰기</h3>
+      <div class="field-row">
+        <div class="field">
+          <label for="sp-when">작성일시</label>
+          <input type="datetime-local" id="sp-when" />
+        </div>
+        <div class="field">
+          <label for="sp-author">작성자</label>
+          <input type="text" id="sp-author" placeholder="이름" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="sp-title">제목</label>
+        <input type="text" id="sp-title" placeholder="예: 3주차 발제 순서 안내" />
+      </div>
+      <div class="field">
+        <label for="sp-content">공지 내용</label>
+        <textarea id="sp-content" rows="5" placeholder="공지 내용을 입력해 주세요."></textarea>
+      </div>
+      <div class="field">
+        <label for="sp-files">첨부파일 <span class="hint" style="display:inline;">— 이미지·PDF·문서 등, 파일당 최대 10MB · 5개까지</span></label>
+        <input type="file" id="sp-files" class="file-input" multiple />
+        <div class="file-list" id="sp-file-list"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="sp-cancel">취소</button>
+        <button class="btn-sm primary" id="sp-add">공지 올리기</button>
+      </div>
+      <div class="form-msg" id="sp-msg"></div>
+    </div>
+  </div>
+
+  <!-- 자료 올리기 모달 -->
+  <div class="modal-backdrop" id="mat-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mat-modal-title">
+      <h3 id="mat-modal-title">스터디 자료 올리기</h3>
+      <div class="field-row">
+        <div class="field">
+          <label for="sm-when">작성일시</label>
+          <input type="datetime-local" id="sm-when" />
+        </div>
+        <div class="field">
+          <label for="sm-author">작성자</label>
+          <input type="text" id="sm-author" placeholder="이름" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="sm-title">자료 제목</label>
+        <input type="text" id="sm-title" placeholder="예: 3주차 발제문" />
+      </div>
+      <div class="field">
+        <label for="sm-note">설명 (선택)</label>
+        <textarea id="sm-note" rows="3" placeholder="자료에 대한 간단한 설명"></textarea>
+      </div>
+      <div class="field">
+        <label for="sm-files">첨부파일 <span class="hint" style="display:inline;">— 최소 1개, 파일당 최대 10MB · 5개까지</span></label>
+        <input type="file" id="sm-files" class="file-input" multiple />
+        <div class="file-list" id="sm-file-list"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="sm-cancel">취소</button>
+        <button class="btn-sm primary" id="sm-add">자료 등록</button>
+      </div>
+      <div class="form-msg" id="sm-msg"></div>
+    </div>
+  </div>
+
+  <!-- 채팅방 만들기 모달 -->
+  <div class="modal-backdrop" id="room-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="room-modal-title">
+      <h3 id="room-modal-title">채팅방 만들기</h3>
+      <div class="field">
+        <label for="rm-name">채팅방 이름</label>
+        <input type="text" id="rm-name" placeholder="예: 설문 제작팀, 3주차 발제 준비" />
+      </div>
+      <div class="field">
+        <label>함께할 멤버 <span class="hint" style="display:inline;">— 나는 자동으로 포함됩니다</span></label>
+        <div class="member-check-list" id="rm-members"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="rm-cancel">취소</button>
+        <button class="btn-sm primary" id="rm-create">만들기</button>
+      </div>
+      <div class="form-msg" id="rm-msg"></div>
+    </div>
+  </div>
+
+  <!-- 팀 채팅 플로팅 위젯 (참여자 전용) -->
+  <div class="chat-fab-wrap" id="team-chat-section" style="display:none;">
+    <div class="chat-popup" id="chat-popup">
+      <div class="chat-context" id="chat-context"></div>
+      <div class="chat-rooms" id="chat-rooms"></div>
+      <div class="chat-panel">
+        <div class="dm-thread-head">
+          <strong id="chat-room-title">💬 전체 채팅</strong>
+          <span id="chat-room-sub" class="hint" style="display:inline; margin-left:8px;"></span>
+          <button class="icon-btn" id="chat-members-btn" title="대화 멤버 보기" style="margin-left:auto;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M15.5 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </button>
+          <button class="chat-close" id="chat-close" aria-label="채팅 닫기">✕</button>
+          <div class="members-pop" id="chat-members-pop" style="display:none;"></div>
+        </div>
+        <div class="dm-messages" id="chat-messages"></div>
+        <div class="dm-input">
+          <textarea id="chat-text" rows="1" placeholder="메시지 입력 (Enter 전송 · Shift+Enter 줄바꿈)"></textarea>
+          <button class="btn-sm primary" id="chat-send">보내기</button>
+        </div>
+      </div>
+    </div>
+    <button class="chat-fab" id="chat-fab" aria-label="팀 채팅 열기">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 11.6a7.8 7.8 0 0 1-8.4 7.7c-1.2-.05-2.35-.35-3.35-.9L4 19.5l1.15-4.1A7.8 7.8 0 1 1 21 11.6z"/>
+      </svg>
+      <span class="nav-badge" id="chat-fab-badge" style="display:none;"></span>
+    </button>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hjkoo@hs.ac.kr</p>
+      </div>
+      <div class="f-links">
+        <a href="study.html">스터디</a>
+        <a href="dashboard.html">마이페이지</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+  <script type="module" src="js/study-page.js"></script>
+</body>
+</html>

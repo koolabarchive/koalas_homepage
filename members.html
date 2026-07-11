@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>구성원 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="research.html">연구</a>
+        <a href="members.html" class="active">구성원</a>
+        <a href="publications.html">성과</a>
+        <a href="notice.html">공지</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">People</span>
+      <h1>구성원</h1>
+      <p>일반대학원 심리학과, 정신분석대학원, 교육대학원의 연구자들이 함께합니다.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+
+      <!-- 지도교수 -->
+      <div class="member-group" id="group-professor" style="display:none;">
+        <h3>지도교수</h3>
+        <div class="grid grid-3" id="grid-professor"></div>
+      </div>
+
+      <!-- 박사과정 -->
+      <div class="member-group" id="group-phd" style="display:none;">
+        <h3>박사과정</h3>
+        <div class="grid grid-3" id="grid-phd"></div>
+      </div>
+
+      <!-- 석사과정 -->
+      <div class="member-group" id="group-ms" style="display:none;">
+        <h3>석사과정</h3>
+        <div class="grid grid-3" id="grid-ms"></div>
+      </div>
+
+      <!-- 졸업생 -->
+      <div class="member-group" id="group-alumni" style="display:none;">
+        <h3>졸업생 (Alumni)</h3>
+        <div class="pub-list" id="alumni-list"></div>
+      </div>
+
+      <p id="members-empty" style="color:var(--muted);">불러오는 중…</p>
+
+    </div>
+  </section>
+
+  <!-- 구성원 상세 모달 -->
+  <div class="modal-backdrop" id="person-modal">
+    <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="person-name">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+        <div style="display:flex; gap:16px; align-items:center;">
+          <div id="person-photo"></div>
+          <div>
+            <h3 id="person-name" style="margin-bottom:4px;"></h3>
+            <div id="person-title" style="font-size:0.85rem; color:var(--muted);"></div>
+          </div>
+        </div>
+        <button class="btn-sm" id="person-close">닫기 ✕</button>
+      </div>
+      <div id="person-interest" style="margin-top:18px;"></div>
+      <h4 style="font-size:0.92rem; font-weight:700; margin:22px 0 8px; padding-top:16px; border-top:1px solid var(--line);">참여 프로젝트</h4>
+      <div id="person-projects" style="font-size:0.88rem;"></div>
+      <h4 style="font-size:0.92rem; font-weight:700; margin:22px 0 8px; padding-top:16px; border-top:1px solid var(--line);">연구 성과</h4>
+      <div id="person-pubs" style="font-size:0.88rem;"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hjkoo@hs.ac.kr</p>
+      </div>
+      <div class="f-links">
+        <a href="research.html">연구</a>
+        <a href="publications.html">성과</a>
+        <a href="login.html">멤버 로그인</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+</body>
+</html>

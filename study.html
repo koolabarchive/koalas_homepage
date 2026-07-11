@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>스터디 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">Study Group</span>
+      <h1>스터디</h1>
+      <p>연구실 멤버들이 함께하는 스터디를 개설하고, 참여하고, 자료를 나눕니다.</p>
+    </div>
+  </section>
+
+  <!-- 모집 중 -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head" style="margin-bottom: 20px;">
+        <h2 style="font-size:1.3rem;">스터디 모집</h2>
+        <p>참여할 스터디를 찾아보세요. 클릭하면 소개와 참여 신청 화면이 열립니다.</p>
+      </div>
+      <div class="panel-toolbar">
+        <span></span>
+        <button class="btn-sm primary" id="btn-create-study">+ 스터디 개설</button>
+      </div>
+      <div class="grid grid-3" id="recruit-list">
+        <div class="card"><p style="color:var(--muted);">불러오는 중…</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 운영 중 -->
+  <section class="section alt">
+    <div class="container">
+      <div class="section-head" style="margin-bottom: 24px;">
+        <h2 style="font-size:1.3rem;">운영 중인 스터디</h2>
+        <p>카드를 클릭하면 스터디 자료실을 볼 수 있습니다.</p>
+      </div>
+      <div class="grid grid-3" id="active-grid">
+        <div class="card"><p style="color:var(--muted);">불러오는 중…</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 종료 -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head" style="margin-bottom: 20px;">
+        <h2 style="font-size:1.3rem;">종료된 스터디</h2>
+        <p>지난 스터디의 자료도 계속 열람할 수 있습니다.</p>
+      </div>
+      <div class="pub-list" id="ended-list">
+        <div class="pub-item"><div></div><div class="pub-meta">불러오는 중…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 스터디 개설 모달 -->
+  <div class="modal-backdrop" id="create-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="create-modal-title">
+      <h3 id="create-modal-title">스터디 개설</h3>
+      <div class="field">
+        <label for="st-title">스터디 이름</label>
+        <input type="text" id="st-title" placeholder="예: DSM-5-TR 진단기준 스터디" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="st-mode">진행 방식</label>
+          <select id="st-mode">
+            <option value="online">온라인</option>
+            <option value="offline">오프라인</option>
+            <option value="hybrid">온·오프라인 병행</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="st-opened">개설일</label>
+          <input type="date" id="st-opened" />
+          <div class="hint">런칭 전부터 진행 중인 스터디는 실제 개설일로 수정해 주세요.</div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="st-schedule">일정</label>
+        <input type="text" id="st-schedule" placeholder="예: 매주 토·일 10:00" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="st-capacity">최대 인원 (선택)</label>
+          <input type="text" id="st-capacity" placeholder="예: 6 (리더 포함, 비우면 제한 없음)" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="st-recruit-end">모집 마감일</label>
+          <input type="date" id="st-recruit-end" />
+          <div class="hint">마감일이 지나면 자동으로 "운영 중"으로 전환됩니다.</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="st-recruit-start">모집 시작일</label>
+          <input type="date" id="st-recruit-start" />
+        </div>
+        <div class="field">
+          <label for="st-weeks">총 주차 (선택)</label>
+          <input type="text" id="st-weeks" placeholder="예: 10" inputmode="numeric" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="st-start">스터디 시작일 (선택)</label>
+        <input type="date" id="st-start" />
+      </div>
+      <div class="field">
+        <label>진행 요일 (선택)</label>
+        <div class="day-picker" id="st-days"></div>
+        <div class="hint">예: 토·일을 선택하면 주 2회 진행이 회차별로 타임라인에 표시됩니다.</div>
+      </div>
+      <div class="field">
+        <label for="st-meeting">온라인 미팅 링크 (선택)</label>
+        <input type="text" id="st-meeting" placeholder="https://zoom.us/..." />
+      </div>
+      <div class="field">
+        <label for="st-desc">소개</label>
+        <textarea id="st-desc" rows="4" placeholder="스터디 목표, 진행 방식, 대상 등을 적어 주세요."></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="create-cancel">취소</button>
+        <button class="btn-sm primary" id="create-save">모집 시작</button>
+      </div>
+      <div class="form-msg" id="create-modal-msg"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hjkoo@hs.ac.kr</p>
+      </div>
+      <div class="f-links">
+        <a href="dashboard.html">마이페이지</a>
+        <a href="index.html">홈</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+  <script type="module" src="js/study-app.js"></script>
+</body>
+</html>

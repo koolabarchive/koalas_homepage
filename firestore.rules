@@ -1,0 +1,383 @@
+rules_version = '2';
+
+// 한신대학교 임상심리 연구실 사이트 — Firestore 보안 규칙
+// Firebase 콘솔 → Firestore Database → 규칙 탭에 전체를 붙여넣고 "게시"하세요.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- 공통 함수 ----------
+    function signedIn() {
+      return request.auth != null;
+    }
+    function myRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    function isAdmin() {
+      return signedIn() && myRole() == 'admin';
+    }
+    function isMember() {
+      return signedIn() && (myRole() == 'member' || myRole() == 'admin');
+    }
+
+    // ---------- users: 계정/권한 ----------
+    match /users/{userId} {
+      // 본인 문서, 또는 승인된 멤버(연구실 내부 명단 — 스터디 참여자 추가 등에 사용)
+      allow read: if isMember() || (signedIn() && request.auth.uid == userId);
+
+      // 가입 시 본인 문서 생성:
+      //  - 기본은 role == 'pending'
+      //  - 사전 등록(invites)된 이메일이면 등록된 role로 생성 허용
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.email == request.auth.token.email
+        && (
+          request.resource.data.role == 'pending'
+          || (
+            exists(/databases/$(database)/documents/invites/$(request.resource.data.email))
+            && request.resource.data.role ==
+               get(/databases/$(database)/documents/invites/$(request.resource.data.email)).data.role
+          )
+        );
+
+      // 권한(role) 변경은 관리자만. 본인은 role을 제외한 프로필만 수정 가능.
+      allow update: if isAdmin()
+        || (signedIn() && request.auth.uid == userId
+            && request.resource.data.role == resource.data.role);
+
+      allow delete: if isAdmin();
+    }
+
+    // ---------- invites: 사전 등록(자동 승인 명단) ----------
+    match /invites/{email} {
+      // 본인 이메일의 사전 등록 여부만 확인 가능, 목록·관리는 관리자만
+      allow get: if isAdmin() || (signedIn() && request.auth.token.email == email);
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- siteConfig: 홈 문구·메뉴 설정 ----------
+    match /siteConfig/{docId} {
+      allow read: if true;          // 공개 사이트 렌더링에 필요
+      allow write: if isAdmin();
+    }
+
+    // ---------- posts: 공지 ----------
+    match /posts/{postId} {
+      allow read: if resource.data.scope == 'public' || isMember();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- publications: 연구 성과 ----------
+    match /publications/{pubId} {
+      // 게시 승인된 성과는 공개, 그 외는 멤버만
+      allow read: if resource.data.visible == true || isMember();
+      // 멤버는 검수 대기 상태로만 등록 가능
+      allow create: if isMember()
+        && request.resource.data.visible == false
+        && request.resource.data.status == 'pending';
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- projects: 연구 프로젝트 ----------
+    match /projects/{projectId} {
+      // 공개 설정된 프로젝트는 누구나, 그 외는 멤버만 조회
+      allow read: if resource.data.public == true || isMember();
+      allow create, delete: if isAdmin();
+      // 관리자는 전체 수정, 프로젝트 리더는 소개(intro)만 수정 가능
+      allow update: if isAdmin()
+        || (isMember()
+            && ('leaderUids' in resource.data)
+            && request.auth.uid in resource.data.leaderUids
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['intro']));
+
+      // 참여 신청 (멤버 본인 명의 신청, 관리자 승인 처리)
+      match /joinRequests/{uid} {
+        allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+        allow list: if isAdmin();
+        allow create: if isMember() && request.auth.uid == uid
+          && request.resource.data.uid == request.auth.uid;
+        allow delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
+        allow update: if isAdmin();
+      }
+
+      // 프로젝트 공지 (공개: 홍보·모집 / 내부: 참여자 전용)
+      match /posts/{postId} {
+        function projData() {
+          return get(/databases/$(database)/documents/projects/$(projectId)).data;
+        }
+        function isProjParticipant() {
+          return isMember()
+            && ('participantsUids' in projData())
+            && request.auth.uid in projData().participantsUids;
+        }
+        allow read: if (resource.data.scope == 'public' && projData().public == true)
+          || isAdmin() || isProjParticipant();
+        // 참여자·관리자 누구나 작성 가능 (공개/내부 선택)
+        allow create: if (isAdmin() || isProjParticipant())
+          && request.resource.data.authorUid == request.auth.uid;
+        allow update, delete: if isAdmin()
+          || (isMember() && resource.data.authorUid == request.auth.uid);
+      }
+
+      // 내부 자료·진행 메모 (참여자와 관리자만)
+      match /materials/{materialId} {
+        function isParticipant() {
+          return isMember()
+            && ('participantsUids' in get(/databases/$(database)/documents/projects/$(projectId)).data)
+            && request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.participantsUids;
+        }
+        allow read: if isAdmin() || isParticipant();
+        allow create: if (isAdmin() || isParticipant())
+          && request.resource.data.uploaderUid == request.auth.uid;
+        allow update, delete: if isAdmin()
+          || (isMember() && resource.data.uploaderUid == request.auth.uid);
+      }
+
+      // 프로젝트 달력 일정 (참여자·관리자 — 등록·수정·참석 체크 모두 가능)
+      match /events/{eventId} {
+        function isEvParticipant() {
+          return isMember()
+            && ('participantsUids' in get(/databases/$(database)/documents/projects/$(projectId)).data)
+            && request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.participantsUids;
+        }
+        allow read, create, update, delete: if isAdmin() || isEvParticipant();
+      }
+
+      // 공지·자료 첨부파일 (참여자 전용, Firestore 청크 저장)
+      match /files/{fileId} {
+        function isFileParticipant() {
+          return isMember()
+            && ('participantsUids' in get(/databases/$(database)/documents/projects/$(projectId)).data)
+            && request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.participantsUids;
+        }
+        allow read: if isAdmin() || isFileParticipant();
+        allow create: if (isAdmin() || isFileParticipant())
+          && request.resource.data.uploaderUid == request.auth.uid;
+        allow delete: if isAdmin()
+          || (isMember() && resource.data.uploaderUid == request.auth.uid);
+
+        match /chunks/{chunkId} {
+          allow read: if isAdmin() || isFileParticipant();
+          allow create: if (isAdmin() || isFileParticipant())
+            && request.resource.data.uploaderUid == request.auth.uid;
+          allow delete: if isAdmin()
+            || (isMember() && resource.data.uploaderUid == request.auth.uid);
+        }
+      }
+    }
+
+    // ---------- projectInquiries: 연구 참가 신청·문의 (외부 방문자도 작성 가능) ----------
+    match /projectInquiries/{inqId} {
+      allow create: if request.resource.data.projectId is string
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+        && request.resource.data.contact is string
+        && request.resource.data.contact.size() > 0 && request.resource.data.contact.size() <= 200
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 3000;
+      // 관리자 또는 해당 프로젝트 리더만 열람·삭제
+      allow read, delete: if isAdmin()
+        || (isMember()
+            && ('leaderUids' in get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data)
+            && request.auth.uid in get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.leaderUids);
+    }
+
+    // ---------- certificates: 연구참여확인서 ----------
+    match /certificates/{certId} {
+      // 본인 신청 건 또는 관리자만 조회
+      allow read: if isAdmin() || (signedIn() && resource.data.requesterUid == request.auth.uid);
+      // 멤버 본인 명의로만, '신청' 상태로만 생성 가능
+      allow create: if isMember()
+        && request.resource.data.requesterUid == request.auth.uid
+        && request.resource.data.status == 'requested';
+      // 승인·발급번호 부여는 관리자만
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- members: 구성원 공개 프로필 (계정과 별개) ----------
+    match /members/{memberId} {
+      allow read: if true;          // 공개 구성원 페이지 렌더링용
+      // 관리자 외에, 승인된 멤버가 "본인 계정과 연동된" 프로필을 스스로 만드는 것 허용
+      // (사전 등록 가입자의 프로필 자동 생성용)
+      allow create: if isAdmin()
+        || (isMember() && request.resource.data.linkedUid == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- studies: 스터디 (멤버 전용) ----------
+    match /studies/{studyId} {
+      allow read: if isMember();
+      // 개설: 멤버 본인이 리더로만
+      allow create: if isMember() && request.resource.data.leaderUid == request.auth.uid;
+      // 수정: 관리자/리더는 전체, 일반 멤버는 참여자 명단만 (참여/나가기)
+      allow update: if isAdmin()
+        || (isMember() && resource.data.leaderUid == request.auth.uid)
+        || (isMember() && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['participantsUids', 'participantsNames']));
+      allow delete: if isAdmin() || (isMember() && resource.data.leaderUid == request.auth.uid);
+
+      // 모집 신청자 (본인 신청·취소, 리더·관리자 승인·거절)
+      match /applicants/{applicantId} {
+        allow read: if isMember();
+        allow create: if isMember()
+          && request.auth.uid == applicantId
+          && request.resource.data.uid == applicantId
+          && request.resource.data.status == 'pending';
+        allow delete: if isAdmin()
+          || (isMember() && request.auth.uid == applicantId)
+          || (isMember() && get(/databases/$(database)/documents/studies/$(studyId)).data.leaderUid == request.auth.uid);
+        allow update: if isAdmin()
+          || (isMember() && get(/databases/$(database)/documents/studies/$(studyId)).data.leaderUid == request.auth.uid);
+      }
+
+      // 스터디 공지 (리더·관리자 작성)
+      match /posts/{postId} {
+        allow read: if isMember();
+        allow create: if isAdmin()
+          || (isMember() && get(/databases/$(database)/documents/studies/$(studyId)).data.leaderUid == request.auth.uid);
+        allow update, delete: if isAdmin()
+          || (isMember() && resource.data.authorUid == request.auth.uid);
+      }
+
+      // 스터디 자료
+      match /materials/{materialId} {
+        allow read: if isMember();
+        allow create: if isMember() && request.resource.data.uploaderUid == request.auth.uid;
+        allow update, delete: if isAdmin()
+          || (isMember() && resource.data.uploaderUid == request.auth.uid);
+      }
+
+      // 첨부파일 (Firestore 청크 저장 방식 — Storage 요금제 없이 직접 업로드/다운로드)
+      match /files/{fileId} {
+        allow read: if isMember();
+        allow create: if isMember() && request.resource.data.uploaderUid == request.auth.uid;
+        allow delete: if isAdmin()
+          || (isMember() && resource.data.uploaderUid == request.auth.uid);
+
+        match /chunks/{chunkId} {
+          allow read: if isMember();
+          allow create: if isMember() && request.resource.data.uploaderUid == request.auth.uid;
+          allow delete: if isAdmin()
+            || (isMember() && resource.data.uploaderUid == request.auth.uid);
+        }
+      }
+    }
+
+    // ---------- pubFiles: 성과 원문 파일 (멤버 전용 열람) ----------
+    match /pubFiles/{fileId} {
+      allow read: if isMember();
+      allow create: if isMember() && request.resource.data.uploaderUid == request.auth.uid;
+      allow delete: if isAdmin()
+        || (isMember() && resource.data.uploaderUid == request.auth.uid);
+
+      match /chunks/{chunkId} {
+        allow read: if isMember();
+        allow create: if isMember() && request.resource.data.uploaderUid == request.auth.uid;
+        allow delete: if isAdmin()
+          || (isMember() && resource.data.uploaderUid == request.auth.uid);
+      }
+    }
+
+    // ---------- noticeFiles: 공지 첨부파일 (Firestore 청크 저장) ----------
+    // 공개(scope=='public') 글의 첨부는 비로그인 방문자도 내려받을 수 있습니다.
+    match /noticeFiles/{fileId} {
+      allow read: if resource.data.scope == 'public' || isMember();
+      allow create, update, delete: if isAdmin();
+
+      match /chunks/{chunkId} {
+        allow read: if get(/databases/$(database)/documents/noticeFiles/$(fileId)).data.scope == 'public'
+          || isMember();
+        allow create, delete: if isAdmin();
+      }
+    }
+
+    // ---------- dms: 멤버 간 1:1 다이렉트 메시지 ----------
+    match /dms/{convId} {
+      allow read: if isMember() && request.auth.uid in resource.data.participants;
+      // 본인이 포함된 2인 대화만 생성 가능
+      allow create: if isMember()
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.participants.size() == 2;
+      // 참여자만 갱신 (마지막 메시지·안읽음 카운트)
+      allow update: if isMember() && request.auth.uid in resource.data.participants;
+
+      match /messages/{msgId} {
+        function isConvParticipant() {
+          return isMember()
+            && request.auth.uid in get(/databases/$(database)/documents/dms/$(convId)).data.participants;
+        }
+        allow read: if isConvParticipant();
+        allow create: if isConvParticipant()
+          && request.resource.data.senderUid == request.auth.uid;
+        allow delete: if isAdmin()
+          || (isMember() && resource.data.senderUid == request.auth.uid);
+      }
+    }
+
+    // ---------- rooms: 팀 채팅 (프로젝트/스터디 전체 채팅 + 주제별 채팅방) ----------
+    match /rooms/{roomId} {
+      // topic 방은 parentType, 전체 채팅은 type이 부모 종류를 가리킴
+      function refKind(d) { return d.type == 'topic' ? d.parentType : d.type; }
+      function parentParticipant(d) {
+        return (refKind(d) == 'project'
+            && exists(/databases/$(database)/documents/projects/$(d.refId))
+            && 'participantsUids' in get(/databases/$(database)/documents/projects/$(d.refId)).data
+            && request.auth.uid in get(/databases/$(database)/documents/projects/$(d.refId)).data.participantsUids)
+          || (refKind(d) == 'study'
+            && exists(/databases/$(database)/documents/studies/$(d.refId))
+            && 'participantsUids' in get(/databases/$(database)/documents/studies/$(d.refId)).data
+            && request.auth.uid in get(/databases/$(database)/documents/studies/$(d.refId)).data.participantsUids);
+      }
+      // 방 멤버 또는 부모(프로젝트/스터디) 참여자만 조회·갱신 (합류 = 본인을 members에 추가)
+      allow read: if isAdmin()
+        || (isMember() && (request.auth.uid in resource.data.members || parentParticipant(resource.data)));
+      allow create: if isMember()
+        && request.auth.uid in request.resource.data.members
+        && (request.resource.data.type == 'group' || parentParticipant(request.resource.data));
+      allow update: if isAdmin()
+        || (isMember() && (request.auth.uid in resource.data.members || parentParticipant(resource.data)));
+      allow delete: if isAdmin()
+        || (isMember() && resource.data.createdByUid == request.auth.uid);
+
+      match /messages/{msgId} {
+        function inRoom() {
+          return isMember()
+            && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.members;
+        }
+        allow read: if isAdmin() || inRoom();
+        allow create: if inRoom() && request.resource.data.senderUid == request.auth.uid;
+        allow delete: if isAdmin()
+          || (isMember() && resource.data.senderUid == request.auth.uid);
+      }
+    }
+
+    // ---------- archives: 자료실·아카이브 (공개/멤버 전용 구분) ----------
+    match /archives/{archiveId} {
+      allow read: if resource.data.scope == 'public' || isMember();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 자료실 첨부파일 (scope 필드로 공개 여부 구분)
+    match /archiveFiles/{fileId} {
+      allow read: if resource.data.scope == 'public' || isMember();
+      allow create, delete: if isAdmin();
+
+      match /chunks/{chunkId} {
+        allow read: if get(/databases/$(database)/documents/archiveFiles/$(fileId)).data.scope == 'public'
+          || isMember();
+        allow create, delete: if isAdmin();
+      }
+    }
+
+    // ---------- counters: 발급번호 채번용 ----------
+    match /counters/{counterId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------- 그 외 접근 차단 ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

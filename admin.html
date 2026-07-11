@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="demo-banner" id="demo-banner" style="display:none;">
+    미리보기 모드입니다 — 표시된 데이터는 샘플이며, Firebase 연동 후 실제 데이터로 동작합니다.
+  </div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>ADMIN CONSOLE</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈으로</a>
+        <a href="login.html" class="btn-login">로그아웃</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container admin-layout">
+
+    <!-- 사이드 내비 -->
+    <aside class="admin-side">
+      <div class="admin-user">
+        <strong>—</strong>
+        <span>관리자</span>
+      </div>
+      <nav class="admin-nav" aria-label="관리 메뉴">
+        <button class="active" data-panel="dashboard">대시보드</button>
+
+        <div class="nav-label">운영 관리</div>
+        <button data-panel="members">회원 관리</button>
+        <button data-panel="projects">프로젝트 관리</button>
+        <button data-panel="pubs">성과 검수</button>
+        <button data-panel="certs">확인서 발급</button>
+
+        <div class="nav-label">콘텐츠 관리</div>
+        <button data-panel="notices">공지 관리</button>
+        <button data-panel="people">구성원 페이지</button>
+
+        <div class="nav-label">사이트 편집</div>
+        <button data-panel="site">사이트 설정</button>
+        <button data-panel="research">연구분야 관리</button>
+        <button data-panel="menu">메뉴 관리</button>
+      </nav>
+    </aside>
+
+    <!-- 패널 영역 -->
+    <main>
+
+      <!-- 대시보드 -->
+      <section class="admin-panel active" id="panel-dashboard">
+        <h2>대시보드</h2>
+        <p class="panel-desc">연구실 운영 현황을 한눈에 확인합니다.</p>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">전체 멤버</div>
+            <div class="stat-value" id="stat-members">—</div>
+            <div class="stat-sub" id="stat-members-sub"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">진행 중 프로젝트</div>
+            <div class="stat-value" id="stat-projects">—</div>
+            <div class="stat-sub" id="stat-projects-sub"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">등록된 성과</div>
+            <div class="stat-value" id="stat-pubs">—</div>
+            <div class="stat-sub" id="stat-pubs-sub"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">확인서 발급</div>
+            <div class="stat-value" id="stat-certs">—</div>
+            <div class="stat-sub" id="stat-certs-sub">다음 단계 연동</div>
+          </div>
+        </div>
+
+        <h2 style="font-size:1.1rem;">최근 처리 필요 항목</h2>
+        <p class="panel-desc">승인·검수 대기 중인 항목입니다.</p>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>유형</th><th>내용</th><th>신청일</th><th>상태</th></tr>
+            </thead>
+            <tbody id="pending-tbody">
+              <tr><td colspan="4" style="color:var(--muted);">불러오는 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 회원 관리 -->
+      <section class="admin-panel" id="panel-members">
+        <h2>회원 관리</h2>
+        <p class="panel-desc">가입 신청을 승인·거절하고, 멤버의 권한을 관리합니다. 직접 등록한 이메일은 해당 주소로 가입 시 자동 승인됩니다.</p>
+        <div class="panel-toolbar">
+          <span></span>
+          <button class="btn-sm primary" id="btn-add-member">+ 회원 직접 등록</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="member-table">
+            <thead>
+              <tr><th>이름</th><th>소속</th><th>이메일</th><th>가입일</th><th>권한</th><th>처리</th></tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" style="color:var(--muted);">불러오는 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 프로젝트 관리 -->
+      <section class="admin-panel" id="panel-projects">
+        <h2>프로젝트 관리</h2>
+        <p class="panel-desc">프로젝트를 생성하고 참여 연구원과 역할을 배정합니다. 여기 등록된 참여 정보가 연구참여확인서의 근거가 됩니다.</p>
+        <div class="panel-toolbar">
+          <span></span>
+          <button class="btn-sm primary" id="btn-add-project">+ 새 프로젝트</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>프로젝트</th><th>기간</th><th>참여 인원</th><th>상태</th><th>관리</th></tr>
+            </thead>
+            <tbody id="project-tbody">
+              <tr><td colspan="5" style="color:var(--muted);">불러오는 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 성과 검수 -->
+      <section class="admin-panel" id="panel-pubs">
+        <h2>성과 검수</h2>
+        <p class="panel-desc">멤버가 등록한 성과를 검수하고 공개 여부를 결정합니다. 승인된 성과만 공개 사이트에 게시되며, 관리자가 직접 등록한 성과는 즉시 게시할 수 있습니다.</p>
+        <div class="panel-toolbar">
+          <span></span>
+          <button class="btn-sm primary" id="btn-add-pub">+ 성과 직접 등록</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="pub-table">
+            <thead>
+              <tr><th>유형</th><th>제목</th><th>등록자</th><th>상태</th><th>처리</th></tr>
+            </thead>
+            <tbody id="pub-tbody">
+              <tr><td colspan="5" style="color:var(--muted);">불러오는 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 확인서 발급 -->
+      <section class="admin-panel" id="panel-certs">
+        <h2>연구참여확인서 발급</h2>
+        <p class="panel-desc">신청 내역의 참여 기간·역할을 확인한 뒤 승인하면 발급번호가 부여된 PDF가 생성되고 발급 대장에 기록됩니다.</p>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="cert-table">
+            <thead>
+              <tr><th>발급번호</th><th>신청자</th><th>프로젝트 / 역할</th><th>참여 기간</th><th>상태</th><th>처리</th></tr>
+            </thead>
+            <tbody id="cert-tbody">
+              <tr><td colspan="6" style="color:var(--muted);">불러오는 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 공지 관리 -->
+      <section class="admin-panel" id="panel-notices">
+        <h2>공지 관리</h2>
+        <p class="panel-desc">공지사항을 등록·수정하고, 홈 화면 최신 소식 슬라이더 노출 여부를 설정합니다.</p>
+        <div class="panel-toolbar">
+          <span></span>
+          <button class="btn-sm primary" id="btn-add-notice">+ 새 공지 작성</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>제목</th><th>작성자</th><th>작성일</th><th>공개 범위</th><th>슬라이더</th><th>관리</th></tr>
+            </thead>
+            <tbody id="notice-tbody">
+              <tr><td colspan="6" style="color:var(--muted);">불러오는 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 구성원 페이지 관리 -->
+      <section class="admin-panel" id="panel-people">
+        <h2>구성원 페이지</h2>
+        <p class="panel-desc">공개 구성원 페이지에 표시되는 프로필을 관리합니다. 로그인 계정과는 별개의 공개 정보입니다.</p>
+        <div class="panel-toolbar">
+          <span></span>
+          <button class="btn-sm primary" id="btn-add-person">+ 구성원 추가</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>이름</th><th>구분</th><th>소속·직함</th><th>관심 분야 / 비고</th><th>관리</th></tr>
+            </thead>
+            <tbody id="people-tbody">
+              <tr><td colspan="5" style="color:var(--muted);">불러오는 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 사이트 설정 -->
+      <section class="admin-panel" id="panel-site">
+        <h2>사이트 설정</h2>
+        <p class="panel-desc">홈 화면 문구를 수정합니다. 저장하면 공개 사이트에 바로 반영됩니다.</p>
+
+        <div class="card" style="max-width: 640px;">
+          <div class="field">
+            <label for="site-eyebrow">히어로 상단 라벨</label>
+            <input type="text" id="site-eyebrow" />
+          </div>
+          <div class="field">
+            <label for="site-title">히어로 제목</label>
+            <textarea id="site-title" rows="3"></textarea>
+            <div class="hint">줄바꿈은 그대로 반영되고, **텍스트** 로 감싸면 강조색(쪽빛)으로 표시됩니다.</div>
+          </div>
+          <div class="field">
+            <label for="site-desc">히어로 소개 문구</label>
+            <textarea id="site-desc" rows="3"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn-sm" id="site-reset">기본값으로 되돌리기</button>
+            <button class="btn-sm primary" id="site-save">저장</button>
+          </div>
+          <div class="form-msg" id="site-msg"></div>
+        </div>
+      </section>
+
+      <!-- 연구분야 관리 -->
+      <section class="admin-panel" id="panel-research">
+        <h2>연구분야 관리</h2>
+        <p class="panel-desc">연구 페이지의 연구분야 카드와 홈 화면 요약(상위 3개)을 수정합니다. 순서를 바꾸면 홈에 노출되는 3개도 함께 바뀝니다.</p>
+        <div style="max-width: 760px;">
+          <div id="research-editor"></div>
+          <div class="panel-toolbar">
+            <button class="btn-sm" id="research-add">+ 연구분야 추가</button>
+            <div class="form-actions" style="margin: 0;">
+              <button class="btn-sm" id="research-reset">기본값으로 되돌리기</button>
+              <button class="btn-sm primary" id="research-save">저장</button>
+            </div>
+          </div>
+          <div class="form-msg" id="research-msg"></div>
+        </div>
+      </section>
+
+      <!-- 메뉴 관리 -->
+      <section class="admin-panel" id="panel-menu">
+        <h2>메뉴 관리</h2>
+        <p class="panel-desc">상단 메뉴의 이름·링크·순서·표시 여부를 관리합니다. 새 페이지를 만들면 여기서 메뉴에 추가하세요.</p>
+
+        <div style="max-width: 760px;">
+          <div class="menu-editor" id="menu-editor"></div>
+          <div class="panel-toolbar">
+            <button class="btn-sm" id="menu-add">+ 메뉴 항목 추가</button>
+            <div class="form-actions" style="margin: 0;">
+              <button class="btn-sm" id="menu-reset">기본값으로 되돌리기</button>
+              <button class="btn-sm primary" id="menu-save">저장</button>
+            </div>
+          </div>
+          <div class="form-msg" id="menu-msg"></div>
+          <div class="field" style="margin-top: 18px;">
+            <label for="menu-login-label">로그인 버튼 문구</label>
+            <input type="text" id="menu-login-label" style="max-width: 240px;" />
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- 게시글 수정 모달 -->
+  <div class="modal-backdrop" id="edit-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <h3 id="edit-modal-title">새 공지 작성</h3>
+      <div class="field">
+        <label for="edit-title">제목</label>
+        <textarea id="edit-title" rows="2"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="edit-author">작성자</label>
+          <input type="text" id="edit-author" placeholder="이름" />
+        </div>
+        <div class="field" id="edit-date-field">
+          <label for="edit-date">날짜</label>
+          <input type="date" id="edit-date" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field" id="edit-scope-field">
+          <label for="edit-scope">공개 범위</label>
+          <select id="edit-scope">
+            <option value="공개">공개</option>
+            <option value="멤버 전용">멤버 전용</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="edit-badge">말머리 (선택)</label>
+          <input type="text" id="edit-badge" placeholder="예: 모집, 세미나, 안내" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="edit-content">내용</label>
+        <textarea id="edit-content" rows="6" placeholder="공지 내용을 입력해 주세요."></textarea>
+      </div>
+      <div class="field">
+        <label for="edit-files">첨부파일 <span class="hint" style="display:inline;">— 이미지·PDF·문서 등, 파일당 최대 10MB · 5개까지</span></label>
+        <div class="file-list" id="edit-att-current" style="margin-bottom:8px;"></div>
+        <input type="file" id="edit-files" class="file-input" multiple />
+        <div class="file-list" id="edit-file-list"></div>
+      </div>
+      <div class="field">
+        <label class="visible-toggle" style="font-size:0.88rem; color:var(--ink);">
+          <input type="checkbox" id="edit-slider" /> 홈 화면 최신 소식 슬라이더에 노출
+        </label>
+        <div class="hint">공개 범위가 '공개'인 글만 슬라이더에 표시됩니다. 이미지를 첨부하면 첫 번째 이미지가 슬라이드 배경으로 사용됩니다 (권장 2100×800px · 500KB 이하).</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="edit-cancel">취소</button>
+        <button class="btn-sm primary" id="edit-save">저장</button>
+      </div>
+      <div class="form-msg" id="edit-msg"></div>
+    </div>
+  </div>
+
+  <!-- 회원 직접 등록 모달 -->
+  <div class="modal-backdrop" id="member-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
+      <h3 id="member-modal-title">회원 직접 등록</h3>
+      <div class="field">
+        <label for="m-name">이름</label>
+        <input type="text" id="m-name" placeholder="홍길동" />
+      </div>
+      <div class="field">
+        <label for="m-affil">소속</label>
+        <select id="m-affil"></select>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="m-position">직책</label>
+          <select id="m-position"></select>
+        </div>
+        <div class="field">
+          <label for="m-status">상태</label>
+          <select id="m-status"></select>
+        </div>
+      </div>
+      <div class="field" id="m-affil-etc-wrap" style="display:none;">
+        <label for="m-affil-etc">소속 직접 입력</label>
+        <input type="text" id="m-affil-etc" placeholder="소속을 입력해 주세요" />
+      </div>
+      <div class="field">
+        <label for="m-email">이메일</label>
+        <input type="email" id="m-email" placeholder="you@example.com" />
+        <div class="hint">이 이메일로 가입하면 승인 절차 없이 자동으로 멤버가 됩니다.</div>
+      </div>
+      <div class="field">
+        <label for="m-role">권한</label>
+        <select id="m-role">
+          <option value="member">멤버</option>
+          <option value="admin">관리자</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="member-cancel">취소</button>
+        <button class="btn-sm primary" id="member-save">등록</button>
+      </div>
+      <div class="form-msg" id="member-modal-msg"></div>
+    </div>
+  </div>
+
+  <!-- 회원 정보 수정 모달 -->
+  <div class="modal-backdrop" id="member-edit-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="member-edit-title">
+      <h3 id="member-edit-title">회원 정보 수정</h3>
+      <div class="field">
+        <label for="me-name">이름</label>
+        <input type="text" id="me-name" />
+      </div>
+      <div class="field">
+        <label for="me-affil">소속</label>
+        <select id="me-affil"></select>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="me-position">직책</label>
+          <select id="me-position"></select>
+        </div>
+        <div class="field">
+          <label for="me-status">상태</label>
+          <select id="me-status"></select>
+        </div>
+      </div>
+      <div class="field" id="me-affil-etc-wrap" style="display:none;">
+        <label for="me-affil-etc">소속 직접 입력</label>
+        <input type="text" id="me-affil-etc" placeholder="소속을 입력해 주세요" />
+      </div>
+      <div class="field">
+        <label>이메일</label>
+        <input type="text" id="me-email" disabled />
+        <div class="hint">이메일은 로그인 계정과 연결되어 있어 수정할 수 없습니다.</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="me-cancel">취소</button>
+        <button class="btn-sm primary" id="me-save">저장</button>
+      </div>
+      <div class="form-msg" id="member-edit-msg"></div>
+    </div>
+  </div>
+
+  <!-- 성과 직접 등록 모달 -->
+  <div class="modal-backdrop" id="pub-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pub-modal-title">
+      <h3 id="pub-modal-title">성과 직접 등록</h3>
+      <div class="field">
+        <label for="p-type">유형</label>
+        <select id="p-type">
+          <option>학술논문</option>
+          <option>학위논문</option>
+          <option>저서</option>
+          <option>학회발표</option>
+          <option>포스터</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="p-title">제목</label>
+        <textarea id="p-title" rows="2" placeholder="성과 제목"></textarea>
+      </div>
+      <div class="field">
+        <label for="p-authors">저자</label>
+        <input type="text" id="p-authors" placeholder="예: 김희선, 구훈정" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="p-venue">게재지·학회명 (학위논문은 수여기관)</label>
+          <input type="text" id="p-venue" placeholder="예: 한국심리학회지: 임상" />
+        </div>
+        <div class="field">
+          <label for="p-volume">권·호·페이지 (선택)</label>
+          <input type="text" id="p-volume" placeholder="예: 45(2), 112-130" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="p-year">연도</label>
+          <input type="text" id="p-year" placeholder="2026" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="p-link">원문 링크 (선택)</label>
+          <input type="text" id="p-link" placeholder="DOI 또는 원문 URL" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="p-file">원문 파일 (선택) <span class="hint" style="display:inline;">— PDF 등, 최대 10MB · 멤버만 다운로드</span></label>
+        <input type="file" id="p-file" class="file-input" accept=".pdf,application/pdf" />
+      </div>
+      <div class="field">
+        <label for="p-visible">공개 여부</label>
+        <select id="p-visible">
+          <option value="게시">즉시 게시</option>
+          <option value="비공개">비공개(내부 기록용)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>관련 멤버 (선택)</label>
+        <div class="member-check-list" id="p-members"></div>
+        <div class="hint">체크된 멤버의 구성원 프로필에 이 성과가 표시됩니다. 이름이 같아도 계정 기준이라 섞이지 않습니다.</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="pub-cancel">취소</button>
+        <button class="btn-sm primary" id="pub-save">등록</button>
+      </div>
+      <div class="form-msg" id="pub-modal-msg"></div>
+    </div>
+  </div>
+
+  <!-- 성과 관리 모달 (멤버 연결 · 원문 링크 · 원문 파일) -->
+  <div class="modal-backdrop" id="pub-link-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pub-link-title">
+      <h3 id="pub-link-title">성과 관리</h3>
+      <p class="hint" id="pub-link-sub" style="margin-bottom:12px;"></p>
+      <div class="field">
+        <label>관련 멤버</label>
+        <div class="member-check-list" id="pub-link-members"></div>
+      </div>
+      <div class="field">
+        <label for="pl-link">원문 링크 (선택)</label>
+        <input type="text" id="pl-link" placeholder="DOI 또는 원문 URL" />
+      </div>
+      <div class="field">
+        <label for="pl-file">원문 파일 (선택) <span class="hint" style="display:inline;">— PDF 등, 최대 10MB · 멤버만 다운로드</span></label>
+        <div class="file-list" id="pl-file-current" style="margin-bottom:6px;"></div>
+        <input type="file" id="pl-file" class="file-input" accept=".pdf,application/pdf" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="pub-link-cancel">취소</button>
+        <button class="btn-sm primary" id="pub-link-save">저장</button>
+      </div>
+      <div class="form-msg" id="pub-link-msg"></div>
+    </div>
+  </div>
+
+  <!-- 구성원 등록/수정 모달 -->
+  <div class="modal-backdrop" id="people-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="people-modal-title">
+      <h3 id="people-modal-title">구성원 추가</h3>
+      <div class="field">
+        <label for="pp-name">이름</label>
+        <input type="text" id="pp-name" placeholder="홍길동" />
+      </div>
+      <div class="field">
+        <label for="pp-group">구분</label>
+        <select id="pp-group">
+          <option value="professor">지도교수</option>
+          <option value="phd" selected>박사과정</option>
+          <option value="ms">석사과정</option>
+          <option value="alumni">졸업생</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pp-title">소속·직함</label>
+        <input type="text" id="pp-title" placeholder="예: 박사과정 · 일반대학원 심리학과" />
+      </div>
+      <div class="field" id="pp-interest-field">
+        <label for="pp-interest">관심 분야</label>
+        <input type="text" id="pp-interest" placeholder="예: AI 상담 시뮬레이션 · 상담자 교육" />
+      </div>
+      <div class="field" id="pp-alumni-fields" style="display:none;">
+        <label for="pp-year">졸업 연도</label>
+        <input type="text" id="pp-year" placeholder="예: 2025" style="margin-bottom:12px;" />
+        <label for="pp-meta">학위논문 · 현 소속 (선택)</label>
+        <input type="text" id="pp-meta" placeholder="예: 학위논문 제목 · 현 소속" />
+      </div>
+      <div class="field">
+        <label for="pp-linked">멤버 계정 연결 (선택)</label>
+        <select id="pp-linked"></select>
+        <div class="hint">계정을 연결하면 이름·소속이 자동으로 채워지고, 구성원 페이지에서 해당 멤버의 참여 프로젝트·성과가 함께 표시됩니다. 이후 관리자가 회원 정보를 수정하면 이 프로필에도 반영됩니다.</div>
+      </div>
+      <div class="field">
+        <label for="pp-photo-file">사진 (선택)</label>
+        <div class="file-list" id="pp-photo-preview" style="margin-bottom:6px;"></div>
+        <input type="file" id="pp-photo-file" class="file-input" accept="image/*" />
+        <div class="hint">자동으로 512px 크기로 줄여 저장합니다. 비우면 이름 첫 글자가 표시됩니다.</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="people-cancel">취소</button>
+        <button class="btn-sm primary" id="people-save">저장</button>
+      </div>
+      <div class="form-msg" id="people-modal-msg"></div>
+    </div>
+  </div>
+
+  <!-- 프로젝트 참여자 관리 모달 -->
+  <div class="modal-backdrop" id="pm-modal">
+    <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="pm-title">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+        <h3 id="pm-title">참여자 관리</h3>
+        <button class="btn-sm" id="pm-close">닫기 ✕</button>
+      </div>
+
+      <h4 style="font-size:0.95rem; font-weight:700; margin:16px 0 8px;">참여 신청</h4>
+      <div id="pm-requests"><p style="color:var(--muted); font-size:0.86rem;">불러오는 중…</p></div>
+
+      <h4 style="font-size:0.95rem; font-weight:700; margin:22px 0 8px; padding-top:16px; border-top:1px solid var(--line);">현재 참여자</h4>
+      <div id="pm-current"><p style="color:var(--muted); font-size:0.86rem;">—</p></div>
+
+      <h4 style="font-size:0.95rem; font-weight:700; margin:22px 0 8px; padding-top:16px; border-top:1px solid var(--line);">멤버 직접 추가</h4>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <select id="pm-add-select" style="flex:1; min-width:160px; padding:9px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--font-body); font-size:0.88rem; background:#fff;"></select>
+        <input type="text" id="pm-add-role" placeholder="역할 (예: 연구보조원)" style="flex:1; min-width:140px; padding:9px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--font-body); font-size:0.88rem; background:var(--paper);" />
+        <button class="btn-sm primary" id="pm-add-btn">추가</button>
+      </div>
+      <div class="form-msg" id="pm-msg"></div>
+    </div>
+  </div>
+
+  <!-- 프로젝트 등록/수정 모달 -->
+  <div class="modal-backdrop" id="project-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
+      <h3 id="project-modal-title">프로젝트 등록</h3>
+      <div class="field">
+        <label for="j-title">프로젝트명</label>
+        <textarea id="j-title" rows="2" placeholder="프로젝트 제목"></textarea>
+      </div>
+      <div class="field">
+        <label for="j-intro">프로젝트 소개 (프로젝트 페이지에 표시)</label>
+        <textarea id="j-intro" rows="10" placeholder="연구대상, 연구방법 등 대외 소개를 적어 주세요. 마크다운 서식을 지원합니다."></textarea>
+        <div class="hint">마크다운 지원: # 큰제목 · ## 중간제목 · **굵게** · *기울임* · - 목록 · 1. 번호 목록 · &gt; 인용 · [텍스트](https://링크) · --- 구분선</div>
+      </div>
+      <div class="field">
+        <label for="j-meta">부가 정보 (선택)</label>
+        <input type="text" id="j-meta" placeholder="예: 한국연구재단 · 연구책임자 구훈정" />
+      </div>
+      <div class="field">
+        <label for="j-period">기간</label>
+        <input type="text" id="j-period" placeholder="예: 2026.03 – 2029.02" />
+      </div>
+      <div class="field">
+        <label for="j-status">상태</label>
+        <select id="j-status">
+          <option>진행 중</option>
+          <option>준비 중</option>
+          <option>종료</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="j-count">참여 인원 (선택)</label>
+        <input type="text" id="j-count" placeholder="예: 8" />
+      </div>
+      <div class="field">
+        <label class="visible-toggle" style="font-size:0.88rem; color:var(--ink);">
+          <input type="checkbox" id="j-public" checked /> 연구 페이지에 공개
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-size:0.88rem; margin-top:8px;">
+          <input type="checkbox" id="j-recruiting" /> 📢 연구 참가자 모집 중 배지 표시
+        </label>
+      </div>
+      <div class="field">
+        <label>연구 분야 태그 <span class="hint" style="display:inline;">— 연구 페이지 필터에 사용됩니다</span></label>
+        <div class="day-picker" id="j-fields"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="project-cancel">취소</button>
+        <button class="btn-sm primary" id="project-save">저장</button>
+      </div>
+      <div class="form-msg" id="project-modal-msg"></div>
+    </div>
+  </div>
+
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="js/certificate.js"></script>
+  <script src="js/content-store.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/admin-demo.js"></script>
+  <script type="module">
+    import { isConfigured } from "./js/firebase-config.js";
+    if (!isConfigured) document.getElementById("demo-banner").style.display = "";
+  </script>
+  <script type="module" src="js/admin-app.js"></script>
+</body>
+</html>

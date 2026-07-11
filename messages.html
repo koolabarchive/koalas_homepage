@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>메시지 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="notice.html">공지</a>
+        <a href="members.html">구성원</a>
+        <a href="research.html">연구</a>
+        <a href="publications.html">성과</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">Messages</span>
+      <h1>메시지</h1>
+      <p>연구실 멤버들과 1:1로 소통하는 공간입니다.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding: 40px 0 80px;">
+    <div class="container">
+      <div class="dm-layout" id="dm-layout">
+        <!-- 대화 목록 -->
+        <aside class="dm-side">
+          <div class="dm-side-head">
+            <strong>대화</strong>
+            <button class="btn-sm primary" id="btn-new-dm">✎ 새 메시지</button>
+          </div>
+          <div class="dm-conv-list" id="dm-conv-list">
+            <p style="color:var(--muted); font-size:0.86rem; padding:14px;">불러오는 중…</p>
+          </div>
+        </aside>
+
+        <!-- 대화 스레드 -->
+        <main class="dm-main">
+          <div class="dm-thread-head" id="dm-thread-head">
+            <button class="btn-sm dm-back" id="dm-back">← 목록</button>
+            <strong id="dm-peer-name">대화를 선택하세요</strong>
+            <div class="dm-head-actions">
+              <button class="icon-btn" id="dm-rename" title="내 표시 이름 바꾸기" style="display:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </button>
+              <button class="icon-btn" id="dm-members-btn" title="대화 멤버 보기" style="display:none;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M15.5 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </button>
+            </div>
+            <div class="members-pop" id="dm-members-pop" style="display:none;"></div>
+          </div>
+          <div class="dm-messages" id="dm-messages">
+            <p style="color:var(--muted); font-size:0.88rem; text-align:center; margin-top:60px;">
+              왼쪽에서 대화를 선택하거나 "새 메시지"로 시작해 보세요.
+            </p>
+          </div>
+          <div class="dm-input" id="dm-input" style="display:none;">
+            <textarea id="dm-text" rows="1" placeholder="메시지를 입력하세요 (Enter 전송 · Shift+Enter 줄바꿈)"></textarea>
+            <button class="btn-sm primary" id="dm-send">보내기</button>
+          </div>
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <!-- 새 메시지: 상대 선택 모달 -->
+  <div class="modal-backdrop" id="new-dm-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="new-dm-title">
+      <h3 id="new-dm-title">새 메시지</h3>
+      <div class="field">
+        <label for="nd-search">받는 사람 <span class="hint" style="display:inline;">— 여러 명을 선택하면 단체 채팅이 만들어집니다</span></label>
+        <input type="search" id="nd-search" class="db-search" style="width:100%; border-radius:8px;" placeholder="이름·소속 검색" />
+      </div>
+      <div class="member-check-list" id="nd-list" style="max-height:240px;"></div>
+      <div class="field" id="nd-group-field" style="display:none; margin-top:12px;">
+        <label for="nd-group-name">단체 채팅 이름 (선택)</label>
+        <input type="text" id="nd-group-name" placeholder="비우면 참여자 이름으로 자동 설정" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="nd-cancel">닫기</button>
+        <button class="btn-sm primary" id="nd-start" disabled>대화 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hjkoo@hs.ac.kr</p>
+      </div>
+      <div class="f-links">
+        <a href="dashboard.html">마이페이지</a>
+        <a href="study.html">스터디</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+  <script type="module" src="js/messages-page.js"></script>
+</body>
+</html>

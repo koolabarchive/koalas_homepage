@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공지사항 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="research.html">연구</a>
+        <a href="members.html">구성원</a>
+        <a href="publications.html">성과</a>
+        <a href="notice.html" class="active">공지</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">Notice</span>
+      <h1>공지사항</h1>
+      <p>연구실 소식, 모집 안내, 세미나 일정을 확인하세요.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="board-list" id="notice-board" style="max-width:920px;">
+        <p style="color:var(--muted); font-size:0.9rem; padding:12px 4px;">불러오는 중…</p>
+      </div>
+      <div class="board-toolbar" id="notice-toolbar" style="display:none; max-width:920px;">
+        <button class="btn-sm primary" id="btn-write-notice">✎ 공지 글쓰기</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal-backdrop" id="edit-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <h3 id="edit-modal-title">새 공지 작성</h3>
+      <div class="field">
+        <label for="edit-title">제목</label>
+        <textarea id="edit-title" rows="2"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="edit-author">작성자</label>
+          <input type="text" id="edit-author" placeholder="이름" />
+        </div>
+        <div class="field" id="edit-date-field">
+          <label for="edit-date">날짜</label>
+          <input type="date" id="edit-date" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field" id="edit-scope-field">
+          <label for="edit-scope">공개 범위</label>
+          <select id="edit-scope">
+            <option value="공개">공개</option>
+            <option value="멤버 전용">멤버 전용</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="edit-badge">말머리 (선택)</label>
+          <input type="text" id="edit-badge" placeholder="예: 모집, 세미나, 안내" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="edit-content">내용</label>
+        <textarea id="edit-content" rows="6" placeholder="공지 내용을 입력해 주세요."></textarea>
+      </div>
+      <div class="field">
+        <label for="edit-files">첨부파일 <span class="hint" style="display:inline;">— 이미지·PDF·문서 등, 파일당 최대 10MB · 5개까지</span></label>
+        <div class="file-list" id="edit-att-current" style="margin-bottom:8px;"></div>
+        <input type="file" id="edit-files" class="file-input" multiple />
+        <div class="file-list" id="edit-file-list"></div>
+      </div>
+      <div class="field">
+        <label class="visible-toggle" style="font-size:0.88rem; color:var(--ink);">
+          <input type="checkbox" id="edit-slider" /> 홈 화면 최신 소식 슬라이더에 노출
+        </label>
+        <div class="hint">공개 범위가 '공개'인 글만 슬라이더에 표시됩니다. 이미지를 첨부하면 첫 번째 이미지가 슬라이드 배경으로 사용됩니다 (권장 2100×800px · 500KB 이하).</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="edit-cancel">취소</button>
+        <button class="btn-sm primary" id="edit-save">저장</button>
+      </div>
+      <div class="form-msg" id="edit-msg"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hjkoo@hs.ac.kr</p>
+      </div>
+      <div class="f-links">
+        <a href="research.html">연구</a>
+        <a href="publications.html">성과</a>
+        <a href="login.html">멤버 로그인</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+  <script type="module" src="js/notice-page.js"></script>
+</body>
+</html>

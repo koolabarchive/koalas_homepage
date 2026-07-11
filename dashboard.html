@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>마이페이지 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">My Page</span>
+      <h1>마이페이지</h1>
+      <p id="my-info" style="color:var(--muted);">불러오는 중…</p>
+    </div>
+  </section>
+
+  <!-- 연구 참가 신청·문의 (프로젝트 리더용) -->
+  <section class="section alt" id="my-inquiries-section" style="display:none;">
+    <div class="container">
+      <div class="section-head" style="margin-bottom: 20px;">
+        <h2 style="font-size:1.3rem;">연구 참가 신청 · 문의 <span class="nav-badge" id="my-inq-count" style="display:none; vertical-align:3px;"></span></h2>
+        <p>내가 리더인 프로젝트에 접수된 외부 참가 신청과 문의입니다.</p>
+      </div>
+      <div id="my-inquiries" style="max-width:860px;">
+        <p style="color:var(--muted); font-size:0.9rem;">불러오는 중…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 내 스터디 -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head" style="margin-bottom: 20px;">
+        <h2 style="font-size:1.3rem;">내 스터디</h2>
+        <p>참여 중이거나 참여했던 스터디입니다. 클릭하면 해당 스터디 자료실로 이동합니다.</p>
+      </div>
+      <div class="panel-toolbar">
+        <span></span>
+        <a href="study.html" class="btn-sm primary">스터디 페이지로 →</a>
+      </div>
+      <div class="pub-list" id="my-study-list">
+        <div class="pub-item"><div></div><div class="pub-meta">불러오는 중…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 연구참여확인서 -->
+  <section class="section alt">
+    <div class="container">
+      <div class="section-head" style="margin-bottom: 20px;">
+        <h2 style="font-size:1.3rem;">연구참여확인서</h2>
+        <p>참여한 연구 프로젝트에 대한 확인서를 신청하고, 발급이 완료되면 PDF로 내려받을 수 있습니다.</p>
+      </div>
+      <div class="panel-toolbar">
+        <span></span>
+        <button class="btn-sm primary" id="btn-apply-cert">+ 확인서 신청</button>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>발급번호</th><th>프로젝트</th><th>역할</th><th>참여 기간</th><th>상태</th><th>PDF</th></tr>
+          </thead>
+          <tbody id="my-cert-tbody">
+            <tr><td colspan="6" style="color:var(--muted);">불러오는 중…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 성과 등록 -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head" style="margin-bottom: 20px;">
+        <h2 style="font-size:1.3rem;">내 연구 성과</h2>
+        <p>논문·저서·학회발표·포스터를 등록하면 관리자 검수 후 공개 사이트에 게시됩니다.</p>
+      </div>
+      <div class="panel-toolbar">
+        <span></span>
+        <button class="btn-sm primary" id="btn-add-mypub">+ 성과 등록</button>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>유형</th><th>제목</th><th>연도</th><th>상태</th></tr>
+          </thead>
+          <tbody id="my-pub-tbody">
+            <tr><td colspan="4" style="color:var(--muted);">불러오는 중…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 연구실 프로젝트 -->
+  <section class="section alt">
+    <div class="container">
+      <div class="section-head" style="margin-bottom: 20px;">
+        <h2 style="font-size:1.3rem;">연구실 프로젝트</h2>
+        <p>클릭하면 프로젝트 상세가 열립니다. 참여 신청 후 관리자 승인을 받으면 내부 자료와 진행 메모를 공유할 수 있습니다.</p>
+      </div>
+      <div class="pub-list" id="member-project-list">
+        <div class="pub-item"><div></div><div class="pub-meta">불러오는 중…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 확인서 신청 모달 -->
+  <div class="modal-backdrop" id="cert-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cert-modal-title">
+      <h3 id="cert-modal-title">연구참여확인서 신청</h3>
+      <div class="field">
+        <label for="c-project">연구 프로젝트</label>
+        <select id="c-project"></select>
+      </div>
+      <div class="field">
+        <label for="c-role">참여 역할</label>
+        <input type="text" id="c-role" placeholder="예: 연구보조원, 공동연구원" />
+      </div>
+      <div class="field">
+        <label for="c-period">참여 기간</label>
+        <input type="text" id="c-period" placeholder="예: 2026.03 – 2026.06" />
+      </div>
+      <div class="field">
+        <label for="c-purpose">용도 (선택)</label>
+        <input type="text" id="c-purpose" placeholder="예: 장학금 신청, 대학원 지원" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="cert-cancel">취소</button>
+        <button class="btn-sm primary" id="cert-submit">신청하기</button>
+      </div>
+      <div class="form-msg" id="cert-modal-msg"></div>
+    </div>
+  </div>
+
+  <!-- 성과 등록 모달 -->
+  <div class="modal-backdrop" id="mypub-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mypub-modal-title">
+      <h3 id="mypub-modal-title">성과 등록</h3>
+      <div class="field">
+        <label for="mp-type">유형</label>
+        <select id="mp-type">
+          <option>학술논문</option>
+          <option>학위논문</option>
+          <option>저서</option>
+          <option>학회발표</option>
+          <option>포스터</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="mp-title">제목</label>
+        <textarea id="mp-title" rows="2" placeholder="성과 제목"></textarea>
+      </div>
+      <div class="field">
+        <label for="mp-authors">저자</label>
+        <input type="text" id="mp-authors" placeholder="예: 김희선, 구훈정" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="mp-venue">게재지·학회명 (학위논문은 수여기관)</label>
+          <input type="text" id="mp-venue" placeholder="예: 한국심리학회지: 임상" />
+        </div>
+        <div class="field">
+          <label for="mp-volume">권·호·페이지 (선택)</label>
+          <input type="text" id="mp-volume" placeholder="예: 45(2), 112-130" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="mp-year">연도</label>
+          <input type="text" id="mp-year" placeholder="2026" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="mp-link">원문 링크 (선택)</label>
+          <input type="text" id="mp-link" placeholder="DOI 또는 원문 URL" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="mp-file">원문 파일 (선택) <span class="hint" style="display:inline;">— PDF 등, 최대 10MB · 멤버만 다운로드 가능</span></label>
+        <input type="file" id="mp-file" class="file-input" accept=".pdf,application/pdf" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="mypub-cancel">취소</button>
+        <button class="btn-sm primary" id="mypub-submit">검수 요청</button>
+      </div>
+      <div class="form-msg" id="mypub-modal-msg"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hjkoo@hs.ac.kr</p>
+      </div>
+      <div class="f-links">
+        <a href="research.html">연구</a>
+        <a href="publications.html">성과</a>
+        <a href="index.html">홈</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="js/certificate.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+  <script type="module" src="js/member-app.js"></script>
+</body>
+</html>

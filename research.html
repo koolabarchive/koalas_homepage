@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>연구 | 한신대학교 임상심리 연구실</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#2c4a6e" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#7fa8a1" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="#2c4a6e"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="index.html">홈</a>
+        <a href="research.html" class="active">연구</a>
+        <a href="members.html">구성원</a>
+        <a href="publications.html">성과</a>
+        <a href="notice.html">공지</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">Research</span>
+      <h1>연구 분야와 진행 중인 프로젝트</h1>
+      <p>임상심리학의 이론과 실천, 그리고 기술의 접점에서 연구를 수행합니다.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>연구 분야</h2>
+      </div>
+      <div class="grid grid-2" id="research-grid">
+        <div class="card">
+          <span class="tag">CBT</span>
+          <h3>인지행동치료와 정서조절</h3>
+          <p>우울·불안 등 정서장애의 인지행동적 기제를 규명하고, 정서조절 전략과 치료 성과의 관계를 검증합니다. 치료 프로토콜의 개발과 효과성 연구를 병행합니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Trauma</span>
+          <h3>트라우마와 스트레스 관련 장애</h3>
+          <p>PTSD, 복합외상(C-PTSD), 급성 스트레스 장애, 적응장애의 심리적 기제를 연구합니다. 외상 경험자 대상 근거기반 개입과 회복 과정에 주목합니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag">AI &amp; Counseling</span>
+          <h3>AI 기반 상담 시뮬레이션</h3>
+          <p>LLM 기반 가상내담자 플랫폼을 활용한 상담자 훈련 모델을 개발합니다. 인간중심치료와 인지행동치료 이론에 기반한 시뮬레이션 설계를 연구합니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Ethics</span>
+          <h3>심리서비스와 AI 윤리</h3>
+          <p>심리상담·심리평가 장면에서의 AI 활용이 제기하는 윤리적 쟁점을 분석하고, 실무자를 위한 장면별 가이드라인과 체크리스트를 제안합니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Mindfulness</span>
+          <h3>마음챙김 기반 개입</h3>
+          <p>성인 ADHD 등 다양한 대상에 대한 마음챙김 명상 개입의 효과를 검증합니다. 앱 기반 하이브리드 개입 등 접근성 높은 전달 방식을 탐구합니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Assessment</span>
+          <h3>심리평가와 진단분류</h3>
+          <p>DSM·ICD 진단체계와 차원적 모형(HiTOP), 네트워크 정신병리학 관점을 아우르며 심리평가 실습 교육의 개선 방안을 연구합니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="container">
+      <div class="section-head">
+        <h2>진행 중인 프로젝트</h2>
+        <p>참여 연구원은 로그인 후 프로젝트 상세와 내부 자료를 확인할 수 있습니다.</p>
+      </div>
+      <div class="pub-filter" id="project-filter" style="margin-bottom:18px;"></div>
+      <div class="grid grid-3" id="project-list">
+        <div class="card"><p style="color:var(--muted);">불러오는 중…</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 최근 연구 성과 -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>최근 연구 성과</h2>
+        <p>연구실의 최신 논문과 발표입니다.</p>
+      </div>
+      <div class="pub-list" id="research-recent-pubs">
+        <div class="pub-item"><div></div><div class="pub-meta">불러오는 중…</div></div>
+      </div>
+      <div style="margin-top:20px;">
+        <a href="publications.html" class="btn-sm" style="text-decoration:none;">성과 전체 보기 →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hjkoo@hs.ac.kr</p>
+      </div>
+      <div class="f-links">
+        <a href="research.html">연구</a>
+        <a href="publications.html">성과</a>
+        <a href="login.html">멤버 로그인</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+</body>
+</html>
