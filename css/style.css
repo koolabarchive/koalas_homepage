@@ -51,6 +51,10 @@
   --glass-border: rgba(0, 0, 0, 0.07);
   --glass-blur: saturate(180%) blur(20px);
   --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  /* 모달·팝오버용: 뒤가 더 비치는 유리 + 강한 블러 (블러가 가독성을 지켜줍니다) */
+  --modal-glass-bg: rgba(255, 255, 255, 0.62);
+  --modal-glass-blur: saturate(180%) blur(34px);
+  --field-glass: rgba(255, 255, 255, 0.55);
 
   /* 그림자 */
   --scroll-shadow: rgba(0, 0, 0, 0.11);
@@ -122,6 +126,9 @@
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-blur: saturate(160%) blur(20px);
   --glass-shadow: 0 8px 38px rgba(10, 48, 110, 0.45);
+  --modal-glass-bg: rgba(28, 28, 32, 0.55);
+  --modal-glass-blur: saturate(160%) blur(34px);
+  --field-glass: rgba(255, 255, 255, 0.07);
 
   --scroll-shadow: rgba(0, 0, 0, 0.55);
   --glass-border-width: 1.5px;
@@ -172,6 +179,9 @@
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-blur: saturate(160%) blur(20px);
   --glass-shadow: 0 8px 38px rgba(10, 48, 110, 0.45);
+  --modal-glass-bg: rgba(28, 28, 32, 0.55);
+  --modal-glass-blur: saturate(160%) blur(34px);
+  --field-glass: rgba(255, 255, 255, 0.07);
 
   --scroll-shadow: rgba(0, 0, 0, 0.55);
   --glass-border-width: 1.5px;
@@ -2638,3 +2648,342 @@ select:focus-visible, textarea:focus-visible {
 /* 현재 페이지가 로그인일 때 .btn-login에 .active가 함께 붙으면서
    파란 배경 위에 파란 글씨가 얹혔습니다(명암비 1.0). 전경색을 되돌립니다. */
 .gnb .btn-login.active { color: var(--on-accent); }
+
+/* ================================================================
+   v22 — 공지 글쓰기 모달 개편
+   글래스 모달(머리/본문/바닥 구조) · 자물쇠 공개범위 토글 ·
+   애플식 드롭다운·데이트피커 · 마크다운 쓰기/미리보기 · 게시판 중앙 정렬
+   ================================================================ */
+
+/* ---------- 게시판 중앙 정렬 ----------
+   목록들이 max-width만 갖고 margin:auto가 없어, 가운데 정렬된 제목 아래에서
+   왼쪽으로 치우쳐 보였습니다. 전폭 목록에는 auto가 영향을 주지 않습니다. */
+.board-list, .board-toolbar { margin-inline: auto; }
+.board-list { border-top: 1px solid var(--line); }
+.board-item { border-bottom: 1px solid var(--line-soft); }
+
+/* 공지 본문: 마크다운 렌더링으로 전환 (pre-line은 마크다운 <p>와 겹치면 빈 줄이 과해집니다) */
+.b-body.md-body { white-space: normal; font-size: 0.92rem; max-width: none; }
+.b-body.md-body p { margin-bottom: 10px; }
+.b-body.md-body :last-child { margin-bottom: 0; }
+
+/* ---------- 글래스 모달: 머리 / 스크롤 본문 / 바닥 ----------
+   기존 .modal은 모달 전체가 스크롤돼 스크롤바가 둥근 모서리 밖으로
+   비어져 나왔습니다. .modal-split은 본문만 스크롤합니다. */
+.modal {
+  background: var(--modal-glass-bg);
+  backdrop-filter: var(--modal-glass-blur);
+  -webkit-backdrop-filter: var(--modal-glass-blur);
+}
+
+.modal.modal-split {
+  padding: 0;
+  overflow: hidden;              /* 스크롤은 .modal-body 몫 */
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 26px 14px;
+  flex: none;
+}
+.modal-head h3 { margin-bottom: 0; }
+
+.modal-body {
+  padding: 2px 22px 12px 26px;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.modal-body::-webkit-scrollbar { width: 8px; }
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.modal-body::-webkit-scrollbar-track { background: transparent; }
+
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 26px 20px;
+  flex: none;
+  border-top: 1px solid var(--glass-border);
+}
+
+/* 유리 위 입력 필드: 반투명으로 톤을 맞춥니다 */
+.modal .field input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.modal .field select,
+.modal .field textarea,
+.modal .dd-btn,
+.modal .dp-btn {
+  background: var(--field-glass);
+}
+.modal .field input:focus,
+.modal .field select:focus,
+.modal .field textarea:focus { background: var(--surface); }
+
+/* ---------- 자물쇠 공개범위 토글 ---------- */
+.scope-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 8px 15px 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--field-glass);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);            /* 열림(전체공개) = 파랑 */
+  cursor: pointer;
+  transition: color 0.25s, border-color 0.25s;
+}
+.scope-toggle.locked { color: var(--ink); }   /* 닫힘(멤버공개) = 먹색 */
+.scope-toggle:hover { border-color: currentColor; }
+
+.scope-toggle .lock { width: 17px; height: 17px; flex: none; }
+.scope-toggle .lock-hole { fill: var(--modal-glass-bg); }
+
+/* 걸쇠(shackle): 왼쪽 다리 아래를 축으로 들어 올려 여는 모션 */
+.scope-toggle .lock-shackle {
+  transform-box: view-box;
+  transform-origin: 8.2px 11.2px;
+  transform: rotate(-36deg);                  /* 기본 = 열림(전체공개) */
+  transition: transform 0.4s cubic-bezier(0.34, 1.6, 0.5, 1);
+}
+.scope-toggle.locked .lock-shackle { transform: rotate(0deg); }
+.scope-toggle.no-motion .lock-shackle { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .scope-toggle .lock-shackle { transition: none; }
+}
+
+/* ---------- 세그먼트 컨트롤 (쓰기 | 미리보기) ---------- */
+.field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+.field-head label { margin-bottom: 0; }
+
+.seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--surface-2);
+}
+.seg button {
+  border: none;
+  background: transparent;
+  padding: 4px 13px;
+  border-radius: 7px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.seg button.active {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 미리보기 패널: 입력창과 같은 자리·같은 틀 */
+.edit-preview {
+  min-height: 172px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--field-glass);
+  font-size: 0.92rem;
+}
+.edit-preview .preview-empty { color: var(--muted); font-size: 0.88rem; }
+
+/* ---------- 애플식 드롭다운 ---------- */
+.dd { position: relative; }
+
+.dd-btn {
+  width: 100%;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.dd-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dd.open .dd-btn { border-color: var(--accent); }
+.dd-empty .dd-value { color: var(--muted); }
+
+.dd-chevron { width: 11px; height: 8px; color: var(--muted); flex: none; transition: transform 0.2s; }
+.dd.open .dd-chevron { transform: rotate(180deg); }
+
+/* 메뉴: JS가 fixed로 위치·폭을 잡고, 여기선 생김새와 모션만 */
+.dd-menu {
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  background: var(--modal-glass-bg);
+  backdrop-filter: var(--modal-glass-blur);
+  -webkit-backdrop-filter: var(--modal-glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 13px;
+  box-shadow: var(--shadow-lg);
+  max-height: 250px;
+  overflow-y: auto;
+  opacity: 0;
+  transform: scale(0.97) translateY(-4px);
+  transform-origin: top center;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  pointer-events: none;
+}
+.dd-menu.open { opacity: 1; transform: none; pointer-events: auto; }
+.dd-menu.above { transform-origin: bottom center; }
+
+.dd-menu li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+.dd-menu li.active { background: var(--accent-bg); color: var(--on-accent); }
+.dd-menu .dd-check { width: 13px; height: 13px; flex: none; opacity: 0; }
+.dd-menu li[aria-selected="true"] .dd-check { opacity: 1; }
+
+/* ---------- 애플식 데이트피커 ---------- */
+.dp { position: relative; }
+
+.dp-btn {
+  width: 100%;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.dp-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dp.open .dp-btn { border-color: var(--accent); }
+.dp-icon { width: 16px; height: 16px; color: var(--muted); flex: none; }
+
+.dp-pop {
+  padding: 12px;
+  background: var(--modal-glass-bg);
+  backdrop-filter: var(--modal-glass-blur);
+  -webkit-backdrop-filter: var(--modal-glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: scale(0.97) translateY(-4px);
+  transform-origin: top center;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  pointer-events: none;
+}
+.dp-pop.open { opacity: 1; transform: none; pointer-events: auto; }
+.dp-pop.above { transform-origin: bottom center; }
+
+.dp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px 8px;
+}
+.dp-title { font-size: 0.88rem; font-weight: 700; letter-spacing: -0.01em; }
+.dp-nav { display: flex; gap: 2px; }
+.dp-nav button {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.dp-nav button:hover { background: var(--accent-soft); }
+.dp-nav svg { width: 8px; height: 12px; }
+
+.dp-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 2px;
+}
+.dp-week span {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--faint);
+  padding: 3px 0;
+}
+.dp-week .sun { color: var(--danger); opacity: 0.75; }
+
+.dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+.dp-grid button {
+  aspect-ratio: 1;
+  min-height: 27px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.dp-grid button:hover { background: var(--accent-soft); }
+.dp-grid button.out { color: var(--faint); opacity: 0.55; }
+.dp-grid button.sun { color: var(--danger); }
+.dp-grid button.sun.out { color: var(--danger); opacity: 0.35; }
+.dp-grid button.today { color: var(--accent); font-weight: 700; }
+.dp-grid button.sel { background: var(--accent-bg); color: var(--on-accent); font-weight: 700; }
+.dp-grid button.sel:hover { background: var(--accent-bg-hover); }
+
+/* 좁은 화면: 모달이 하단 시트가 되므로 모서리·바닥 여백을 맞춥니다 */
+@media (max-width: 640px) {
+  .modal-head { padding: 18px 20px 12px; }
+  .modal-body { padding: 2px 16px 10px 20px; }
+  .modal-foot { padding: 12px 20px 22px; }
+  .scope-toggle span { font-size: 0.78rem; }
+}

@@ -10,6 +10,7 @@ import {
 import {
   initNoticeEditor, attachmentChips, bindAttachmentEvents, deleteNoticeAttachments,
 } from "./notice-form.js";
+import { renderMarkdown } from "./markdown-lite.js";
 
 if (isConfigured) {
   const $ = (id) => document.getElementById(id);
@@ -79,7 +80,7 @@ if (isConfigured) {
           <span class="b-meta">${metaBits.join(" · ")}</span>
         </button>
         <div class="b-detail"${open ? "" : " hidden"}>
-          ${p.content ? `<div class="b-body">${esc(p.content)}</div>` : ""}
+          ${p.content ? `<div class="b-body md-body">${renderMarkdown(p.content)}</div>` : ""}
           ${attachmentChips(p.attachments, p.id)}
           ${isAdmin ? `<div class="b-actions">
             <button class="btn-sm" data-edit="${p.id}">수정</button>

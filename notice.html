@@ -53,57 +53,74 @@
     </div>
   </section>
 
+  <!-- 게시글 작성·수정 모달 -->
   <div class="modal-backdrop" id="edit-modal">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
-      <h3 id="edit-modal-title">새 공지 작성</h3>
-      <div class="field">
-        <label for="edit-title">제목</label>
-        <textarea id="edit-title" rows="2"></textarea>
+    <div class="modal modal-split" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <div class="modal-head">
+        <h3 id="edit-modal-title">새 공지 작성</h3>
+        <!-- 공개 범위: 자물쇠 토글 (열림=전체공개 / 닫힘=멤버공개) -->
+        <button type="button" class="scope-toggle" id="edit-scope-toggle" aria-pressed="false">
+          <svg class="lock" viewBox="0 0 24 24" aria-hidden="true">
+            <path class="lock-shackle" d="M8.2 11.2V7.9a3.8 3.8 0 0 1 7.6 0v3.3"
+                  fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+            <rect class="lock-body" x="5.2" y="11.2" width="13.6" height="9.4" rx="2.8" fill="currentColor"/>
+            <circle class="lock-hole" cx="12" cy="15.6" r="1.5"/>
+          </svg>
+          <span id="edit-scope-label">전체공개</span>
+        </button>
+        <input type="hidden" id="edit-scope" value="공개" />
       </div>
-      <div class="field-row">
+      <div class="modal-body">
         <div class="field">
-          <label for="edit-author">작성자</label>
-          <input type="text" id="edit-author" placeholder="이름" />
+          <label for="edit-title">제목</label>
+          <textarea id="edit-title" rows="2"></textarea>
         </div>
-        <div class="field" id="edit-date-field">
-          <label for="edit-date">날짜</label>
-          <input type="date" id="edit-date" />
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field" id="edit-scope-field">
-          <label for="edit-scope">공개 범위</label>
-          <select id="edit-scope">
-            <option value="공개">공개</option>
-            <option value="멤버 전용">멤버 전용</option>
-          </select>
+        <div class="field-row">
+          <div class="field">
+            <label for="edit-author">작성자</label>
+            <input type="text" id="edit-author" placeholder="이름" />
+          </div>
+          <div class="field" id="edit-date-field">
+            <label>날짜</label>
+            <div id="edit-date-dp"></div>
+            <input type="hidden" id="edit-date" />
+          </div>
         </div>
         <div class="field">
-          <label for="edit-badge">말머리 (선택)</label>
-          <input type="text" id="edit-badge" placeholder="예: 모집, 세미나, 안내" />
+          <label>말머리</label>
+          <div id="edit-badge-dd"></div>
+          <input type="hidden" id="edit-badge" />
         </div>
+        <div class="field">
+          <div class="field-head">
+            <label for="edit-content">내용</label>
+            <div class="seg" role="tablist" aria-label="내용 입력 모드">
+              <button type="button" class="active" id="edit-mode-write" role="tab" aria-selected="true">쓰기</button>
+              <button type="button" id="edit-mode-preview" role="tab" aria-selected="false">미리보기</button>
+            </div>
+          </div>
+          <textarea id="edit-content" rows="8" placeholder="공지 내용을 입력해 주세요. 마크다운을 지원합니다."></textarea>
+          <div class="md-body edit-preview" id="edit-preview" hidden></div>
+          <div class="hint">**굵게** · - 목록 · ## 소제목 · [링크](https://…) 같은 마크다운이 게시글에 그대로 반영됩니다.</div>
+        </div>
+        <div class="field">
+          <label for="edit-files">첨부파일 <span class="hint" style="display:inline;">— 이미지·PDF·문서 등, 파일당 최대 10MB · 5개까지</span></label>
+          <div class="file-list" id="edit-att-current" style="margin-bottom:8px;"></div>
+          <input type="file" id="edit-files" class="file-input" multiple />
+          <div class="file-list" id="edit-file-list"></div>
+        </div>
+        <div class="field">
+          <label class="visible-toggle" style="font-size:0.88rem; color:var(--ink);">
+            <input type="checkbox" id="edit-slider" /> 홈 화면 최신 소식 슬라이더에 노출
+          </label>
+          <div class="hint">공개 범위가 '전체공개'인 글만 슬라이더에 표시됩니다. 이미지를 첨부하면 첫 번째 이미지가 슬라이드 배경으로 사용됩니다 (권장 2100×800px · 500KB 이하).</div>
+        </div>
+        <div class="form-msg" id="edit-msg"></div>
       </div>
-      <div class="field">
-        <label for="edit-content">내용</label>
-        <textarea id="edit-content" rows="6" placeholder="공지 내용을 입력해 주세요."></textarea>
-      </div>
-      <div class="field">
-        <label for="edit-files">첨부파일 <span class="hint" style="display:inline;">— 이미지·PDF·문서 등, 파일당 최대 10MB · 5개까지</span></label>
-        <div class="file-list" id="edit-att-current" style="margin-bottom:8px;"></div>
-        <input type="file" id="edit-files" class="file-input" multiple />
-        <div class="file-list" id="edit-file-list"></div>
-      </div>
-      <div class="field">
-        <label class="visible-toggle" style="font-size:0.88rem; color:var(--ink);">
-          <input type="checkbox" id="edit-slider" /> 홈 화면 최신 소식 슬라이더에 노출
-        </label>
-        <div class="hint">공개 범위가 '공개'인 글만 슬라이더에 표시됩니다. 이미지를 첨부하면 첫 번째 이미지가 슬라이드 배경으로 사용됩니다 (권장 2100×800px · 500KB 이하).</div>
-      </div>
-      <div class="form-actions">
+      <div class="modal-foot">
         <button class="btn-sm" id="edit-cancel">취소</button>
         <button class="btn-sm primary" id="edit-save">저장</button>
       </div>
-      <div class="form-msg" id="edit-msg"></div>
     </div>
   </div>
 
