@@ -39,6 +39,54 @@
   });
 })();
 
+// 테마 전환 (라이트 / 다크)
+// 저장값이 없으면 기기 설정(prefers-color-scheme)을 따릅니다.
+// 첫 페인트 전 적용은 각 페이지 <head>의 인라인 스크립트가 담당합니다.
+(function () {
+  const root = document.documentElement;
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+  const stored = () => {
+    try { return localStorage.getItem("theme"); } catch (e) { return null; }
+  };
+  const resolved = () => stored() || (media.matches ? "dark" : "light");
+
+  const ICON = {
+    // 라이트일 때는 달(→ 다크로 전환), 다크일 때는 해(→ 라이트로 전환)
+    light: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+    dark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.2M12 19.8V22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2 12h2.2M19.8 12H22M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"/></svg>',
+  };
+
+  const gnb = document.querySelector(".gnb");
+  if (!gnb) return;
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "theme-toggle";
+  gnb.appendChild(btn);
+
+  function paint() {
+    const cur = resolved();
+    const next = cur === "dark" ? "라이트" : "다크";
+    btn.innerHTML = ICON[cur];
+    btn.setAttribute("aria-label", next + " 모드로 전환");
+    btn.setAttribute("title", next + " 모드로 전환");
+    btn.dataset.label = next + " 모드";
+  }
+
+  btn.addEventListener("click", () => {
+    const next = resolved() === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch (e) {}
+    paint();
+  });
+
+  // 직접 고르기 전에는 기기 설정 변화를 그대로 따라갑니다.
+  media.addEventListener("change", () => { if (!stored()) paint(); });
+
+  paint();
+})();
+
 // 최신 소식 슬라이더 (index.html)
 // Firestore에서 슬라이드를 갈아끼운 뒤 window.initNewsSlider()로 재초기화할 수 있습니다.
 (function () {
