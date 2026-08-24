@@ -6,15 +6,12 @@
 import {
   collection, doc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { createDropdown, createDatePicker, setupScopeToggle, setupMarkdownPreview, BADGE_OPTIONS } from "./notice-ui.js";
-
-const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const fmtSize = (b) => {
-  if (b == null) return "";
-  if (b < 1024) return b + "B";
-  if (b < 1024 * 1024) return (b / 1024).toFixed(0) + "KB";
-  return (b / (1024 * 1024)).toFixed(1) + "MB";
-};
+import {
+  createDropdown, createDatePicker, setupScopeToggle, setupMarkdownPreview,
+  BADGE_OPTIONS, esc, fmtSize,
+} from "./notice-ui.js";
+// 첨부 칩은 notice-ui로 옮겼습니다. 기존 사용처 호환을 위해 재수출합니다.
+export { attachmentChips } from "./notice-ui.js";
 
 const MAX_FILE = 10 * 1024 * 1024;
 const MAX_FILES = 5;
@@ -104,18 +101,7 @@ export async function deleteNoticeAttachments(db, atts) {
   }
 }
 
-// ---------- 첨부 칩 렌더링 + 이벤트 (게시판 목록용) ----------
-export function attachmentChips(atts, key) {
-  if (!atts || !atts.length) return "";
-  return `<div class="att-list">` + atts.map((a, i) => {
-    const isImg = (a.type || "").startsWith("image/");
-    return `<span class="att-chip">
-      <button type="button" class="att-dl" data-att="${key}:${i}" title="다운로드">📎 ${esc(a.name)} <small>${fmtSize(a.size)}</small></button>
-      ${isImg ? `<button type="button" class="att-view" data-view="${key}:${i}">미리보기</button>` : ""}
-    </span>`;
-  }).join("") + `</div><div class="att-previews" data-previews="${key}"></div>`;
-}
-
+// ---------- 첨부 이벤트 (게시판·상세 공용) ----------
 export function bindAttachmentEvents(db, box, byKey) {
   box.querySelectorAll("button.att-dl").forEach((btn) => {
     btn.addEventListener("click", (e) => {

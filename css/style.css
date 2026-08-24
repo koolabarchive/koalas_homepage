@@ -2987,3 +2987,68 @@ select:focus-visible, textarea:focus-visible {
   .modal-foot { padding: 12px 20px 22px; }
   .scope-toggle span { font-size: 0.78rem; }
 }
+
+/* ================================================================
+   v23 — 공지 목록 ↔ 상세 보기
+   행 좌우 여백 확대 · 포커스된 공지 카드 · 하단 다른 공지 목록
+   ================================================================ */
+
+/* 게시판 행: 6px뿐이던 좌우 여백을 넓혀 숨을 틔웁니다 (스터디·자료실 공용) */
+.board-item .b-row { padding: 15px 18px; border-radius: var(--radius-sm); }
+.board-item .b-row:hover { background: var(--tint); }
+.board-item .b-detail { padding: 2px 18px 18px; }
+.board-empty { color: var(--muted); font-size: 0.9rem; padding: 14px 18px; }
+
+/* 상세 보기일 때는 목록의 윗 괘선을 겹치지 않게 지웁니다 */
+#notice-board.focused { border-top: none; }
+
+.nd-top { margin-bottom: 14px; }
+.nd-bottom { margin-top: 26px; text-align: center; }
+.nd-back { border-radius: 999px; padding: 8px 18px; }
+
+/* 포커스된 공지 카드 */
+.notice-detail {
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 38px 42px 34px;
+}
+
+.nd-head { border-bottom: 1px solid var(--line-soft); padding-bottom: 20px; margin-bottom: 24px; }
+.nd-badges { display: flex; gap: 6px; margin-bottom: 10px; }
+.nd-badges:empty { display: none; }
+.nd-title {
+  font-size: clamp(1.3rem, 2.6vw, 1.7rem);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+.nd-meta { margin-top: 10px; font-size: 0.86rem; color: var(--muted); }
+
+.nd-body { font-size: 0.98rem; line-height: 1.85; max-width: none; }
+.notice-detail .att-list { margin-top: 22px; }
+.nd-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 26px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+/* 하단: 다른 공지 5개 */
+.nd-more { margin-top: 40px; }
+.nd-more h3 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+@media (max-width: 640px) {
+  .notice-detail { padding: 26px 20px 24px; }
+  .board-item .b-row { padding: 14px 12px; }
+  .board-item .b-detail { padding: 2px 12px 16px; }
+}
