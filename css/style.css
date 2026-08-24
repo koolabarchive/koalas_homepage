@@ -654,7 +654,8 @@ ul { list-style: none; }
   display: grid;
   grid-template-columns: 220px 1fr;
   gap: 36px;
-  padding: 48px 0 80px;
+  /* .container의 좌우 여백(24px)을 유지해야 좁은 화면에서 화면 끝에 붙지 않습니다. */
+  padding: 48px 24px 80px;
   align-items: start;
 }
 
@@ -2028,3 +2029,160 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 /* 교수 소개 섹션 편집 버튼 (v19-18) */
 .prof-sec h3 { display: flex; align-items: center; gap: 10px; }
 .sec-edit { font-size: 0.7rem; padding: 3px 9px; font-weight: 600; }
+
+/* ================================================================
+   반응형·접근성 개선 (v20)
+   ① 관리자 콘솔의 모바일 가로 넘침 해소
+   ② 표·툴바·모달의 좁은 화면 대응
+   ③ 터치 타깃 확대 및 모바일 주소창(동적 뷰포트) 보정
+   ================================================================ */
+
+/* ---------- ① 그리드/플렉스 자식의 최소 폭 ----------
+   grid·flex 자식의 기본값 min-width:auto 때문에, 내부의 가로 스크롤 영역
+   (관리자 탭 바·넓은 표)이 컨테이너를 밖으로 밀어내 페이지 전체가
+   가로로 넘쳤습니다(375px 화면에서 문서 폭 1041px). 최소 폭을 0으로 풀어
+   내부 요소가 부모 안에서 스스로 스크롤하도록 합니다. */
+.admin-layout > *,
+.dm-layout > *,
+.about-prof > * { min-width: 0; }
+
+/* 긴 URL·이메일 주소가 레이아웃을 밀어내지 않도록 */
+body { overflow-wrap: break-word; }
+
+/* ---------- ② 관리자 사이드바 → 좁은 화면에서 가로 탭 바 ---------- */
+@media (max-width: 900px) {
+  .admin-side {
+    position: sticky;
+    top: 68px;
+    z-index: 20;
+    padding-top: 10px;
+    background: rgba(250, 250, 248, 0.94);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .admin-side .admin-user {
+    padding: 0 2px 10px;
+    margin-bottom: 0;
+  }
+
+  .admin-nav {
+    gap: 6px;
+    padding: 0 0 12px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* 오른쪽 끝의 옅은 그림자로 "더 밀 수 있음"을 알립니다. */
+    background-image:
+      linear-gradient(to left, var(--paper) 40%, rgba(250, 250, 248, 0)),
+      linear-gradient(to left, rgba(33, 43, 54, 0.10), rgba(33, 43, 54, 0));
+    background-position: 100% 0, 100% 0;
+    background-repeat: no-repeat;
+    background-size: 28px 100%, 12px 100%;
+    background-attachment: local, scroll;
+  }
+  .admin-nav::-webkit-scrollbar { display: none; }
+
+  /* 세로 목록의 여백 대신 알약형 탭으로 — 어디까지 밀 수 있는지 보이게 */
+  .admin-nav button {
+    flex: none;
+    scroll-snap-align: start;
+    padding: 9px 15px;
+    gap: 7px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+  }
+  .admin-nav button.active { border-color: var(--indigo); }
+}
+
+/* ---------- ③ 표: 좁은 화면에서 가로 스크롤 + 스크롤 여지 표시 ----------
+   양끝의 그림자는 background-attachment(local/scroll) 차이를 이용해
+   스크롤이 남아 있을 때만 나타납니다. */
+.admin-table-wrap {
+  -webkit-overflow-scrolling: touch;
+  background-image:
+    linear-gradient(to right, #fff 30%, rgba(255, 255, 255, 0)),
+    linear-gradient(to left,  #fff 30%, rgba(255, 255, 255, 0)),
+    linear-gradient(to right, rgba(33, 43, 54, 0.11), rgba(33, 43, 54, 0)),
+    linear-gradient(to left,  rgba(33, 43, 54, 0.11), rgba(33, 43, 54, 0));
+  background-position: 0 0, 100% 0, 0 0, 100% 0;
+  background-repeat: no-repeat;
+  background-size: 36px 100%, 36px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
+@media (max-width: 760px) {
+  /* 열이 뭉개지는 대신 표 자체가 스크롤되도록 */
+  .admin-table { min-width: 560px; }
+  .admin-table th, .admin-table td { padding: 11px 12px; }
+}
+
+/* ---------- ④ 패널 툴바: 좁은 화면에서 세로 정렬 ----------
+   space-between 때문에 설명 아래 버튼만 오른쪽 끝에 홀로 떨어져 보였습니다. */
+@media (max-width: 640px) {
+  .panel-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .panel-toolbar > * { min-width: 0; max-width: 100%; }
+  /* 검색·필터 입력은 폭을 채우고, 동작 버튼은 본래 크기로 왼쪽 정렬 */
+  .panel-toolbar input,
+  .panel-toolbar select { width: 100%; }
+  .panel-toolbar > span:empty { display: none; }
+}
+
+/* ---------- ⑤ 터치 기기: 탭 타깃 확대 ---------- */
+@media (pointer: coarse) {
+  .btn-sm { min-height: 38px; }
+  .pub-filter button { min-height: 38px; }
+  .icon-btn { width: 38px; height: 38px; }
+  .area-row .row-btns button { width: 34px; height: 34px; }
+  .gnb a { padding-top: 11px; padding-bottom: 11px; }
+}
+
+/* ---------- ⑥ 모바일 주소창 대응(동적 뷰포트 높이) ---------- */
+@supports (height: 100dvh) {
+  @media (max-width: 760px) {
+    .dm-layout { height: 74dvh; }
+  }
+  @media (max-width: 640px) {
+    .chat-popup { height: min(540px, calc(100dvh - 110px)); }
+  }
+}
+
+/* ---------- ⑦ 모달 → 좁은 화면에서는 하단 시트 ---------- */
+@media (max-width: 640px) {
+  .modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .modal, .modal.wide {
+    max-width: 100%;
+    max-height: 90vh;
+    padding: 26px 20px 30px;
+    border-radius: 16px 16px 0 0;
+  }
+}
+@supports (max-height: 90dvh) {
+  @media (max-width: 640px) {
+    .modal, .modal.wide { max-height: 90dvh; }
+  }
+}
+
+/* ---------- ⑧ 초소형 화면(≤380px) 밀도 조정 ---------- */
+@media (max-width: 380px) {
+  .brand-name { font-size: 0.98rem; }
+  .brand-name small { font-size: 0.62rem; letter-spacing: 0.05em; }
+  .brand-mark { width: 30px; height: 30px; }
+
+  .stat-grid { gap: 10px; }
+  .stat-card { padding: 16px 14px; }
+  .stat-card .stat-value { font-size: 1.6rem; }
+
+  .card { padding: 24px 20px; }
+}
+
+/* ---------- ⑨ 본문 내 넓은 콘텐츠 가둬두기 ---------- */
+.md-body pre,
+.md-body table { display: block; max-width: 100%; overflow-x: auto; }

@@ -6,9 +6,36 @@
   const gnb = document.querySelector(".gnb");
   if (!toggle || !gnb) return;
 
-  toggle.addEventListener("click", () => {
-    const open = gnb.classList.toggle("open");
+  function setOpen(open) {
+    gnb.classList.toggle("open", open);
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    toggle.setAttribute("aria-label", open ? "메뉴 닫기" : "메뉴 열기");
+  }
+
+  toggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setOpen(!gnb.classList.contains("open"));
+  });
+
+  // 열린 메뉴는 바깥을 누르거나 Esc를 누르면 닫힙니다.
+  document.addEventListener("click", (e) => {
+    if (gnb.classList.contains("open") && !gnb.contains(e.target)) setOpen(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && gnb.classList.contains("open")) {
+      setOpen(false);
+      toggle.focus();
+    }
+  });
+
+  // 같은 페이지 내 이동(#앵커)이나 스크립트로 처리되는 링크에서도 메뉴가 닫히도록
+  gnb.addEventListener("click", (e) => {
+    if (e.target.closest("a")) setOpen(false);
+  });
+
+  // 데스크톱 폭으로 넓어지면 열림 상태를 초기화합니다.
+  window.matchMedia("(min-width: 641px)").addEventListener("change", (ev) => {
+    if (ev.matches) setOpen(false);
   });
 })();
 
