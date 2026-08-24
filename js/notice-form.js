@@ -6,6 +6,7 @@
 import {
   collection, doc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { createDropdown, createDatePicker, setupScopeToggle, setupMarkdownPreview, BADGE_OPTIONS } from "./notice-ui.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const fmtSize = (b) => {
@@ -161,6 +162,20 @@ export function initNoticeEditor(db, getMe) {
   let editing = null;        // 수정 대상 post (null이면 새 글)
   let keptAtts = [];         // 수정 시 유지되는 기존 첨부
 
+  // UI 위젯: 말머리 드롭다운 · 자물쇠 공개 범위 · 마크다운 미리보기
+  const badgeDd = createDropdown($("edit-badge-dd"), {
+    values: BADGE_OPTIONS,
+    onChange: (v) => { $("edit-badge").value = v; },
+  });
+  const scope = setupScopeToggle($("edit-scope-toggle"), $("edit-scope-label"), $("edit-scope"));
+  const datePicker = createDatePicker($("edit-date-dp"), $("edit-date"));
+  const preview = setupMarkdownPreview({
+    writeBtn: $("edit-mode-write"),
+    previewBtn: $("edit-mode-preview"),
+    textarea: $("edit-content"),
+    preview: $("edit-preview"),
+  });
+
   // 새 첨부 선택 미리보기
   $("edit-files").addEventListener("change", () => {
     const files = [...($("edit-files").files || [])];
@@ -192,10 +207,12 @@ export function initNoticeEditor(db, getMe) {
     $("edit-modal-title").textContent = post ? "공지 수정" : "새 공지 작성";
     $("edit-title").value = post ? post.title : "";
     $("edit-author").value = post ? (post.authorName || me?.name || "") : (me?.name || "");
-    $("edit-date").value = post ? dotToIso(post.date) : todayIso();
-    $("edit-scope").value = post && post.scope === "member" ? "멤버 전용" : "공개";
+    datePicker.set(post ? dotToIso(post.date) : todayIso());
+    scope.set(post ? post.scope === "member" : false, { animate: false });
+    badgeDd.set(post ? (post.badge || "") : "");
     $("edit-badge").value = post ? (post.badge || "") : "";
     $("edit-content").value = post ? (post.content || "") : "";
+    preview.reset();
     $("edit-slider").checked = post ? !!post.slider : false;
     $("edit-files").value = "";
     $("edit-file-list").innerHTML = "";
