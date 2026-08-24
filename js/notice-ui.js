@@ -9,6 +9,73 @@ import { renderMarkdown } from "./markdown-lite.js";
 
 export const BADGE_OPTIONS = ["중요", "안내", "모집", "세미나", "행사"];
 
+export const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+export const fmtSize = (b) => {
+  if (b == null) return "";
+  if (b < 1024) return b + "B";
+  if (b < 1024 * 1024) return (b / 1024).toFixed(0) + "KB";
+  return (b / (1024 * 1024)).toFixed(1) + "MB";
+};
+
+// ---------- 첨부 칩 (게시판·상세 공용) ----------
+export function attachmentChips(atts, key) {
+  if (!atts || !atts.length) return "";
+  return `<div class="att-list">` + atts.map((a, i) => {
+    const isImg = (a.type || "").startsWith("image/");
+    return `<span class="att-chip">
+      <button type="button" class="att-dl" data-att="${key}:${i}" title="다운로드">📎 ${esc(a.name)} <small>${fmtSize(a.size)}</small></button>
+      ${isImg ? `<button type="button" class="att-view" data-view="${key}:${i}">미리보기</button>` : ""}
+    </span>`;
+  }).join("") + `</div><div class="att-previews" data-previews="${key}"></div>`;
+}
+
+// ---------- 공지 게시판 뷰 빌더 (목록 / 상세) ----------
+// 데이터만 받아 HTML 문자열을 돌려줍니다. 이벤트 바인딩은 호출부 몫입니다.
+
+const postMeta = (p) => [p.authorName, p.date].filter(Boolean).map(esc).join(" · ");
+const badgeBits = (p) =>
+  `${p.badge ? `<span class="badge">${esc(p.badge)}</span>` : ""}` +
+  `${p.scope === "member" ? `<span class="scope-chip">멤버 전용</span>` : ""}`;
+
+// 목록: 행을 누르면 상세로 이동합니다 (data-open에 글 id).
+export function buildNoticeList(posts) {
+  if (!posts.length) return '<p class="board-empty">등록된 공지가 없습니다.</p>';
+  return posts.map((p) => `<div class="board-item">
+    <button type="button" class="b-row" data-open="${p.id}">
+      <span class="b-title">${badgeBits(p)}${esc(p.title)}${(p.attachments || []).length ? ` <span class="b-att">📎 ${(p.attachments || []).length}</span>` : ""}</span>
+      <span class="b-meta">${postMeta(p)}</span>
+    </button>
+  </div>`).join("");
+}
+
+// 상세: 본문(마크다운) + 첨부 + (관리자) 수정·삭제 + 하단 다른 공지 5개 + 목록 버튼
+export function buildNoticeDetail(p, others, { isAdmin = false } = {}) {
+  return `
+  <div class="nd-top">
+    <button type="button" class="btn-sm nd-back" data-back>← 목록으로</button>
+  </div>
+  <article class="notice-detail">
+    <header class="nd-head">
+      <div class="nd-badges">${badgeBits(p)}</div>
+      <h2 class="nd-title">${esc(p.title)}</h2>
+      <div class="nd-meta">${postMeta(p)}</div>
+    </header>
+    ${p.content ? `<div class="nd-body md-body">${renderMarkdown(p.content)}</div>` : ""}
+    ${attachmentChips(p.attachments, p.id)}
+    ${isAdmin ? `<div class="nd-actions">
+      <button class="btn-sm" data-edit="${p.id}">수정</button>
+      <button class="btn-sm danger" data-del="${p.id}">삭제</button>
+    </div>` : ""}
+  </article>
+  ${others.length ? `<section class="nd-more">
+    <h3>다른 공지</h3>
+    <div class="board-list">${buildNoticeList(others)}</div>
+  </section>` : ""}
+  <div class="nd-bottom">
+    <button type="button" class="btn-sm nd-back" data-back>목록으로</button>
+  </div>`;
+}
+
 // 팝오버를 스크롤 컨테이너(.modal-body)에 잘리지 않게 fixed로 띄웁니다.
 // 앵커 폭에 맞추고, 아래 공간이 부족하면 위로 뒤집습니다. gap: 앵커와의 간격(px).
 function placePopover(anchor, pop, gap = 8) {
