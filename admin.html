@@ -611,8 +611,9 @@
 
       <h4 style="font-size:0.95rem; font-weight:700; margin:22px 0 8px; padding-top:16px; border-top:1px solid var(--line);">멤버 직접 추가</h4>
       <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-        <div id="pm-add-select-dd" style="flex:1; min-width:160px;"></div>
-        <input type="text" id="pm-add-role" placeholder="역할 (예: 연구보조원)" style="flex:1; min-width:140px; padding:9px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--font-body); font-size:0.88rem; background:var(--paper);" />
+        <!-- 이름(소속)이 역할보다 길어 드롭다운:역할 = 2:1 비율로 배분 -->
+        <div id="pm-add-select-dd" style="flex:2; min-width:220px;"></div>
+        <input type="text" id="pm-add-role" placeholder="역할 (예: 연구보조원)" style="flex:1; min-width:120px; padding:9px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--font-body); font-size:0.88rem; background:var(--paper);" />
         <button class="btn-sm primary" id="pm-add-btn">추가</button>
       </div>
       <div class="form-msg" id="pm-msg"></div>
