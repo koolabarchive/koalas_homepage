@@ -3320,3 +3320,26 @@ a.card { display: block; color: inherit; }
   .pub-item.has-thumb .pub-year { grid-column: 1 / -1; }
   .pub-thumb { width: 78px; height: 60px; }
 }
+
+/* ================================================================
+   첨부 클립 아이콘 — 이모지(📎) 대신 CSS mask로 그리는 SVG.
+   currentColor를 따르므로 어떤 글자색·테마에서도 일관됩니다.
+   ================================================================ */
+.b-att::before,
+.att-dl::before,
+.pub-file-dl::before,
+.file-list .file-row::before,
+.att-count::before {
+  content: "";
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  flex: none;
+  vertical-align: -2px;
+  margin-right: 4px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+/* flex 행(.file-row)은 baseline 정렬이라 아이콘을 살짝 내려 맞춤 */
+.file-list .file-row::before { align-self: center; margin-right: 0; }

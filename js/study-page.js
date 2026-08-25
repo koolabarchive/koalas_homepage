@@ -487,7 +487,7 @@ if (isConfigured) {
     input.addEventListener("change", () => {
       const files = [...(input.files || [])];
       listEl.innerHTML = files.map((f) =>
-        `<div class="file-row">📎 <span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtSize(f.size)}</span></div>`
+        `<div class="file-row"><span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtSize(f.size)}</span></div>`
       ).join("");
     });
   }
@@ -497,7 +497,7 @@ if (isConfigured) {
     return `<div class="att-list">` + atts.map((a, i) => {
       const isImg = (a.type || "").startsWith("image/");
       return `<span class="att-chip">
-        <button type="button" class="att-dl" data-att="${postKey}:${i}" title="다운로드">📎 ${esc(a.name)} <small>${fmtSize(a.size)}</small></button>
+        <button type="button" class="att-dl" data-att="${postKey}:${i}" title="다운로드">${esc(a.name)} <small>${fmtSize(a.size)}</small></button>
         ${isImg ? `<button type="button" class="att-view" data-view="${postKey}:${i}">미리보기</button>` : ""}
       </span>`;
     }).join("") + `</div><div class="att-previews" data-previews="${postKey}"></div>`;
@@ -557,7 +557,7 @@ if (isConfigured) {
         const attCount = (p.attachments || []).length;
         return `<div class="board-item${open ? " open" : ""}" data-post="${p.id}">
           <button type="button" class="b-row" data-toggle="${p.id}">
-            <span class="b-title">${esc(p.title)}${attCount ? ` <span class="b-att">📎 ${attCount}</span>` : ""}</span>
+            <span class="b-title">${esc(p.title)}${attCount ? ` <span class="b-att">${attCount}</span>` : ""}</span>
             <span class="b-meta">${esc(p.authorName)} · ${fmtDateTime(p.createdAt)}</span>
           </button>
           <div class="b-detail"${open ? "" : " hidden"}>

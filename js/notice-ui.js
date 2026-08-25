@@ -23,7 +23,7 @@ export function attachmentChips(atts, key) {
   return `<div class="att-list">` + atts.map((a, i) => {
     const isImg = (a.type || "").startsWith("image/");
     return `<span class="att-chip">
-      <button type="button" class="att-dl" data-att="${key}:${i}" title="다운로드">📎 ${esc(a.name)} <small>${fmtSize(a.size)}</small></button>
+      <button type="button" class="att-dl" data-att="${key}:${i}" title="다운로드">${esc(a.name)} <small>${fmtSize(a.size)}</small></button>
       ${isImg ? `<button type="button" class="att-view" data-view="${key}:${i}">미리보기</button>` : ""}
     </span>`;
   }).join("") + `</div><div class="att-previews" data-previews="${key}"></div>`;
@@ -42,7 +42,7 @@ export function buildNoticeList(posts) {
   if (!posts.length) return '<p class="board-empty">등록된 공지가 없습니다.</p>';
   return posts.map((p) => `<div class="board-item">
     <button type="button" class="b-row" data-open="${p.id}">
-      <span class="b-title">${badgeBits(p)}${esc(p.title)}${(p.attachments || []).length ? ` <span class="b-att">📎 ${(p.attachments || []).length}</span>` : ""}</span>
+      <span class="b-title">${badgeBits(p)}${esc(p.title)}${(p.attachments || []).length ? ` <span class="b-att">${(p.attachments || []).length}</span>` : ""}</span>
       <span class="b-meta">${postMeta(p)}</span>
     </button>
   </div>`).join("");

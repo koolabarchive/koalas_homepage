@@ -189,7 +189,7 @@ export function initNoticeEditor(db, getMe) {
   $("edit-files").addEventListener("change", () => {
     const files = [...($("edit-files").files || [])];
     $("edit-file-list").innerHTML = files.map((f) =>
-      `<div class="file-row">📎 <span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtSize(f.size)}</span></div>`
+      `<div class="file-row"><span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtSize(f.size)}</span></div>`
     ).join("");
   });
 
@@ -198,7 +198,7 @@ export function initNoticeEditor(db, getMe) {
     if (!keptAtts.length) { box.innerHTML = ""; return; }
     box.innerHTML = `<div class="hint" style="margin-bottom:4px;">기존 첨부파일 — ✕를 누르면 저장 시 삭제됩니다.</div>` +
       keptAtts.map((a, i) =>
-        `<div class="file-row">📎 <span class="f-name">${esc(a.name)}</span><span class="f-size">${fmtSize(a.size)}</span>
+        `<div class="file-row"><span class="f-name">${esc(a.name)}</span><span class="f-size">${fmtSize(a.size)}</span>
           <button type="button" class="att-remove" data-i="${i}" title="삭제">✕</button></div>`
       ).join("");
     box.querySelectorAll(".att-remove").forEach((btn) => {

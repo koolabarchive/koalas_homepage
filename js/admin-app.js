@@ -368,7 +368,7 @@ if (isConfigured) {
 
     function render() {
       const rows = state.posts.map((p) => `<tr>
-        <td>${p.badge ? '<span class="badge" style="font-size:0.68rem;font-weight:700;color:var(--danger);margin-right:6px;">' + esc(p.badge) + "</span>" : ""}${esc(p.title)}${(p.attachments || []).length ? ` <span class="sub" style="display:inline;">📎 ${(p.attachments || []).length}</span>` : ""}</td>
+        <td>${p.badge ? '<span class="badge" style="font-size:0.68rem;font-weight:700;color:var(--danger);margin-right:6px;">' + esc(p.badge) + "</span>" : ""}${esc(p.title)}${(p.attachments || []).length ? ` <span class="sub att-count" style="display:inline;">${(p.attachments || []).length}</span>` : ""}</td>
         <td>${esc(p.authorName || "—")}</td>
         <td>${esc(p.date || "")}</td>
         <td><span class="status ${p.scope === "public" ? "approved" : "member"}">${p.scope === "public" ? "공개" : "멤버 전용"}</span></td>
@@ -465,7 +465,7 @@ if (isConfigured) {
         const linkedCount = (p.memberUids || []).length;
         return `<tr>
           <td>${esc(p.type)}</td>
-          <td>${esc(p.title)}${linkedCount ? ` <span class="sub" style="display:inline;">🔗 ${linkedCount}명</span>` : ""}${pubFilesOf(p).length ? ` <span class="sub" style="display:inline;">📎 ${pubFilesOf(p).length}</span>` : ""}${p.link ? ' <span class="sub" style="display:inline;">↗</span>' : ""}${p.meta ? ' <span class="sub">' + esc(p.meta) + "</span>" : ""}</td>
+          <td>${esc(p.title)}${linkedCount ? ` <span class="sub" style="display:inline;">🔗 ${linkedCount}명</span>` : ""}${pubFilesOf(p).length ? ` <span class="sub att-count" style="display:inline;">${pubFilesOf(p).length}</span>` : ""}${p.link ? ' <span class="sub" style="display:inline;">↗</span>' : ""}${p.meta ? ' <span class="sub">' + esc(p.meta) + "</span>" : ""}</td>
           <td>${esc(p.createdByName || "—")}</td>
           <td>${STATUS_BADGE[p.status] || esc(p.status)}</td>
           <td class="cell-actions">${actions}</td>
@@ -511,7 +511,7 @@ if (isConfigured) {
     function renderPlFiles() {
       const box = $("pl-file-current");
       box.innerHTML = plKeptFiles().map((f) => `
-        <div class="file-row">📎 <span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtStoredSize(f.size)}</span>
+        <div class="file-row"><span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtStoredSize(f.size)}</span>
           <button type="button" class="att-remove" data-rm="${esc(f.fileId)}" title="파일 삭제">✕</button>
         </div>`).join("");
       box.querySelectorAll("[data-rm]").forEach((b) =>
@@ -607,7 +607,7 @@ if (isConfigured) {
     // 등록 모달: 선택한 파일 목록 표시
     $("p-file").addEventListener("change", () => {
       $("p-file-list").innerHTML = [...($("p-file").files || [])].map((f) =>
-        `<div class="file-row">📎 <span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtStoredSize(f.size)}</span></div>`).join("");
+        `<div class="file-row"><span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtStoredSize(f.size)}</span></div>`).join("");
     });
 
     // 새 성과 등록 모달이 열릴 때 멤버 체크박스 채움 (열기 자체는 admin-demo.js 공용 핸들러)

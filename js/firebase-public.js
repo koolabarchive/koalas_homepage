@@ -216,7 +216,7 @@ if (isConfigured) {
         ${p.meta ? '<div class="pub-meta">' + esc(p.meta) + "</div>" : ""}
         ${(p.link || fs.length) ? `<div class="pub-links">
           ${p.link ? `<a href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">↗ 원문 링크</a>` : ""}
-          ${fs.map((f, i) => `<button type="button" class="pub-file-dl" data-pubfile="${esc(p.id)}" data-fi="${i}">📎 ${esc(f.name)}</button>`).join("")}
+          ${fs.map((f, i) => `<button type="button" class="pub-file-dl" data-pubfile="${esc(p.id)}" data-fi="${i}">${esc(f.name)}</button>`).join("")}
         </div>` : ""}
       </div>
       ${p.thumb ? `<img class="pub-thumb" src="${esc(p.thumb)}" alt="" loading="lazy" />` : ""}

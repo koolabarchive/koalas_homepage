@@ -435,13 +435,13 @@ if (isConfigured) {
   function bindFilePreview(input, listEl) {
     input.addEventListener("change", () => {
       listEl.innerHTML = [...(input.files || [])].map((f) =>
-        `<div class="file-row">📎 <span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtSize(f.size)}</span></div>`).join("");
+        `<div class="file-row"><span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtSize(f.size)}</span></div>`).join("");
     });
   }
   function attachmentChips(atts, key) {
     if (!atts || !atts.length || !isParticipant) return "";
     return `<div class="att-list">` + atts.map((a, i) =>
-      `<span class="att-chip"><button type="button" class="att-dl" data-att="${key}:${i}">📎 ${esc(a.name)} <small>${fmtSize(a.size)}</small></button></span>`
+      `<span class="att-chip"><button type="button" class="att-dl" data-att="${key}:${i}">${esc(a.name)} <small>${fmtSize(a.size)}</small></button></span>`
     ).join("") + `</div>`;
   }
   function bindAttachmentEvents(box, byKey) {
@@ -650,7 +650,7 @@ if (isConfigured) {
         const attCount = isParticipant ? (p.attachments || []).length : 0;
         return `<div class="board-item${open ? " open" : ""}">
           <button type="button" class="b-row" data-toggle="post:${p.id}">
-            <span class="b-title">${p.scope === "internal" ? '<span class="scope-chip">🔒 내부</span>' : ""}${esc(p.title)}${attCount ? ` <span class="b-att">📎 ${attCount}</span>` : ""}</span>
+            <span class="b-title">${p.scope === "internal" ? '<span class="scope-chip">🔒 내부</span>' : ""}${esc(p.title)}${attCount ? ` <span class="b-att">${attCount}</span>` : ""}</span>
             <span class="b-meta">${esc(p.authorName)} · ${fmtDateTime(p.createdAt) || fmtDate(p.createdAt)}</span>
           </button>
           <div class="b-detail"${open ? "" : " hidden"}>
@@ -769,7 +769,7 @@ if (isConfigured) {
       const attCount = (m.attachments || []).length;
       return `<div class="board-item${open ? " open" : ""}">
         <button type="button" class="b-row" data-toggle="mat:${m.id}">
-          <span class="b-title"><span class="pub-type" style="margin-right:8px;">${esc(m.category || "기타")}</span>${esc(m.title)}${attCount ? ` <span class="b-att">📎 ${attCount}</span>` : ""}</span>
+          <span class="b-title"><span class="pub-type" style="margin-right:8px;">${esc(m.category || "기타")}</span>${esc(m.title)}${attCount ? ` <span class="b-att">${attCount}</span>` : ""}</span>
           <span class="b-meta">${esc(m.uploaderName)} · ${fmtDateTime(m.createdAt) || fmtDate(m.createdAt)}</span>
         </button>
         <div class="b-detail"${open ? "" : " hidden"}>

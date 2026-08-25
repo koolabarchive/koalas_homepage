@@ -84,7 +84,7 @@ if (isConfigured) {
             <span class="pub-type" style="margin-right:8px;">${esc(m.category || "기타")}</span>
             ${m.scope === "member" ? '<span class="scope-chip">🔒 멤버</span>' : ""}
             ${esc(m.title)}
-            ${attCount ? ` <span class="b-att">📎 ${attCount}</span>` : ""}
+            ${attCount ? ` <span class="b-att">${attCount}</span>` : ""}
             ${m.link ? ' <span class="b-att">🔗</span>' : ""}
           </span>
           <span class="b-meta">${fmtDate(m.createdAt)}</span>
@@ -93,7 +93,7 @@ if (isConfigured) {
           ${m.note ? `<div class="b-body">${esc(m.note)}</div>` : ""}
           ${m.link ? `<div class="b-body"><a href="${esc(m.link)}" target="_blank" rel="noopener noreferrer" style="color:var(--indigo); font-weight:600;">🔗 링크 열기</a></div>` : ""}
           ${(m.attachments || []).length ? `<div class="att-list">${m.attachments.map((a, i) =>
-            `<span class="att-chip"><button type="button" class="att-dl" data-att="${m.id}:${i}">📎 ${esc(a.name)} <small>${fmtStoredSize(a.size)}</small></button></span>`).join("")}</div>` : ""}
+            `<span class="att-chip"><button type="button" class="att-dl" data-att="${m.id}:${i}">${esc(a.name)} <small>${fmtStoredSize(a.size)}</small></button></span>`).join("")}</div>` : ""}
           ${isAdmin ? `<div class="b-actions"><button class="btn-sm danger" data-del="${m.id}">삭제</button></div>` : ""}
         </div>
       </div>`;
@@ -147,7 +147,7 @@ if (isConfigured) {
   const scopeCtl = setupScopeToggle($("ar-scope-toggle"), $("ar-scope-label"), $("ar-scope"));
   $("ar-files").addEventListener("change", () => {
     $("ar-file-list").innerHTML = [...($("ar-files").files || [])].map((f) =>
-      `<div class="file-row">📎 <span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtStoredSize(f.size)}</span></div>`).join("");
+      `<div class="file-row"><span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtStoredSize(f.size)}</span></div>`).join("");
   });
   $("btn-write-ar").addEventListener("click", () => {
     $("ar-title").value = "";
