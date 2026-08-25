@@ -23,6 +23,12 @@ if (isConfigured) {
     if (d.getFullYear() === now.getFullYear()) return (d.getMonth() + 1) + "/" + d.getDate();
     return d.getFullYear() + "." + pad(d.getMonth() + 1) + "." + pad(d.getDate());
   };
+  // 대화 버블 옆에는 항상 시각만 표시 (날짜는 날짜 구분선이 담당)
+  const fmtClock = (ts) => {
+    if (!ts || !ts.toDate) return "";
+    const d = ts.toDate();
+    return pad(d.getHours()) + ":" + pad(d.getMinutes());
+  };
   const fmtFull = (ts) => {
     if (!ts || !ts.toDate) return "";
     const d = ts.toDate();
@@ -68,6 +74,8 @@ if (isConfigured) {
     onSnapshot(query(collection(db, "dms"), where("participants", "array-contains", me.uid)), (snap) => {
       convs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       renderConvList();
+      // 열려 있는 대화의 읽음 표시(reads)가 바뀌면 체크도 즉시 갱신
+      if (activeKey && activeKey.startsWith("dm:")) renderMessages(lastThreadMsgs);
     }, (err) => {
       $("dm-conv-list").innerHTML = `<p style="color:var(--danger); font-size:0.86rem; padding:14px;">불러오기 실패: ${esc(err.code || err.message)}</p>`;
     });
@@ -347,15 +355,33 @@ if (isConfigured) {
   }
 
   async function markRead(convId) {
-    try { await updateDoc(doc(db, "dms", convId), { ["unread." + me.uid]: 0 }); } catch (_) {}
+    try {
+      await updateDoc(doc(db, "dms", convId), {
+        ["unread." + me.uid]: 0,
+        // 읽음 표시용: 상대는 내 reads 시각 이전의 자기 메시지를 "읽음"으로 표시
+        ["reads." + me.uid]: serverTimestamp(),
+      });
+    } catch (_) {}
   }
 
+  // 읽음 체크: 전송됨 = 회색 체크 1개, 상대가 읽음 = 파란 체크 2개
+  const TICK1 = '<svg viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 5.3l3.2 3L12.5 1.2"/></svg>';
+  const TICK2 = '<svg viewBox="0 0 19 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 5.3l3.2 3L12.5 1.2"/><path d="M9.4 7.7l1.3 1.2 6.8-7.7"/></svg>';
+
+  let lastThreadMsgs = [];   // reads 갱신 시 재렌더용 캐시
+
   function renderMessages(msgs) {
+    lastThreadMsgs = msgs;
     const box = $("dm-messages");
     if (!msgs.length) {
       box.innerHTML = '<p style="color:var(--muted); font-size:0.86rem; text-align:center; margin-top:40px;">첫 메시지를 보내 보세요.</p>';
       return;
     }
+    // 상대가 마지막으로 읽은 시각 — 그 이전의 내 메시지는 "읽음"
+    const convId = activeKey && activeKey.startsWith("dm:") ? activeKey.slice(3) : null;
+    const c = convId ? convs.find((x) => x.id === convId) : null;
+    const peerReadAt = c ? (c.reads || {})[peerOf(c)] : null;
+
     let lastDay = "";
     box.innerHTML = msgs.map((m) => {
       const mine = m.senderUid === me.uid;
@@ -366,9 +392,14 @@ if (isConfigured) {
         const d = m.createdAt.toDate();
         divider = `<div class="dm-day">${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일</div>`;
       }
+      const read = mine && m.createdAt?.toMillis && peerReadAt?.toMillis
+        && m.createdAt.toMillis() <= peerReadAt.toMillis();
+      const ticks = mine
+        ? `<span class="dm-ticks${read ? " read" : ""}" title="${read ? "읽음" : "전송됨"}">${read ? TICK2 : TICK1}</span>`
+        : "";
       return divider + `<div class="dm-msg${mine ? " mine" : ""}">
         <div class="dm-bubble">${esc(m.text)}</div>
-        <div class="dm-msg-time" title="${fmtFull(m.createdAt)}">${fmtTime(m.createdAt)}</div>
+        <div class="dm-msg-meta"><span class="dm-msg-time" title="${fmtFull(m.createdAt)}">${fmtClock(m.createdAt)}</span>${ticks}</div>
       </div>`;
     }).join("");
     box.scrollTop = box.scrollHeight;
