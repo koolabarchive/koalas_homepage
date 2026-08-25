@@ -1908,33 +1908,76 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   border-bottom-right-radius: 4px;
 }
 .dm-msg-time { font-size: 0.66rem; color: var(--muted); flex: none; }
+/* 입력 바: 글래스 — 메시지 페이지에서는 목록 위에 겹쳐 뒤 내용이 비칩니다 */
 .dm-input {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: flex-end;
-  padding: 12px 14px;
-  border-top: 1px solid var(--line);
-  background: var(--surface);
+  padding: 10px 12px;
+  border-top: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .dm-input { background: var(--surface); }
+}
+
+/* 입력창: iMessage식 알약형 반투명 필드 */
 .dm-input textarea {
   flex: 1;
   resize: none;
-  min-height: 42px;
-  padding: 10px 14px;
+  min-height: 38px;
+  padding: 9px 16px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 999px;
   font-family: var(--font-body);
   font-size: 0.9rem;
   max-height: 120px;
   box-sizing: border-box;
+  background: var(--field-glass);
+  color: var(--ink);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.dm-input .btn-sm {
-  height: 42px;
-  padding: 0 18px;
-  border-radius: 10px;
+.dm-input textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* 보내기: iMessage식 파란 원형 ↑ 버튼 */
+.dm-send-btn {
+  width: 38px;
+  height: 38px;
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--on-accent);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
 }
-.dm-input textarea:focus { outline: none; border-color: var(--indigo); }
+.dm-send-btn svg { width: 17px; height: 17px; display: block; }
+.dm-send-btn:hover { background: var(--accent-bg-hover); }
+.dm-send-btn:active { transform: scale(0.92); }
+@media (prefers-reduced-motion: reduce) {
+  .dm-send-btn { transition: none; }
+}
+
+/* 메시지 페이지: 입력 바를 목록 위에 겹쳐 스크롤이 유리 뒤로 비치게.
+   (팀 채팅 팝업의 .dm-input은 구조가 달라 일반 흐름 배치를 유지합니다) */
+.dm-main { position: relative; }
+.dm-main > .dm-input {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+.dm-main > .dm-messages { padding-bottom: 72px; }
 
 @media (max-width: 760px) {
   .dm-layout { grid-template-columns: 1fr; height: 74vh; }
