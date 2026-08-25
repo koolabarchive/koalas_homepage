@@ -3073,17 +3073,23 @@ select:focus-visible, textarea:focus-visible {
 .check-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;              /* 텍스트와 ? 아이콘 사이 */
 }
 
-.check-line {
+/* 선택자를 .check-row .check-line(0-2-0)으로 써야 .field label(0-1-1)을
+   이깁니다. .check-line만으로는 display:block·margin이 그대로 남아
+   체크박스-텍스트 간격이 사라지고 ? 아이콘이 어긋납니다. */
+.check-row .check-line {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 13px;              /* 체크박스와 텍스트 사이 */
   font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.2;
   color: var(--ink);
   cursor: pointer;
   user-select: none;
+  margin-bottom: 0;
 }
 
 /* 애플식 체크박스: 네이티브 외형을 걷어내고 둥근 사각형 + 체크 모션 */
@@ -3126,6 +3132,14 @@ select:focus-visible, textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .check-line .check-mark, .check-line .check-mark svg { transition: none; }
 }
+
+/* 라벨 옆 ? 묶음 (내용 라벨 등) */
+.label-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.label-help label { margin-bottom: 0; }
 
 /* ---------- 원형 ? 도움말 버튼 ---------- */
 .help-tip {
