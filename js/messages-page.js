@@ -123,6 +123,10 @@ if (isConfigured) {
     if (to && to !== me.uid) openConversationWith(to);
   }
 
+  // 대화 목록 아바타 아이콘 — 이모지는 OS마다 모양이 달라 SVG로 통일합니다.
+  const AV_BUBBLE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.6c-4.8 0-8.7 3.3-8.7 7.4 0 2.3 1.2 4.3 3.1 5.7-.1 1-.5 2.1-1.3 3 1.6-.2 2.9-.8 3.8-1.4.97.25 2 .4 3.1.4 4.8 0 8.7-3.3 8.7-7.4S16.8 3.6 12 3.6z"/></svg>';
+  const AV_PEOPLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.4 20v-1.5a3.6 3.6 0 0 0-3.6-3.6H6.7a3.6 3.6 0 0 0-3.6 3.6V20"/><circle cx="9.7" cy="7.5" r="3.3"/><path d="M20.9 20v-1.5a3.6 3.6 0 0 0-2.7-3.5"/><path d="M14.8 4.3a3.3 3.3 0 0 1 0 6.4"/></svg>';
+
   // ================= 대화 목록 (DM + 팀 채팅 통합) =================
   function renderConvList() {
     const box = $("dm-conv-list");
@@ -146,11 +150,11 @@ if (isConfigured) {
       } else {
         title = roomDisplayTitle(c, me.uid);
         if (c.type === "group") {
-          sub = `<span class="dm-ref">👥 단체 채팅 · ${(c.members || []).length}명</span>`;
-          avatar = "👥";
+          sub = `<span class="dm-ref">단체 채팅 · ${(c.members || []).length}명</span>`;
+          avatar = AV_PEOPLE;
         } else {
-          sub = `<span class="dm-ref">${c.parentType === "study" || c.type === "study" ? "📚" : "🧪"} ${esc(c.refTitle || "")}</span>`;
-          avatar = "💬";
+          sub = `<span class="dm-ref">${c.parentType === "study" || c.type === "study" ? "스터디" : "프로젝트"} · ${esc(c.refTitle || "")}</span>`;
+          avatar = AV_BUBBLE;
         }
       }
       return `<button type="button" class="dm-conv${key === activeKey ? " active" : ""}" data-key="${key}">

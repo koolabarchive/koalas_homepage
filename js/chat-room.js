@@ -140,7 +140,7 @@ export function initTeamChat({ db, me, type, refId, refTitle, getParticipants, i
   // 플로팅 버튼 열기/닫기
   const wrap = $("team-chat-section");
   // 어느 공간의 채팅인지 상단에 명시
-  $("chat-context").textContent = `${type === "project" ? "🧪 프로젝트" : "📚 스터디"} · ${refTitle} 팀 채팅`;
+  $("chat-context").textContent = `${type === "project" ? "프로젝트" : "스터디"} · ${refTitle} 팀 채팅`;
   $("chat-fab").title = `${refTitle} 팀 채팅`;
   // 멤버 목록 팝오버
   $("chat-members-btn").addEventListener("click", (e) => {
@@ -202,7 +202,7 @@ export function initTeamChat({ db, me, type, refId, refTitle, getParticipants, i
       const isMain = r.id === mainId;
       const canDel = !isMain && (isAdmin || r.createdByUid === me.uid);
       return `<button type="button" class="chat-room-tab${r.id === activeRoomId ? " active" : ""}" data-room="${r.id}">
-        ${isMain ? "💬 " : ""}${esc(roomDisplayTitle(r, me.uid))}
+        ${esc(roomDisplayTitle(r, me.uid))}
         ${unread ? `<span class="nav-badge">${unread > 99 ? "99+" : unread}</span>` : ""}
         ${canDel ? `<span class="room-del" data-room-del="${r.id}" title="채팅방 삭제">✕</span>` : ""}
       </button>`;
@@ -230,7 +230,7 @@ export function initTeamChat({ db, me, type, refId, refTitle, getParticipants, i
     activeRoomId = roomId;
     renderRoomTabs();
     const r = roomById(roomId);
-    $("chat-room-title").textContent = r ? (r.id === mainId ? "💬 " : "") + roomDisplayTitle(r, me.uid) : "";
+    $("chat-room-title").textContent = r ? roomDisplayTitle(r, me.uid) : "";
     $("chat-members-pop").style.display = "none";
     $("chat-room-sub").textContent = r ? `${(r.members || []).length}명` : "";
     if (popupOpen) markRoomRead(db, roomId, me.uid);
