@@ -2538,7 +2538,7 @@ h1, h2, h3, .brand-name {
   font-weight: 700;
   line-height: 1.26;
 }
-.page-head p { margin-inline: auto; max-width: 52ch; }
+.page-head p { margin-inline: auto; max-width: 52ch; word-break: keep-all; }
 
 /* ---------- 소식 슬라이더: 캡션을 유리로 ---------- */
 .news-slider { border-radius: var(--radius-lg); overflow: hidden; }
@@ -2659,6 +2659,9 @@ select:focus-visible, textarea:focus-visible {
    목록들이 max-width만 갖고 margin:auto가 없어, 가운데 정렬된 제목 아래에서
    왼쪽으로 치우쳐 보였습니다. 전폭 목록에는 auto가 영향을 주지 않습니다. */
 .board-list, .board-toolbar { margin-inline: auto; }
+/* 게시판 폭 블록: 목록·툴바·필터가 같은 폭으로 가운데 정렬되도록 통일.
+   일부만 인라인 max-width를 갖고 margin:auto가 없으면 서로 어긋나 보입니다. */
+.w-board { max-width: 920px; margin-inline: auto; }
 .board-list { border-top: 1px solid var(--line); }
 .board-item { border-bottom: 1px solid var(--line-soft); }
 
