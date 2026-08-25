@@ -8,6 +8,7 @@ import {
   collection, doc, getDoc, addDoc, deleteDoc, onSnapshot, query, where, orderBy, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { uploadStoredFile, downloadStoredFile, deleteStoredFile, fmtStoredSize } from "./file-store.js";
+import { createDropdown, setupScopeToggle } from "./notice-ui.js";
 
 if (isConfigured) {
   const $ = (id) => document.getElementById(id);
@@ -141,6 +142,9 @@ if (isConfigured) {
 
   // ----- 등록 모달 (관리자) -----
   const modal = $("ar-modal");
+  const CATEGORIES = ["양식·서식", "발표자료", "문서", "링크", "기타"];
+  const catDd = createDropdown($("ar-cat-dd"), { values: CATEGORIES, allowEmpty: false });
+  const scopeCtl = setupScopeToggle($("ar-scope-toggle"), $("ar-scope-label"), $("ar-scope"));
   $("ar-files").addEventListener("change", () => {
     $("ar-file-list").innerHTML = [...($("ar-files").files || [])].map((f) =>
       `<div class="file-row">📎 <span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtStoredSize(f.size)}</span></div>`).join("");
@@ -149,8 +153,8 @@ if (isConfigured) {
     $("ar-title").value = "";
     $("ar-note").value = "";
     $("ar-link").value = "";
-    $("ar-cat").selectedIndex = 0;
-    $("ar-scope").value = "public";
+    catDd.set(CATEGORIES[0]);
+    scopeCtl.set(false, { animate: false });
     $("ar-files").value = "";
     $("ar-file-list").innerHTML = "";
     $("ar-msg").className = "form-msg";
@@ -168,7 +172,8 @@ if (isConfigured) {
     if (link && !/^https?:\/\//i.test(link)) link = "https://" + link;
     const files = [...($("ar-files").files || [])];
     if (files.length > 5) { msg.textContent = "첨부파일은 최대 5개까지입니다."; msg.className = "form-msg error"; return; }
-    const scope = $("ar-scope").value;
+    // 자물쇠 토글의 hidden 값("공개"/"멤버 전용")을 저장용 scope로 변환 (공지와 동일)
+    const scope = $("ar-scope").value === "공개" ? "public" : "member";
 
     btn.disabled = true;
     try {
@@ -180,7 +185,7 @@ if (isConfigured) {
       btn.textContent = "등록 중…";
       await addDoc(collection(db, "archives"), {
         title,
-        category: $("ar-cat").value,
+        category: catDd.get(),
         note: $("ar-note").value.trim(),
         link,
         scope,
