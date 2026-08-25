@@ -2031,7 +2031,8 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .dm-msg-col .dm-bubble { max-width: 100%; }
 .dm-msg.mine .dm-msg-col { align-items: flex-end; }
 .dm-sender { font-size: 0.7rem; font-weight: 700; color: var(--muted); margin: 2px 0 3px 4px; }
-.dm-avatar.room { background: var(--celadon); }
+.dm-avatar.room { background: var(--accent-bg); }
+.dm-avatar svg { width: 19px; height: 19px; display: block; }
 .dm-ref { display: block; font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
 
 
