@@ -43,6 +43,7 @@
   let certSeq = 19; // 데모용 시작 번호
   document.querySelectorAll("#cert-table .act-issue").forEach((btn) => {
     btn.addEventListener("click", () => {
+      if (window.__FB_ADMIN__) return;
       const row = btn.closest("tr");
       const no = "HJK-2026-" + String(certSeq++).padStart(4, "0");
       row.cells[0].textContent = no;
@@ -212,6 +213,7 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
 
   document.getElementById("edit-save").addEventListener("click", () => {
+    if (window.__FB_ADMIN__) return;
     if (!targetRow) return;
     targetRow.cells[0].textContent = document.getElementById("edit-title").value.trim();
     targetRow.cells[1].textContent = document.getElementById("edit-date").value.trim();
@@ -314,6 +316,7 @@
   modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
 
   $("pub-save").addEventListener("click", () => {
+    if (window.__FB_ADMIN__) return; // 실연동 활성 시 양보 (없으면 실제 저장 + 데모 알림이 이중 실행됨)
     const title = $("p-title").value.trim();
     const msg = $("pub-modal-msg");
     if (!title) {

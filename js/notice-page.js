@@ -105,6 +105,7 @@ if (isConfigured) {
 
     board.querySelectorAll("[data-back]").forEach((b) => b.addEventListener("click", backToList));
     bindRowOpen(board);
+    bindShare(p);
 
     if (isAdmin) {
       const editBtn = board.querySelector(`[data-edit="${p.id}"]`);
@@ -122,6 +123,42 @@ if (isConfigured) {
     }
 
     bindAttachmentEvents(db, board, { [p.id]: p });
+  }
+
+  // 공유: 링크 복사는 항상, "공유" 버튼은 기기 공유 시트(Web Share)를
+  // 지원할 때만 표시됩니다 — 모바일에서는 카카오톡 등 설치된 앱으로 바로
+  // 공유할 수 있습니다.
+  function bindShare(p) {
+    const url = location.origin + location.pathname + "#post=" + encodeURIComponent(p.id);
+
+    const shareBtn = board.querySelector("[data-share]");
+    if (shareBtn && navigator.share) {
+      shareBtn.hidden = false;
+      shareBtn.addEventListener("click", () => {
+        navigator.share({ title: p.title, text: "[한신대 임상심리 연구실 공지] " + p.title, url })
+          .catch(() => {}); // 사용자가 시트를 닫은 경우 등은 무시
+      });
+    }
+
+    const copyBtn = board.querySelector("[data-copylink]");
+    if (copyBtn) copyBtn.addEventListener("click", async () => {
+      let ok = false;
+      try { await navigator.clipboard.writeText(url); ok = true; }
+      catch (_) {
+        // 클립보드 API가 막힌 환경 폴백
+        const ta = document.createElement("textarea");
+        ta.value = url; ta.style.cssText = "position:fixed;left:-9999px;";
+        document.body.appendChild(ta); ta.select();
+        try { ok = document.execCommand("copy"); } catch (_) {}
+        ta.remove();
+      }
+      const label = copyBtn.querySelector("[data-copy-label]");
+      if (label) {
+        label.textContent = ok ? "복사됨 ✓" : "복사 실패";
+        copyBtn.classList.toggle("copied", ok);
+        setTimeout(() => { label.textContent = "링크 복사"; copyBtn.classList.remove("copied"); }, 1600);
+      }
+    });
   }
 
   function bindRowOpen(box) {

@@ -58,7 +58,19 @@ export function buildNoticeDetail(p, others, { isAdmin = false } = {}) {
     <header class="nd-head">
       <div class="nd-badges">${badgeBits(p)}</div>
       <h2 class="nd-title">${esc(p.title)}</h2>
-      <div class="nd-meta">${postMeta(p)}</div>
+      <div class="nd-meta-row">
+        <div class="nd-meta">${postMeta(p)}</div>
+        <div class="nd-share">
+          <button type="button" class="nd-share-btn" data-share hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M8.5 7.5L12 4l3.5 3.5"/><path d="M5 12v6.2A1.8 1.8 0 0 0 6.8 20h10.4a1.8 1.8 0 0 0 1.8-1.8V12"/></svg>
+            공유
+          </button>
+          <button type="button" class="nd-share-btn" data-copylink>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 13.5a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.6 1.6"/><path d="M13.5 10.5a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.6-1.6"/></svg>
+            <span data-copy-label>링크 복사</span>
+          </button>
+        </div>
+      </div>
     </header>
     ${p.content ? `<div class="nd-body md-body">${renderMarkdown(p.content)}</div>` : ""}
     ${attachmentChips(p.attachments, p.id)}
