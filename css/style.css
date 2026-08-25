@@ -3200,3 +3200,13 @@ select:focus-visible, textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .help-pop { transition: none; }
 }
+
+/* 단일형 모달(자료실 등)의 제목 행 — 제목 왼쪽, 자물쇠 토글 오른쪽 */
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.modal-title-row h3 { margin-bottom: 0; }

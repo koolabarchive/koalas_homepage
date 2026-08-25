@@ -68,25 +68,23 @@
   <!-- 자료 등록 모달 (관리자) -->
   <div class="modal-backdrop" id="ar-modal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ar-modal-title">
-      <h3 id="ar-modal-title">자료 등록</h3>
-      <div class="field-row">
-        <div class="field">
-          <label for="ar-cat">분류</label>
-          <select id="ar-cat">
-            <option>양식·서식</option>
-            <option>발표자료</option>
-            <option>문서</option>
-            <option>링크</option>
-            <option>기타</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="ar-scope">공개 범위</label>
-          <select id="ar-scope">
-            <option value="public">공개 — 누구나 열람·다운로드</option>
-            <option value="member">🔒 멤버 전용</option>
-          </select>
-        </div>
+      <div class="modal-title-row">
+        <h3 id="ar-modal-title">자료 등록</h3>
+        <!-- 공개 범위: 자물쇠 토글 (열림=전체공개 / 닫힘=멤버공개) — 공지 모달과 동일 -->
+        <button type="button" class="scope-toggle" id="ar-scope-toggle" aria-pressed="false">
+          <svg class="lock" viewBox="0 0 24 24" aria-hidden="true">
+            <path class="lock-shackle" d="M8.2 11.2V7.9a3.8 3.8 0 0 1 7.6 0v3.3"
+                  fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+            <rect class="lock-body" x="5.2" y="11.2" width="13.6" height="9.4" rx="2.8" fill="currentColor"/>
+            <circle class="lock-hole" cx="12" cy="15.6" r="1.5"/>
+          </svg>
+          <span id="ar-scope-label">전체공개</span>
+        </button>
+        <input type="hidden" id="ar-scope" value="공개" />
+      </div>
+      <div class="field">
+        <label id="ar-cat-label">분류</label>
+        <div id="ar-cat-dd" aria-labelledby="ar-cat-label"></div>
       </div>
       <div class="field">
         <label for="ar-title">제목</label>

@@ -117,12 +117,13 @@ const CHEVRON_SVG =
 // ---------- 애플 스타일 드롭다운 ----------
 // host(빈 div)에 버튼 + 리스트박스를 만들어 넣습니다.
 // values: 문자열 배열. 빈 문자열("")은 "없음"으로 표시됩니다.
-export function createDropdown(host, { values = [], emptyLabel = "없음", onChange } = {}) {
+export function createDropdown(host, { values = [], emptyLabel = "없음", allowEmpty = true, onChange } = {}) {
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const label = (v) => (v === "" ? emptyLabel : v);
 
-  let opts = ["", ...values.filter((v) => v !== "")];
-  let value = "";
+  // allowEmpty=false: "없음" 선택지 없이 첫 항목이 기본값 (예: 자료실 분류)
+  let opts = allowEmpty ? ["", ...values.filter((v) => v !== "")] : [...values];
+  let value = allowEmpty ? "" : (opts[0] ?? "");
   let activeIdx = 0; // 키보드 탐색 위치
 
   host.classList.add("dd");
@@ -205,7 +206,7 @@ export function createDropdown(host, { values = [], emptyLabel = "없음", onCha
     // 목록에 없는 값(과거 글의 자유 입력 말머리)은 옵션으로 추가해 잃지 않습니다.
     set: (v) => {
       value = String(v ?? "").trim();
-      if (value && !opts.includes(value)) opts = ["", value, ...opts.slice(1)];
+      if (value && !opts.includes(value)) opts = allowEmpty ? ["", value, ...opts.slice(1)] : [value, ...opts];
       renderMenu();
     },
   };
