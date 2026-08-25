@@ -13,6 +13,7 @@ import {
   AFFILIATIONS, POSITIONS, STATUSES, fillSelect, resolveSelectValue, applySelectValue, bindEtcToggle, memberProfileFrom,
 } from "./org-options.js";
 import { initNoticeEditor, deleteNoticeAttachments } from "./notice-form.js";
+import { createDropdown } from "./notice-ui.js";
 import { uploadStoredFile, deleteStoredFile, fmtStoredSize } from "./file-store.js";
 
 if (isConfigured) {
@@ -752,14 +753,24 @@ if (isConfigured) {
       });
     }
 
+    // 멤버 추가 드롭다운 (애플 스타일) — 라벨 ↔ uid 매핑을 함께 유지합니다
+    const pmAddDd = createDropdown($("pm-add-select-dd"), { values: [], allowEmpty: false });
+    const pmAddUidByLabel = new Map();
+
     function renderPmAddSelect() {
       const p = pmProject();
       if (!p) return;
       const current = new Set(p.participantsUids || []);
       const candidates = state.users.filter((u) => (u.role === "member" || u.role === "admin") && !current.has(u.id));
-      $("pm-add-select").innerHTML = candidates.length
-        ? candidates.map((u) => `<option value="${u.id}">${esc(u.name)} (${esc(u.affiliation || "")})</option>`).join("")
-        : '<option value="">추가할 수 있는 멤버가 없습니다</option>';
+      pmAddUidByLabel.clear();
+      const labels = candidates.map((u) => {
+        let label = `${u.name}${u.affiliation ? ` (${u.affiliation})` : ""}`;
+        // 이름·소속이 같은 두 계정이 있어도 서로 다른 항목이 되도록
+        while (pmAddUidByLabel.has(label)) label += " ·";
+        pmAddUidByLabel.set(label, u.id);
+        return label;
+      });
+      pmAddDd.setOptions(labels.length ? labels : ["추가할 수 있는 멤버가 없습니다"]);
     }
 
     async function addParticipant(uid, name, role) {
@@ -771,7 +782,7 @@ if (isConfigured) {
     }
 
     $("pm-add-btn").addEventListener("click", async () => {
-      const uid = $("pm-add-select").value;
+      const uid = pmAddUidByLabel.get(pmAddDd.get());
       if (!uid || !pmProjectId) return;
       const u = state.users.find((x) => x.id === uid);
       try {
