@@ -250,11 +250,17 @@ if (isConfigured) {
         <div style="margin-bottom:18px;">
           <div style="font-size:0.8rem; font-weight:700; color:var(--muted); letter-spacing:0.06em; margin-bottom:8px;">${esc(g)}</div>
           <div class="grid grid-3">
-            ${groups[g].map(({ uid, name, u }) => `
+            ${groups[g].map(({ uid, name, u }) => {
+              // 가독성: 역할·직책은 첫 줄, 소속은 둘째 줄로 분리
+              const line1 = [roleOf(uid), u ? [u.position, u.memberStatus].filter(Boolean).join("·") : ""].filter(Boolean).join(" · ");
+              const affil = u && u.affiliation ? u.affiliation : "";
+              return `
               <div class="card" style="padding:16px 18px;">
                 <h3 style="font-size:0.96rem; margin-bottom:2px;">${esc(name)}${leaderSet.has(uid) ? ' <span class="status approved" style="vertical-align:1px;">리더</span>' : ""}</h3>
-                <div class="study-meta">${esc([roleOf(uid), u ? [u.position, u.memberStatus].filter(Boolean).join("·") : "", u ? u.affiliation : ""].filter(Boolean).join(" · "))}</div>
-              </div>`).join("")}
+                ${line1 ? `<div class="study-meta">${esc(line1)}</div>` : ""}
+                ${affil ? `<div class="pt-affil">${esc(affil)}</div>` : ""}
+              </div>`;
+            }).join("")}
           </div>
         </div>`).join("");
     } catch (_) {

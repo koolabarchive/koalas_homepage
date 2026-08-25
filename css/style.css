@@ -3254,3 +3254,11 @@ select:focus-visible, textarea:focus-visible {
   margin-bottom: 20px;
 }
 .modal-title-row h3 { margin-bottom: 0; }
+
+/* 연구팀 카드: 소속은 역할·직책과 분리된 둘째 줄 */
+.pt-affil {
+  font-size: 0.78rem;
+  color: var(--faint);
+  margin-top: 3px;
+  word-break: keep-all;
+}
