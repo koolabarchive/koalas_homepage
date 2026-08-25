@@ -569,6 +569,15 @@ if (isConfigured) {
             el.addEventListener("click", open);
             el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
           });
+          // 프로젝트 팀 카드에서 members.html#u=<계정uid>로 진입하면
+          // 그 계정이 연결된 구성원 프로필을 바로 엽니다. 연결된 프로필이
+          // 없으면 조용히 목록만 보여줍니다.
+          const um = /[#&]u=([^&]+)/.exec(location.hash);
+          if (um) {
+            const target = people.find((x) => x.linkedUid === decodeURIComponent(um[1]));
+            if (target) openPerson(target);
+          }
+
           document.getElementById("person-close").addEventListener("click", () => personModal.classList.remove("open"));
           personModal.addEventListener("click", (e) => { if (e.target === personModal) personModal.classList.remove("open"); });
         }

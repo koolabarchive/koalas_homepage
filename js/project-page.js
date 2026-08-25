@@ -224,10 +224,10 @@ if (isConfigured) {
     if (!isMember) {
       // 비로그인: 이름·프로젝트 역할만 (계정 정보 접근 불가)
       $("pj-people").innerHTML = '<div class="grid grid-3">' + entries.map(([uid, name]) => `
-        <div class="card" style="padding:18px 20px;">
+        <a class="card" href="members.html#u=${encodeURIComponent(uid)}" style="padding:18px 20px;" title="구성원 프로필 보기">
           <h3 style="font-size:0.98rem; margin-bottom:2px;">${esc(name)}</h3>
           ${roleOf(uid) ? '<div class="study-meta">' + esc(roleOf(uid)) + "</div>" : ""}
-        </div>`).join("") + "</div>";
+        </a>`).join("") + "</div>";
       return;
     }
 
@@ -255,11 +255,11 @@ if (isConfigured) {
               const line1 = [roleOf(uid), u ? [u.position, u.memberStatus].filter(Boolean).join("·") : ""].filter(Boolean).join(" · ");
               const affil = u && u.affiliation ? u.affiliation : "";
               return `
-              <div class="card" style="padding:16px 18px;">
+              <a class="card" href="members.html#u=${encodeURIComponent(uid)}" style="padding:16px 18px;" title="구성원 프로필 보기">
                 <h3 style="font-size:0.96rem; margin-bottom:2px;">${esc(name)}${leaderSet.has(uid) ? ' <span class="status approved" style="vertical-align:1px;">리더</span>' : ""}</h3>
                 ${line1 ? `<div class="study-meta">${esc(line1)}</div>` : ""}
                 ${affil ? `<div class="pt-affil">${esc(affil)}</div>` : ""}
-              </div>`;
+              </a>`;
             }).join("")}
           </div>
         </div>`).join("");

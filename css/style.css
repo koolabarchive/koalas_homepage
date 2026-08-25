@@ -3262,3 +3262,11 @@ select:focus-visible, textarea:focus-visible {
   margin-top: 3px;
   word-break: keep-all;
 }
+
+/* 상세 페이지(프로젝트·스터디)는 섹션 제목이 왼쪽 기준이므로,
+   전역 규칙(margin-inline:auto)으로 가운데 정렬되던 게시판 블록을
+   왼쪽으로 되돌려 다른 860px 블록과 가장자리를 맞춥니다. */
+.board-list.flush, .board-toolbar.flush { margin-inline: 0; }
+
+/* 연구팀 카드가 링크일 때: 텍스트 링크 장식 없이 카드 그대로 */
+a.card { display: block; color: inherit; }
