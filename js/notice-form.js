@@ -148,6 +148,17 @@ export function initNoticeEditor(db, getMe) {
   // 제목은 한 줄 입력 — Enter로 줄바꿈이 들어가지 않게 막습니다
   $("edit-title").addEventListener("keydown", (e) => { if (e.key === "Enter") e.preventDefault(); });
 
+  // 내용 라벨 옆 ? 아이콘 — 마크다운 서식 안내
+  const mdHelp = $("edit-md-help");
+  if (mdHelp) attachHelpTip(mdHelp,
+    "<strong>마크다운 서식</strong>" +
+    "<p>내용에 쓴 서식이 게시글에 그대로 반영됩니다. 미리보기 탭에서 결과를 확인할 수 있어요.</p>" +
+    "<ul><li><b>**굵게**</b> · <b>*기울임*</b></li>" +
+    "<li><b>## 소제목</b> — 줄 앞에 #, ##, ###</li>" +
+    "<li><b>- 목록</b> · <b>1. 번호 목록</b></li>" +
+    "<li><b>[텍스트](https://주소)</b> — 링크</li>" +
+    "<li><b>&gt; 인용</b> · <b>---</b> 구분선</li></ul>");
+
   // 슬라이더 노출 옆 ? 아이콘 — 클릭하면 안내 팝오버
   const sliderHelp = $("edit-slider-help");
   if (sliderHelp) attachHelpTip(sliderHelp,

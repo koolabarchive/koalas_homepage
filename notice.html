@@ -93,7 +93,10 @@
         </div>
         <div class="field">
           <div class="field-head">
-            <label for="edit-content">내용</label>
+            <span class="label-help">
+              <label for="edit-content">내용</label>
+              <button type="button" class="help-tip" id="edit-md-help" aria-label="마크다운 서식 안내">?</button>
+            </span>
             <div class="seg" role="tablist" aria-label="내용 입력 모드">
               <button type="button" class="active" id="edit-mode-write" role="tab" aria-selected="true">쓰기</button>
               <button type="button" id="edit-mode-preview" role="tab" aria-selected="false">미리보기</button>
@@ -101,7 +104,6 @@
           </div>
           <textarea id="edit-content" rows="8" placeholder="공지 내용을 입력해 주세요. 마크다운을 지원합니다."></textarea>
           <div class="md-body edit-preview" id="edit-preview" hidden></div>
-          <div class="hint">**굵게** · - 목록 · ## 소제목 · [링크](https://…) 같은 마크다운이 게시글에 그대로 반영됩니다.</div>
         </div>
         <div class="field">
           <label for="edit-files">첨부파일 <span class="hint" style="display:inline;">— 이미지·PDF·문서 등, 파일당 최대 10MB · 5개까지</span></label>
