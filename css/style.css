@@ -3358,3 +3358,76 @@ a.card { display: block; color: inherit; }
 }
 .dm-ticks svg { width: 14px; height: 10px; display: block; }
 .dm-ticks.read { color: var(--accent); }   /* 읽음: 파란 체크 2개 */
+
+/* ================================================================
+   메시지 첨부·다인 읽음 체크
+   ================================================================ */
+/* 입력 바 첨부 버튼 */
+.dm-attach-btn {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.dm-attach-btn svg { width: 19px; height: 19px; display: block; }
+.dm-attach-btn:hover { color: var(--accent); background: var(--tint); }
+.dm-attach-btn.busy { color: var(--accent); animation: attach-pulse 1s ease-in-out infinite; }
+@keyframes attach-pulse { 50% { opacity: 0.4; } }
+@media (prefers-reduced-motion: reduce) { .dm-attach-btn.busy { animation: none; } }
+
+/* 이미지 메시지: 라운드 미리보기 (클릭 = 원본 다운로드) */
+.dm-att-img {
+  max-width: min(260px, 70%);
+  max-height: 260px;
+  border-radius: 14px;
+  border: 1px solid var(--line-soft);
+  cursor: pointer;
+  display: block;
+}
+.dm-msg.mine .dm-att-img { margin-left: auto; }
+
+/* 파일·동영상 메시지: 파일 칩 */
+.dm-att-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: min(300px, 78%);
+  padding: 10px 15px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.dm-att-file .f-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dm-att-file small { color: var(--muted); flex: none; }
+.dm-att-file:hover { border-color: var(--accent); }
+/* 클립 아이콘 재사용 (마스크) */
+.dm-att-file::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 14px;
+  background-color: var(--accent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+.dm-msg.mine .dm-att-file { margin-left: auto; }
+
+/* 다인 읽음: 읽은 인원 수만큼 파란 체크가 겹쳐 쌓입니다 */
+.dm-ticks.stack svg + svg { margin-left: -8px; }

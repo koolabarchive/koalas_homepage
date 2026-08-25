@@ -371,6 +371,22 @@ service cloud.firestore {
       }
     }
 
+    // ---------- chatFiles: 메시지(DM·팀 채팅) 첨부파일 ----------
+    // 대화 참여자는 모두 승인된 멤버이므로 멤버 전용으로 통제합니다.
+    match /chatFiles/{fileId} {
+      allow read: if isMember();
+      allow create: if isMember() && request.resource.data.uploaderUid == request.auth.uid;
+      allow delete: if isAdmin()
+        || (isMember() && resource.data.uploaderUid == request.auth.uid);
+
+      match /chunks/{chunkId} {
+        allow read: if isMember();
+        allow create: if isMember() && request.resource.data.uploaderUid == request.auth.uid;
+        allow delete: if isAdmin()
+          || (isMember() && resource.data.uploaderUid == request.auth.uid);
+      }
+    }
+
     // ---------- counters: 발급번호 채번용 ----------
     match /counters/{counterId} {
       allow read, write: if isAdmin();
