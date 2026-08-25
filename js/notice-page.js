@@ -152,6 +152,8 @@ if (isConfigured) {
         try { ok = document.execCommand("copy"); } catch (_) {}
         ta.remove();
       }
+      // 클립보드가 완전히 막힌 환경: 링크를 직접 보여 줘 수동 복사라도 가능하게
+      if (!ok) { window.prompt("아래 링크를 복사하세요 (Ctrl+C)", url); return; }
       const label = copyBtn.querySelector("[data-copy-label]");
       if (label) {
         label.textContent = ok ? "복사됨 ✓" : "복사 실패";
