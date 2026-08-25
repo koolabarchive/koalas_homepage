@@ -72,10 +72,11 @@ service cloud.firestore {
     match /publications/{pubId} {
       // 게시 승인된 성과는 공개, 그 외는 멤버만
       allow read: if resource.data.visible == true || isMember();
-      // 멤버는 검수 대기 상태로만 등록 가능
-      allow create: if isMember()
-        && request.resource.data.visible == false
-        && request.resource.data.status == 'pending';
+      // 관리자는 게시 상태로 직접 등록 가능, 멤버는 검수 대기 상태로만
+      allow create: if isAdmin()
+        || (isMember()
+            && request.resource.data.visible == false
+            && request.resource.data.status == 'pending');
       allow update, delete: if isAdmin();
     }
 

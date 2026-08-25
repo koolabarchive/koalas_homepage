@@ -13,3 +13,12 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
           projectId: koolab-33917
+      # Firestore 보안 규칙도 함께 배포합니다 (firestore.rules 수정이 콘솔
+      # 수동 게시 없이 반영되도록). 호스팅 배포와 독립적으로 실행됩니다.
+      - name: Deploy Firestore rules
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/firebase-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
+          npx --yes firebase-tools@13 deploy --only firestore:rules --project koolab-33917 --non-interactive
