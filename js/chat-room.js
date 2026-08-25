@@ -7,6 +7,7 @@ import {
   collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot,
   query, where, orderBy, serverTimestamp, arrayUnion, increment,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { downloadStoredFile, fmtStoredSize } from "./file-store.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const pad = (n) => String(n).padStart(2, "0");
@@ -65,15 +66,31 @@ export async function ensureMainRoom(db, me, { type, refId, refTitle }) {
 }
 
 export async function markRoomRead(db, roomId, uid) {
-  try { await updateDoc(doc(db, "rooms", roomId), { ["unread." + uid]: 0 }); } catch (_) {}
+  try {
+    await updateDoc(doc(db, "rooms", roomId), {
+      ["unread." + uid]: 0,
+      // 다인 읽음 집계용: 각자의 마지막 읽은 시각
+      ["reads." + uid]: serverTimestamp(),
+    });
+  } catch (_) {}
 }
 
-export async function sendRoomMessage(db, me, room, text) {
-  await addDoc(collection(db, "rooms", room.id, "messages"), {
-    text, senderUid: me.uid, senderName: me.name, createdAt: serverTimestamp(),
-  });
+// 대화 목록에 보여줄 마지막 메시지 요약 (첨부 전용 메시지 포함)
+export function lastMessageLabel(text, attachment) {
+  if (text) return text.length > 60 ? text.slice(0, 60) + "…" : text;
+  if (!attachment) return "";
+  const t = attachment.type || "";
+  if (t.startsWith("image/")) return "사진";
+  if (t.startsWith("video/")) return "동영상";
+  return "파일: " + attachment.name;
+}
+
+export async function sendRoomMessage(db, me, room, text, attachment = null, thumb = null) {
+  const msg = { text, senderUid: me.uid, senderName: me.name, createdAt: serverTimestamp() };
+  if (attachment) { msg.attachment = attachment; if (thumb) msg.thumb = thumb; }
+  await addDoc(collection(db, "rooms", room.id, "messages"), msg);
   const upd = {
-    lastMessage: text.length > 60 ? text.slice(0, 60) + "…" : text,
+    lastMessage: lastMessageLabel(text, attachment),
     lastAt: serverTimestamp(),
     lastSenderUid: me.uid,
     ["names." + me.uid]: me.name,
@@ -83,8 +100,48 @@ export async function sendRoomMessage(db, me, room, text) {
   await updateDoc(doc(db, "rooms", room.id), upd);
 }
 
-// 그룹 채팅 렌더러 — 상대 메시지에 보낸 사람 이름 표시, 날짜 구분선, 자동 스크롤
-export function renderChatMessages(box, msgs, myUid) {
+// ---------- 첨부 메시지 (이미지·동영상·파일) 공용 헬퍼 ----------
+export const CHAT_TICK = '<svg viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 5.3l3.2 3L12.5 1.2"/></svg>';
+
+// 첨부 렌더: 이미지는 미리보기(썸네일), 그 외(동영상·문서)는 파일 칩.
+// 클릭하면 원본을 내려받습니다.
+export function chatAttachmentHtml(m) {
+  const a = m.attachment;
+  if (!a) return "";
+  if (m.thumb) {
+    return `<img class="dm-att-img" src="${esc(m.thumb)}" alt="${esc(a.name)}" title="클릭하면 원본을 내려받습니다" data-attdl="${esc(m.id)}" loading="lazy" />`;
+  }
+  return `<button type="button" class="dm-att-file" data-attdl="${esc(m.id)}">
+    <span class="f-name">${esc(a.name)}</span><small>${fmtStoredSize(a.size)}</small>
+  </button>`;
+}
+
+// 첨부 다운로드 클릭 바인딩 (렌더 직후 호출)
+export function bindChatAttachments(db, box, msgs) {
+  box.querySelectorAll("[data-attdl]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const m = msgs.find((x) => x.id === el.dataset.attdl);
+      if (m?.attachment) downloadStoredFile(db, "chatFiles", m.attachment, el.tagName === "BUTTON" ? el : null);
+    });
+  });
+}
+
+// 다인 읽음 집계: 내 메시지를 읽은 인원 수만큼 파란 체크가 늘어납니다.
+// (겹쳐 쌓여 폭을 아낍니다) 아무도 읽지 않았으면 표시 없음.
+function roomTicks(m, myUid, room) {
+  if (!room || m.senderUid !== myUid || !m.createdAt?.toMillis) return "";
+  const others = (room.members || []).filter((u) => u !== myUid);
+  if (!others.length) return "";
+  const reads = room.reads || {};
+  const readCount = others.filter((u) =>
+    reads[u]?.toMillis && reads[u].toMillis() >= m.createdAt.toMillis()).length;
+  if (!readCount) return "";
+  return `<span class="dm-ticks read stack" title="읽음 ${readCount}/${others.length}명">${CHAT_TICK.repeat(readCount)}</span>`;
+}
+
+// 그룹 채팅 렌더러 — 상대 메시지에 보낸 사람 이름 표시, 날짜 구분선,
+// 다인 읽음 체크(room 전달 시), 첨부 메시지, 자동 스크롤
+export function renderChatMessages(box, msgs, myUid, room = null, db = null) {
   if (!msgs.length) {
     box.innerHTML = '<p style="color:var(--muted); font-size:0.86rem; text-align:center; margin-top:40px;">첫 메시지를 보내 보세요.</p>';
     return;
@@ -103,15 +160,39 @@ export function renderChatMessages(box, msgs, myUid) {
     }
     const showName = !mine && m.senderUid !== lastSender;
     lastSender = m.senderUid;
+    const body = m.attachment ? chatAttachmentHtml(m) : `<div class="dm-bubble">${esc(m.text)}</div>`;
     return divider + `<div class="dm-msg${mine ? " mine" : ""}">
       <div class="dm-msg-col">
         ${showName ? `<div class="dm-sender">${esc(m.senderName || "")}</div>` : ""}
-        <div class="dm-bubble">${esc(m.text)}</div>
+        ${body}
       </div>
-      <div class="dm-msg-time">${fmtTime(m.createdAt)}</div>
+      <div class="dm-msg-meta"><span class="dm-msg-time">${fmtTime(m.createdAt)}</span>${roomTicks(m, myUid, room)}</div>
     </div>`;
   }).join("");
+  if (db) bindChatAttachments(db, box, msgs);
   box.scrollTop = box.scrollHeight;
+}
+
+// 채팅 첨부용 이미지 축소 썸네일 (미리보기용 — 원본은 chatFiles에 저장)
+export function makeChatThumb(file, maxW = 360) {
+  return new Promise((resolve) => {
+    if (!(file.type || "").startsWith("image/")) { resolve(null); return; }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      try {
+        const scale = Math.min(1, maxW / img.width);
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width * scale);
+        c.height = Math.round(img.height * scale);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL("image/jpeg", 0.8));
+      } catch (_) { resolve(null); }
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+    img.src = url;
+  });
 }
 
 async function deleteRoomWithMessages(db, roomId) {
@@ -131,6 +212,7 @@ export function initTeamChat({ db, me, type, refId, refTitle, getParticipants, i
   const mainId = mainRoomId(type, refId);
   let rooms = [];
   let activeRoomId = mainId;
+  let lastPopupMsgs = [];
   let unsubMsgs = null;
   let popupOpen = false;
   let threadStarted = false;
@@ -186,6 +268,10 @@ export function initTeamChat({ db, me, type, refId, refTitle, getParticipants, i
           return (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0);
         });
       renderRoomTabs();
+      // 열린 방의 읽음(reads) 변경을 체크 표시에 즉시 반영
+      if (popupOpen && activeRoomId && lastPopupMsgs.length) {
+        renderChatMessages($("chat-messages"), lastPopupMsgs, me.uid, roomById(activeRoomId), db);
+      }
       refreshFabBadge();
       if (threadStarted && !roomById(activeRoomId)) openRoom(mainId); // 방 삭제 시 전체 채팅으로
     }, () => {
@@ -241,7 +327,8 @@ export function initTeamChat({ db, me, type, refId, refTitle, getParticipants, i
     unsubMsgs = onSnapshot(
       query(collection(db, "rooms", roomId, "messages"), orderBy("createdAt", "asc")),
       (snap) => {
-        renderChatMessages(box, snap.docs.map((d) => ({ id: d.id, ...d.data() })), me.uid);
+        lastPopupMsgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderChatMessages(box, lastPopupMsgs, me.uid, roomById(roomId), db);
         // 팝업이 열려 있고 이 방을 보고 있을 때만 읽음 처리
         if (popupOpen && activeRoomId === roomId) markRoomRead(db, roomId, me.uid);
       },

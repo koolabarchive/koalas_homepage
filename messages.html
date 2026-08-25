@@ -77,6 +77,8 @@
             </p>
           </div>
           <div class="dm-input" id="dm-input" style="display:none;">
+            <button class="dm-attach-btn" id="dm-attach" aria-label="파일 첨부" title="사진·동영상·파일 보내기 (최대 10MB)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+            <input type="file" id="dm-attach-input" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.hwp,.zip,.txt" style="display:none;" />
             <textarea id="dm-text" rows="1" placeholder="메시지를 입력하세요 (Enter 전송 · Shift+Enter 줄바꿈)"></textarea>
             <button class="dm-send-btn" id="dm-send" aria-label="보내기" title="보내기 (Enter)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5.8M5.8 12L12 5.8 18.2 12"/></svg></button>
           </div>

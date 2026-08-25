@@ -8,7 +8,11 @@ import {
   collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, onSnapshot,
   query, where, orderBy, serverTimestamp, increment,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { renderChatMessages, sendRoomMessage, markRoomRead, roomDisplayTitle, toggleMembersPop } from "./chat-room.js";
+import {
+  renderChatMessages, sendRoomMessage, markRoomRead, roomDisplayTitle, toggleMembersPop,
+  chatAttachmentHtml, bindChatAttachments, makeChatThumb, lastMessageLabel,
+} from "./chat-room.js";
+import { uploadStoredFile, MAX_STORED_FILE } from "./file-store.js";
 
 if (isConfigured) {
   const $ = (id) => document.getElementById(id);
@@ -82,6 +86,11 @@ if (isConfigured) {
     onSnapshot(query(collection(db, "rooms"), where("members", "array-contains", me.uid)), (snap) => {
       roomConvs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       renderConvList();
+      // 열린 팀 채팅방의 읽음(reads) 변경을 체크 표시에 즉시 반영
+      if (activeKey && activeKey.startsWith("room:") && lastRoomMsgs.length) {
+        const r = roomConvs.find((x) => x.id === activeKey.slice(5));
+        if (r) renderChatMessages($("dm-messages"), lastRoomMsgs, me.uid, r, db);
+      }
     }, () => {});
 
     // 새 메시지 모달
@@ -93,6 +102,12 @@ if (isConfigured) {
 
     // 입력·전송
     $("dm-send").addEventListener("click", sendMessage);
+    $("dm-attach").addEventListener("click", () => $("dm-attach-input").click());
+    $("dm-attach-input").addEventListener("change", async () => {
+      const f = $("dm-attach-input").files[0];
+      $("dm-attach-input").value = "";
+      if (f) await sendAttachment(f);
+    });
     $("dm-text").addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendMessage(); }
     });
@@ -345,7 +360,9 @@ if (isConfigured) {
     unsubThread = onSnapshot(
       query(collection(db, "rooms", roomId, "messages"), orderBy("createdAt", "asc")),
       (snap) => {
-        renderChatMessages(box, snap.docs.map((d) => ({ id: d.id, ...d.data() })), me.uid);
+        lastRoomMsgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const r2 = roomConvs.find((x) => x.id === roomId);
+        renderChatMessages(box, lastRoomMsgs, me.uid, r2, db);
         if (activeKey === "room:" + roomId) markRoomRead(db, roomId, me.uid);
       },
       (err) => {
@@ -364,11 +381,11 @@ if (isConfigured) {
     } catch (_) {}
   }
 
-  // 읽음 체크: 전송됨 = 회색 체크 1개, 상대가 읽음 = 파란 체크 2개
-  const TICK1 = '<svg viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 5.3l3.2 3L12.5 1.2"/></svg>';
-  const TICK2 = '<svg viewBox="0 0 19 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 5.3l3.2 3L12.5 1.2"/><path d="M9.4 7.7l1.3 1.2 6.8-7.7"/></svg>';
+  // 읽음 체크: 상대가 읽으면 파란 체크 1개, 읽기 전에는 표시 없음
+  const TICK = '<svg viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 5.3l3.2 3L12.5 1.2"/></svg>';
 
-  let lastThreadMsgs = [];   // reads 갱신 시 재렌더용 캐시
+  let lastThreadMsgs = [];   // reads 갱신 시 재렌더용 캐시 (DM)
+  let lastRoomMsgs = [];     // reads 갱신 시 재렌더용 캐시 (팀 채팅)
 
   function renderMessages(msgs) {
     lastThreadMsgs = msgs;
@@ -394,15 +411,40 @@ if (isConfigured) {
       }
       const read = mine && m.createdAt?.toMillis && peerReadAt?.toMillis
         && m.createdAt.toMillis() <= peerReadAt.toMillis();
-      const ticks = mine
-        ? `<span class="dm-ticks${read ? " read" : ""}" title="${read ? "읽음" : "전송됨"}">${read ? TICK2 : TICK1}</span>`
+      const ticks = mine && read
+        ? `<span class="dm-ticks read" title="읽음">${TICK}</span>`
         : "";
+      const body = m.attachment ? chatAttachmentHtml(m) : `<div class="dm-bubble">${esc(m.text)}</div>`;
       return divider + `<div class="dm-msg${mine ? " mine" : ""}">
-        <div class="dm-bubble">${esc(m.text)}</div>
+        ${body}
         <div class="dm-msg-meta"><span class="dm-msg-time" title="${fmtFull(m.createdAt)}">${fmtClock(m.createdAt)}</span>${ticks}</div>
       </div>`;
     }).join("");
+    bindChatAttachments(db, box, msgs);
     box.scrollTop = box.scrollHeight;
+  }
+
+  // 텍스트 또는 첨부 하나를 현재 대화(DM/팀 채팅)로 전송
+  async function deliver(text, attachment = null, thumb = null) {
+    const [kind, id] = activeKey.split(":");
+    if (kind === "room") {
+      const r = roomConvs.find((x) => x.id === id);
+      if (!r) throw new Error("채팅방을 찾을 수 없습니다");
+      await sendRoomMessage(db, me, r, text, attachment, thumb);
+      return;
+    }
+    const c = convs.find((x) => x.id === id);
+    const peer = c ? peerOf(c) : id.replace(me.uid, "").replace("_", "");
+    const msg = { text, senderUid: me.uid, senderName: me.name, createdAt: serverTimestamp() };
+    if (attachment) { msg.attachment = attachment; if (thumb) msg.thumb = thumb; }
+    await addDoc(collection(db, "dms", id, "messages"), msg);
+    await updateDoc(doc(db, "dms", id), {
+      lastMessage: lastMessageLabel(text, attachment),
+      lastAt: serverTimestamp(),
+      lastSenderUid: me.uid,
+      ["unread." + peer]: increment(1),
+      ["names." + me.uid]: me.name, // 이름 변경 시 자연 갱신
+    });
   }
 
   async function sendMessage() {
@@ -411,38 +453,27 @@ if (isConfigured) {
     const text = ta.value.trim();
     if (!text) return;
     if (text.length > 2000) { alert("메시지는 2000자 이내로 보내 주세요."); return; }
-
-    const [kind, id] = activeKey.split(":");
-    if (kind === "room") {
-      const r = roomConvs.find((x) => x.id === id);
-      if (!r) return;
-      ta.value = "";
-      try { await sendRoomMessage(db, me, r, text); }
-      catch (err) { alert("전송 실패: " + err.message); ta.value = text; }
-      return;
-    }
-
-    const activeConvId = id;
-    const c = convs.find((x) => x.id === activeConvId);
-    const peer = c ? peerOf(c) : activeConvId.replace(me.uid, "").replace("_", "");
     ta.value = "";
+    try { await deliver(text); }
+    catch (err) { alert("전송 실패: " + err.message); ta.value = text; }
+  }
+
+  // 첨부 전송: 파일 선택 → 업로드(chatFiles) → 이미지면 미리보기 썸네일과 함께 전송
+  async function sendAttachment(file) {
+    if (!activeKey) return;
+    if (file.size > MAX_STORED_FILE) { alert(`"${file.name}" 파일이 10MB를 초과합니다.`); return; }
+    const btn = $("dm-attach");
+    btn.disabled = true;
+    btn.classList.add("busy");
     try {
-      await addDoc(collection(db, "dms", activeConvId, "messages"), {
-        text,
-        senderUid: me.uid,
-        senderName: me.name,
-        createdAt: serverTimestamp(),
-      });
-      await updateDoc(doc(db, "dms", activeConvId), {
-        lastMessage: text.length > 60 ? text.slice(0, 60) + "…" : text,
-        lastAt: serverTimestamp(),
-        lastSenderUid: me.uid,
-        ["unread." + peer]: increment(1),
-        ["names." + me.uid]: me.name, // 이름 변경 시 자연 갱신
-      });
+      const stored = await uploadStoredFile(db, "chatFiles", me.uid, file);
+      const thumb = await makeChatThumb(file);
+      await deliver("", stored, thumb);
     } catch (err) {
       alert("전송 실패: " + err.message);
-      ta.value = text;
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove("busy");
     }
   }
 }
