@@ -3270,3 +3270,36 @@ select:focus-visible, textarea:focus-visible {
 
 /* 연구팀 카드가 링크일 때: 텍스트 링크 장식 없이 카드 그대로 */
 a.card { display: block; color: inherit; }
+
+/* 공지 상세: 메타 줄 오른쪽 공유 버튼 */
+.nd-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.nd-meta-row .nd-meta { margin-top: 0; }
+.nd-share { display: flex; gap: 6px; }
+.nd-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.nd-share-btn svg { width: 14px; height: 14px; flex: none; }
+/* display:inline-flex가 hidden 속성을 눌러버리므로 명시적으로 숨깁니다
+   (Web Share 미지원 데스크톱에서는 링크 복사만 표시) */
+.nd-share-btn[hidden] { display: none; }
+.nd-share-btn:hover { color: var(--accent); border-color: var(--accent); }
+.nd-share-btn.copied { color: var(--ok); border-color: var(--ok); }
