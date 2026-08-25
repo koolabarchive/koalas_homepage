@@ -8,7 +8,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   createDropdown, createDatePicker, setupScopeToggle, setupMarkdownPreview,
-  BADGE_OPTIONS, esc, fmtSize,
+  attachHelpTip, BADGE_OPTIONS, esc, fmtSize,
 } from "./notice-ui.js";
 // 첨부 칩은 notice-ui로 옮겼습니다. 기존 사용처 호환을 위해 재수출합니다.
 export { attachmentChips } from "./notice-ui.js";
@@ -144,6 +144,18 @@ export function bindAttachmentEvents(db, box, byKey) {
 // edit-slider, edit-cancel, edit-save, edit-msg
 export function initNoticeEditor(db, getMe) {
   const $ = (id) => document.getElementById(id);
+
+  // 제목은 한 줄 입력 — Enter로 줄바꿈이 들어가지 않게 막습니다
+  $("edit-title").addEventListener("keydown", (e) => { if (e.key === "Enter") e.preventDefault(); });
+
+  // 슬라이더 노출 옆 ? 아이콘 — 클릭하면 안내 팝오버
+  const sliderHelp = $("edit-slider-help");
+  if (sliderHelp) attachHelpTip(sliderHelp,
+    "<strong>홈 화면 슬라이더 노출</strong>" +
+    "<p>체크하면 이 공지가 홈 화면 상단 최신 소식 슬라이더에 표시됩니다.</p>" +
+    "<ul><li>공개 범위가 <b>전체공개</b>인 글만 표시됩니다.</li>" +
+    "<li>이미지를 첨부하면 첫 번째 이미지가 슬라이드 배경으로 쓰입니다.</li>" +
+    "<li>배경 이미지는 2100×800px · 500KB 이하를 권장합니다.</li></ul>");
   const modal = $("edit-modal");
   let editing = null;        // 수정 대상 post (null이면 새 글)
   let keptAtts = [];         // 수정 시 유지되는 기존 첨부

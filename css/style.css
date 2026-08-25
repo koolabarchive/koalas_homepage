@@ -3052,3 +3052,134 @@ select:focus-visible, textarea:focus-visible {
   .board-item .b-row { padding: 14px 12px; }
   .board-item .b-detail { padding: 2px 12px 16px; }
 }
+
+/* ================================================================
+   v24 — 공지 작성 모달 다듬기
+   제목 입력 축소 · 한 줄 슬라이더 체크 · ? 도움말 팝오버
+   ================================================================ */
+
+/* 제목 입력: min-height 96px가 한 줄 입력을 두 배로 키우고 있었습니다 */
+.field textarea.compact {
+  min-height: 0;
+  height: 46px;          /* 다른 한 줄 입력(.field input)과 동일한 높이 */
+  padding: 11px 14px;
+  resize: none;
+  overflow: hidden;
+  white-space: nowrap;   /* 제목은 한 줄 — 줄바꿈 대신 가로 스크롤 */
+  overflow-x: auto;
+}
+
+/* ---------- 한 줄 체크 행 ---------- */
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.check-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.9rem;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* 애플식 체크박스: 네이티브 외형을 걷어내고 둥근 사각형 + 체크 모션 */
+.check-line input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.check-line .check-mark {
+  width: 19px;
+  height: 19px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  background: var(--field-glass);
+  color: var(--on-accent);
+  transition: background 0.16s, border-color 0.16s, transform 0.16s;
+}
+.check-line .check-mark svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.16s, transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.check-line:hover .check-mark { border-color: var(--accent); }
+.check-line input:checked + .check-mark {
+  background: var(--accent-bg);
+  border-color: var(--accent-bg);
+}
+.check-line input:checked + .check-mark svg { opacity: 1; transform: scale(1); }
+.check-line input:focus-visible + .check-mark {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .check-line .check-mark, .check-line .check-mark svg { transition: none; }
+}
+
+/* ---------- 원형 ? 도움말 버튼 ---------- */
+.help-tip {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.help-tip:hover,
+.help-tip[aria-expanded="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ---------- 도움말 팝오버 (글래스) ---------- */
+.help-pop {
+  background: var(--modal-glass-bg);
+  backdrop-filter: var(--modal-glass-blur);
+  -webkit-backdrop-filter: var(--modal-glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 13px;
+  box-shadow: var(--shadow-lg);
+  padding: 14px 16px;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.16s, transform 0.16s;
+}
+.help-pop.open { opacity: 1; transform: translateY(0); }
+.help-pop.above { transform: translateY(4px); }
+.help-pop.above.open { transform: translateY(0); }
+.help-pop strong { display: block; font-size: 0.86rem; margin-bottom: 6px; }
+.help-pop p { margin: 0 0 8px; }
+.help-pop ul { margin: 0; padding-left: 16px; list-style: disc; }
+.help-pop li { margin: 3px 0; color: var(--muted); }
+.help-pop li b { color: var(--ink); font-weight: 600; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .help-pop { background: var(--surface); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .help-pop { transition: none; }
+}

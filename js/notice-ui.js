@@ -211,6 +211,58 @@ export function createDropdown(host, { values = [], emptyLabel = "없음", onCha
   };
 }
 
+// ---------- 물음표(?) 도움말 팝오버 ----------
+// 원형 ? 버튼을 누르면 설명 팝오버가 뜨고, 바깥 클릭·Esc·재클릭·스크롤로 닫힙니다.
+// 팝오버는 body로 portal (모달 backdrop-filter의 fixed 기준 박스 문제 회피).
+export function attachHelpTip(btn, html) {
+  const pop = portal(document.createElement("div"));
+  pop.className = "help-pop";
+  pop.setAttribute("role", "tooltip");
+  pop.innerHTML = html;
+  pop.hidden = true;
+  btn.setAttribute("aria-expanded", "false");
+
+  let stopScroll = null;
+  const isOpen = () => !pop.hidden;
+
+  function open() {
+    pop.hidden = false;
+    pop.style.position = "fixed";
+    pop.style.zIndex = "300";
+    const w = Math.min(300, window.innerWidth - 24);
+    pop.style.width = w + "px";
+    const r = btn.getBoundingClientRect();
+    // 버튼 중앙 정렬 후 화면 안으로 클램프
+    const left = Math.min(Math.max(12, r.left + r.width / 2 - w / 2), window.innerWidth - w - 12);
+    pop.style.left = left + "px";
+    const h = pop.offsetHeight;
+    if (window.innerHeight - r.bottom < h + 20 && r.top > h + 20) {
+      pop.style.top = (r.top - h - 8) + "px";
+      pop.classList.add("above");
+    } else {
+      pop.style.top = (r.bottom + 8) + "px";
+      pop.classList.remove("above");
+    }
+    pop.classList.add("open");
+    btn.setAttribute("aria-expanded", "true");
+    stopScroll = closeOnScroll(close, pop);
+  }
+  function close() {
+    pop.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+    if (stopScroll) { stopScroll(); stopScroll = null; }
+    setTimeout(() => { if (!pop.classList.contains("open")) pop.hidden = true; }, 160);
+  }
+
+  btn.addEventListener("click", (e) => { e.stopPropagation(); isOpen() ? close() : open(); });
+  btn.addEventListener("keydown", (e) => { if (e.key === "Escape" && isOpen()) { e.preventDefault(); close(); } });
+  document.addEventListener("click", (e) => {
+    if (isOpen() && !pop.contains(e.target) && e.target !== btn) close();
+  });
+
+  return { close };
+}
+
 // ---------- 자물쇠 공개 범위 토글 ----------
 // btn 안의 .lock-shackle이 열리고 닫히는 모션과 함께
 // 라벨(전체공개/멤버공개)과 hidden input 값("공개"/"멤버 전용")을 동기화합니다.
