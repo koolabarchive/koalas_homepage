@@ -209,6 +209,13 @@ export function createDropdown(host, { values = [], emptyLabel = "없음", allow
       if (value && !opts.includes(value)) opts = allowEmpty ? ["", value, ...opts.slice(1)] : [value, ...opts];
       renderMenu();
     },
+    // 선택지를 통째로 교체 (동적 목록용 — 예: 프로젝트 멤버 후보).
+    // 현재 값이 새 목록에 없으면 첫 항목(allowEmpty면 "")으로 되돌립니다.
+    setOptions: (vals) => {
+      opts = allowEmpty ? ["", ...vals.filter((v) => v !== "")] : [...vals];
+      if (!opts.includes(value)) value = allowEmpty ? "" : (opts[0] ?? "");
+      renderMenu();
+    },
   };
 }
 
