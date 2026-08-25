@@ -496,8 +496,10 @@
         </div>
       </div>
       <div class="field">
-        <label for="p-file">원문 파일 (선택) <span class="hint" style="display:inline;">— PDF 등, 최대 10MB · 멤버만 다운로드</span></label>
-        <input type="file" id="p-file" class="file-input" accept=".pdf,application/pdf" />
+        <label for="p-file">첨부파일 (선택) <span class="hint" style="display:inline;">— PDF·이미지, 파일당 최대 10MB · 3개까지 · 파일은 멤버만 다운로드</span></label>
+        <input type="file" id="p-file" class="file-input" accept=".pdf,application/pdf,image/*" multiple />
+        <div class="file-list" id="p-file-list"></div>
+        <div class="hint">이미지를 첨부하면 첫 번째 이미지가 성과 목록의 썸네일로 표시됩니다.</div>
       </div>
       <div class="field">
         <label for="p-visible">공개 여부</label>
@@ -522,20 +524,55 @@
   <!-- 성과 관리 모달 (멤버 연결 · 원문 링크 · 원문 파일) -->
   <div class="modal-backdrop" id="pub-link-modal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pub-link-title">
-      <h3 id="pub-link-title">성과 관리</h3>
+      <h3 id="pub-link-title">성과 수정</h3>
       <p class="hint" id="pub-link-sub" style="margin-bottom:12px;"></p>
+      <div class="field">
+        <label for="pl-type">유형</label>
+        <select id="pl-type">
+          <option>학술논문</option>
+          <option>학위논문</option>
+          <option>저서</option>
+          <option>학회발표</option>
+          <option>포스터</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pl-title-in">제목</label>
+        <textarea id="pl-title-in" rows="1" class="compact" placeholder="성과 제목"></textarea>
+      </div>
+      <div class="field">
+        <label for="pl-authors">저자</label>
+        <input type="text" id="pl-authors" placeholder="예: 김희선, 구훈정" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="pl-venue">게재지·학회명</label>
+          <input type="text" id="pl-venue" placeholder="예: 한국심리학회지: 임상" />
+        </div>
+        <div class="field">
+          <label for="pl-volume">권·호·페이지 (선택)</label>
+          <input type="text" id="pl-volume" placeholder="예: 45(2), 112-130" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="pl-year">연도</label>
+          <input type="text" id="pl-year" placeholder="2026" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="pl-link">원문 링크 (선택)</label>
+          <input type="text" id="pl-link" placeholder="DOI 또는 원문 URL" />
+        </div>
+      </div>
       <div class="field">
         <label>관련 멤버</label>
         <div class="member-check-list" id="pub-link-members"></div>
       </div>
       <div class="field">
-        <label for="pl-link">원문 링크 (선택)</label>
-        <input type="text" id="pl-link" placeholder="DOI 또는 원문 URL" />
-      </div>
-      <div class="field">
-        <label for="pl-file">원문 파일 (선택) <span class="hint" style="display:inline;">— PDF 등, 최대 10MB · 멤버만 다운로드</span></label>
+        <label for="pl-file">첨부파일 (선택) <span class="hint" style="display:inline;">— PDF·이미지, 파일당 최대 10MB · 3개까지</span></label>
         <div class="file-list" id="pl-file-current" style="margin-bottom:6px;"></div>
-        <input type="file" id="pl-file" class="file-input" accept=".pdf,application/pdf" />
+        <input type="file" id="pl-file" class="file-input" accept=".pdf,application/pdf,image/*" multiple />
+        <div class="hint">이미지를 첨부하면 첫 번째 이미지가 성과 목록의 썸네일로 표시됩니다.</div>
       </div>
       <div class="form-actions">
         <button class="btn-sm" id="pub-link-cancel">취소</button>

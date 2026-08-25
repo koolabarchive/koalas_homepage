@@ -3303,3 +3303,20 @@ a.card { display: block; color: inherit; }
 .nd-share-btn[hidden] { display: none; }
 .nd-share-btn:hover { color: var(--accent); border-color: var(--accent); }
 .nd-share-btn.copied { color: var(--ok); border-color: var(--ok); }
+
+/* 성과 목록 썸네일: 첫 이미지 첨부의 축소본을 우측 라운드 박스로 */
+.pub-item.has-thumb { grid-template-columns: 96px minmax(0, 1fr) auto; align-items: center; }
+.pub-thumb {
+  width: 96px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--line-soft);
+  background: var(--surface-2);
+  justify-self: end;
+}
+@media (max-width: 640px) {
+  .pub-item.has-thumb { grid-template-columns: 1fr auto; }
+  .pub-item.has-thumb .pub-year { grid-column: 1 / -1; }
+  .pub-thumb { width: 78px; height: 60px; }
+}

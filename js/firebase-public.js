@@ -202,19 +202,26 @@ if (isConfigured) {
   // ----- 템플릿 -----
   const TYPE_TOKEN = { "학술논문": "논문", "학위논문": "학위", "저서": "저서", "학회발표": "학회", "포스터": "포스터" };
 
-  const pubItemHtml = (p, opts = {}) => `
-    <div class="pub-item" data-type="${TYPE_TOKEN[p.type] || esc(p.type)}">
+  // 첨부는 files 배열(최대 3개), 과거 데이터의 단일 file 필드도 함께 읽음
+  const pubFilesOf = (p) => p.files || (p.file ? [p.file] : []);
+
+  const pubItemHtml = (p, opts = {}) => {
+    const fs = opts.showFile ? pubFilesOf(p) : [];
+    return `
+    <div class="pub-item${p.thumb ? " has-thumb" : ""}" data-type="${TYPE_TOKEN[p.type] || esc(p.type)}">
       <div class="pub-year">${esc(p.year || "")}</div>
       <div>
         <span class="pub-type">${esc(p.type)}</span>
         <div class="pub-title">${esc(p.title)}</div>
         ${p.meta ? '<div class="pub-meta">' + esc(p.meta) + "</div>" : ""}
-        ${(p.link || (opts.showFile && p.file)) ? `<div class="pub-links">
+        ${(p.link || fs.length) ? `<div class="pub-links">
           ${p.link ? `<a href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">↗ 원문 링크</a>` : ""}
-          ${opts.showFile && p.file ? `<button type="button" class="pub-file-dl" data-pubfile="${esc(p.id)}">📎 ${esc(p.file.name)}</button>` : ""}
+          ${fs.map((f, i) => `<button type="button" class="pub-file-dl" data-pubfile="${esc(p.id)}" data-fi="${i}">📎 ${esc(f.name)}</button>`).join("")}
         </div>` : ""}
       </div>
+      ${p.thumb ? `<img class="pub-thumb" src="${esc(p.thumb)}" alt="" loading="lazy" />` : ""}
     </div>`;
+  };
 
   const noticeItemHtml = (p) => `
     <a href="notice.html" class="notice-item">
@@ -307,7 +314,8 @@ if (isConfigured) {
             pubList.querySelectorAll("button[data-pubfile]").forEach((btn) => {
               btn.addEventListener("click", () => {
                 const p = byId[btn.dataset.pubfile];
-                if (p?.file) downloadStoredFile(db, "pubFiles", p.file, btn);
+                const f = p ? pubFilesOf(p)[Number(btn.dataset.fi || 0)] : null;
+                if (f) downloadStoredFile(db, "pubFiles", f, btn);
               });
             });
           }

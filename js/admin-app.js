@@ -404,6 +404,36 @@ if (isConfigured) {
   }
 
   // ================= 성과 검수/관리 =================
+  // 첨부는 files 배열(최대 3개)로 저장합니다. 과거 데이터의 단일 file
+  // 필드도 pubFilesOf()로 함께 읽어 하위 호환을 유지합니다.
+  const MAX_PUB_FILES = 3;
+  const pubFilesOf = (p) => p.files || (p.file ? [p.file] : []);
+
+  // 첫 이미지 첨부로 목록 썸네일 생성 — 첨부 파일 본문은 멤버 전용이라
+  // 공개 방문자에게 보이지 않으므로, 축소본(data URL)을 성과 문서에
+  // 직접 저장해 공개 목록에서도 표시되게 합니다.
+  function makePubThumb(file) {
+    return new Promise((resolve) => {
+      if (!(file.type || "").startsWith("image/")) { resolve(null); return; }
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        try {
+          const MAXW = 480;
+          const scale = Math.min(1, MAXW / img.width);
+          const c = document.createElement("canvas");
+          c.width = Math.round(img.width * scale);
+          c.height = Math.round(img.height * scale);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          resolve(c.toDataURL("image/jpeg", 0.82));
+        } catch (_) { resolve(null); }
+        URL.revokeObjectURL(url);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    });
+  }
+
   function initPublications() {
     const tbody = $("pub-tbody");
     if (!tbody) return;
@@ -430,12 +460,12 @@ if (isConfigured) {
         } else {
           actions = `<button class="btn-sm primary" data-act="approve" data-id="${p.id}">게시하기</button>`;
         }
-        actions += ` <button class="btn-sm" data-act="link" data-id="${p.id}">관리</button>`;
+        actions += ` <button class="btn-sm" data-act="link" data-id="${p.id}">수정</button>`;
         actions += ` <button class="btn-sm danger" data-act="del" data-id="${p.id}">삭제</button>`;
         const linkedCount = (p.memberUids || []).length;
         return `<tr>
           <td>${esc(p.type)}</td>
-          <td>${esc(p.title)}${linkedCount ? ` <span class="sub" style="display:inline;">🔗 ${linkedCount}명</span>` : ""}${p.file ? ' <span class="sub" style="display:inline;">📎</span>' : ""}${p.link ? ' <span class="sub" style="display:inline;">↗</span>' : ""}${p.meta ? ' <span class="sub">' + esc(p.meta) + "</span>" : ""}</td>
+          <td>${esc(p.title)}${linkedCount ? ` <span class="sub" style="display:inline;">🔗 ${linkedCount}명</span>` : ""}${pubFilesOf(p).length ? ` <span class="sub" style="display:inline;">📎 ${pubFilesOf(p).length}</span>` : ""}${p.link ? ' <span class="sub" style="display:inline;">↗</span>' : ""}${p.meta ? ' <span class="sub">' + esc(p.meta) + "</span>" : ""}</td>
           <td>${esc(p.createdByName || "—")}</td>
           <td>${STATUS_BADGE[p.status] || esc(p.status)}</td>
           <td class="cell-actions">${actions}</td>
@@ -460,8 +490,8 @@ if (isConfigured) {
       try {
         if (act === "approve") await updateDoc(doc(db, "publications", id), { visible: true, status: "approved" });
         if (act === "unpublish" || act === "hold") await updateDoc(doc(db, "publications", id), { visible: false, status: "internal" });
-        if (act === "del" && pub && confirm(`"${pub.title}" 성과를 삭제할까요?${pub.file ? "\n첨부된 원문 파일도 함께 삭제됩니다." : ""}`)) {
-          if (pub.file) { try { await deleteStoredFile(db, "pubFiles", pub.file.fileId); } catch (_) {} }
+        if (act === "del" && pub && confirm(`"${pub.title}" 성과를 삭제할까요?${pubFilesOf(pub).length ? "\n첨부 파일도 함께 삭제됩니다." : ""}`)) {
+          for (const f of pubFilesOf(pub)) { try { await deleteStoredFile(db, "pubFiles", f.fileId); } catch (_) {} }
           await deleteDoc(doc(db, "publications", id));
         }
       } catch (err) {
@@ -469,30 +499,39 @@ if (isConfigured) {
       }
     });
 
-    // ----- 성과 관리 모달 (멤버 연결 · 링크 · 원문 파일) -----
+    // ----- 성과 수정 모달 (상세 정보 · 멤버 연결 · 링크 · 첨부 최대 3개) -----
     const linkModal = $("pub-link-modal");
     let linkingPub = null;
-    let plRemoveFile = false;
+    let plRemovedIds = new Set();   // 이번 편집에서 삭제하기로 한 기존 파일 id
 
-    function renderPlFile() {
+    function plKeptFiles() {
+      return pubFilesOf(linkingPub).filter((f) => !plRemovedIds.has(f.fileId));
+    }
+
+    function renderPlFiles() {
       const box = $("pl-file-current");
-      const f = !plRemoveFile && linkingPub?.file;
-      box.innerHTML = f
-        ? `<div class="file-row">📎 <span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtStoredSize(f.size)}</span>
-             <button type="button" class="att-remove" id="pl-file-remove" title="파일 삭제">✕</button></div>`
-        : "";
-      const rm = $("pl-file-remove");
-      if (rm) rm.addEventListener("click", () => { plRemoveFile = true; renderPlFile(); });
+      box.innerHTML = plKeptFiles().map((f) => `
+        <div class="file-row">📎 <span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtStoredSize(f.size)}</span>
+          <button type="button" class="att-remove" data-rm="${esc(f.fileId)}" title="파일 삭제">✕</button>
+        </div>`).join("");
+      box.querySelectorAll("[data-rm]").forEach((b) =>
+        b.addEventListener("click", () => { plRemovedIds.add(b.dataset.rm); renderPlFiles(); }));
     }
 
     function openLinkModal(p) {
       linkingPub = p;
-      plRemoveFile = false;
+      plRemovedIds = new Set();
       $("pub-link-sub").textContent = p.title;
+      $("pl-type").value = p.type || "학술논문";
+      $("pl-title-in").value = p.title || "";
+      $("pl-authors").value = p.authors || "";
+      $("pl-venue").value = p.venue || "";
+      $("pl-volume").value = p.volume || "";
+      $("pl-year").value = p.year || "";
       $("pub-link-members").innerHTML = memberChecklistHtml(state.users, p.memberUids);
       $("pl-link").value = p.link || "";
       $("pl-file").value = "";
-      renderPlFile();
+      renderPlFiles();
       $("pub-link-msg").className = "form-msg";
       linkModal.classList.add("open");
     }
@@ -501,25 +540,59 @@ if (isConfigured) {
     $("pub-link-save").addEventListener("click", async () => {
       const msg = $("pub-link-msg");
       const btn = $("pub-link-save");
+      const title = $("pl-title-in").value.trim();
+      if (!title) { msg.textContent = "제목을 입력해 주세요."; msg.className = "form-msg error"; return; }
       let link = $("pl-link").value.trim();
       if (link && !/^https?:\/\//i.test(link)) link = "https://" + link;
+      const newFiles = [...($("pl-file").files || [])];
+      const kept = plKeptFiles();
+      if (kept.length + newFiles.length > MAX_PUB_FILES) {
+        msg.textContent = `첨부파일은 최대 ${MAX_PUB_FILES}개까지입니다. (현재 ${kept.length}개 + 추가 ${newFiles.length}개)`;
+        msg.className = "form-msg error";
+        return;
+      }
+
       btn.disabled = true;
       try {
-        let file = plRemoveFile ? null : (linkingPub.file || null);
-        const newFile = $("pl-file").files[0];
-        if (newFile) {
-          btn.textContent = "파일 업로드 중…";
-          file = await uploadStoredFile(db, "pubFiles", auth.currentUser.uid, newFile);
+        const uploaded = [];
+        for (let i = 0; i < newFiles.length; i++) {
+          btn.textContent = `업로드 중… (${i + 1}/${newFiles.length})`;
+          uploaded.push(await uploadStoredFile(db, "pubFiles", auth.currentUser.uid, newFiles[i]));
         }
-        // 교체·삭제된 기존 파일 정리
-        if (linkingPub.file && (plRemoveFile || newFile)) {
-          try { await deleteStoredFile(db, "pubFiles", linkingPub.file.fileId); } catch (_) {}
+        const files = [...kept, ...uploaded];
+
+        // 썸네일: 원본 이미지 파일이 삭제되면 함께 제거하고,
+        // 새로 첨부한 이미지가 있으면 그 첫 번째로 갱신합니다.
+        let thumb = linkingPub.thumb || null;
+        let thumbFileId = linkingPub.thumbFileId || null;
+        if (thumbFileId && plRemovedIds.has(thumbFileId)) { thumb = null; thumbFileId = null; }
+        const firstNewImage = newFiles.findIndex((f) => (f.type || "").startsWith("image/"));
+        if (firstNewImage !== -1 && !thumb) {
+          const t = await makePubThumb(newFiles[firstNewImage]);
+          if (t) { thumb = t; thumbFileId = uploaded[firstNewImage].fileId; }
         }
+
+        // 삭제된 기존 파일 정리
+        for (const id of plRemovedIds) { try { await deleteStoredFile(db, "pubFiles", id); } catch (_) {} }
+
         btn.textContent = "저장 중…";
+        const authors = $("pl-authors").value.trim();
+        const venue = $("pl-venue").value.trim();
+        const volume = $("pl-volume").value.trim();
         await updateDoc(doc(db, "publications", linkingPub.id), {
+          type: $("pl-type").value,
+          title,
+          authors,
+          venue,
+          volume,
+          meta: [authors, venue, volume].filter(Boolean).join(" · "),
+          year: $("pl-year").value.trim() || linkingPub.year || "",
           memberUids: checkedUids($("pub-link-members")),
           link,
-          file,
+          files,
+          file: null,          // 구 단일 필드는 배열로 이관
+          thumb,
+          thumbFileId,
         });
         linkModal.classList.remove("open");
       } catch (err) {
@@ -531,8 +604,15 @@ if (isConfigured) {
       }
     });
 
+    // 등록 모달: 선택한 파일 목록 표시
+    $("p-file").addEventListener("change", () => {
+      $("p-file-list").innerHTML = [...($("p-file").files || [])].map((f) =>
+        `<div class="file-row">📎 <span class="f-name">${esc(f.name)}</span><span class="f-size">${fmtStoredSize(f.size)}</span></div>`).join("");
+    });
+
     // 새 성과 등록 모달이 열릴 때 멤버 체크박스 채움 (열기 자체는 admin-demo.js 공용 핸들러)
     $("btn-add-pub").addEventListener("click", () => {
+      $("p-file-list").innerHTML = "";
       $("p-members").innerHTML = memberChecklistHtml(state.users, []);
     });
 
@@ -550,13 +630,26 @@ if (isConfigured) {
       let link = $("p-link").value.trim();
       if (link && !/^https?:\/\//i.test(link)) link = "https://" + link;
 
+      const newFiles = [...($("p-file").files || [])];
+      if (newFiles.length > MAX_PUB_FILES) {
+        msg.textContent = `첨부파일은 최대 ${MAX_PUB_FILES}개까지입니다.`;
+        msg.className = "form-msg error";
+        return;
+      }
+
       btn.disabled = true;
       try {
-        let file = null;
-        const f = $("p-file").files[0];
-        if (f) {
-          btn.textContent = "파일 업로드 중…";
-          file = await uploadStoredFile(db, "pubFiles", auth.currentUser.uid, f);
+        const files = [];
+        for (let i = 0; i < newFiles.length; i++) {
+          btn.textContent = `업로드 중… (${i + 1}/${newFiles.length})`;
+          files.push(await uploadStoredFile(db, "pubFiles", auth.currentUser.uid, newFiles[i]));
+        }
+        // 첫 이미지 첨부 → 공개 목록용 썸네일
+        let thumb = null, thumbFileId = null;
+        const fi = newFiles.findIndex((f) => (f.type || "").startsWith("image/"));
+        if (fi !== -1) {
+          thumb = await makePubThumb(newFiles[fi]);
+          if (thumb) thumbFileId = files[fi].fileId;
         }
         btn.textContent = "등록 중…";
         await addDoc(collection(db, "publications"), {
@@ -566,7 +659,9 @@ if (isConfigured) {
           venue,
           volume,
           link,
-          file,
+          files,
+          thumb,
+          thumbFileId,
           meta: [authors, venue, volume].filter(Boolean).join(" · "),
           year: $("p-year").value.trim() || String(new Date().getFullYear()),
           visible,
