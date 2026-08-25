@@ -14,8 +14,11 @@ jobs:
           channelId: live
           projectId: koolab-33917
       # Firestore 보안 규칙도 함께 배포합니다 (firestore.rules 수정이 콘솔
-      # 수동 게시 없이 반영되도록). 호스팅 배포와 독립적으로 실행됩니다.
+      # 수동 게시 없이 반영되도록). 서비스 계정에 "Firebase Rules 관리자"
+      # 역할이 없으면 403으로 실패하는데, 이때는 경고만 남기고 워크플로는
+      # 성공 처리합니다 — 규칙은 콘솔에서 수동 게시가 필요합니다.
       - name: Deploy Firestore rules
+        continue-on-error: true
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
