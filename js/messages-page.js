@@ -48,8 +48,12 @@ if (isConfigured) {
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) { location.href = "login.html"; return; }
-    const snap = await getDoc(doc(db, "users", user.uid));
-    const data = snap.exists() ? snap.data() : null;
+    // 사용자 문서 조회가 실패해도(규칙 미배포 등) 멈추지 않고 비멤버로 처리
+    let data = null;
+    try {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      data = snap.exists() ? snap.data() : null;
+    } catch (_) { data = null; }
     if (!data || (data.role !== "member" && data.role !== "admin")) {
       alert("승인된 멤버만 이용할 수 있는 페이지입니다.");
       location.href = "index.html";
@@ -107,8 +111,7 @@ if (isConfigured) {
       const r = roomConvs.find((x) => x.id === roomId);
       if (!r) return;
       const current = (r.aliases || {})[me.uid] || "";
-      const input = prompt("이 채팅방의 내 표시 이름을 입력하세요.
-(비우면 기본 이름으로 돌아갑니다. 다른 멤버에게는 적용되지 않습니다.)", current);
+      const input = prompt("이 채팅방의 내 표시 이름을 입력하세요.\n(비우면 기본 이름으로 돌아갑니다. 다른 멤버에게는 적용되지 않습니다.)", current);
       if (input === null) return;
       try {
         await updateDoc(doc(db, "rooms", roomId), { ["aliases." + me.uid]: input.trim() });
