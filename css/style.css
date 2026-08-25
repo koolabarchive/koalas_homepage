@@ -3343,3 +3343,18 @@ a.card { display: block; color: inherit; }
 }
 /* flex 행(.file-row)은 baseline 정렬이라 아이콘을 살짝 내려 맞춤 */
 .file-list .file-row::before { align-self: center; margin-right: 0; }
+
+/* 메시지 시간·읽음 체크 묶음 */
+.dm-msg-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+}
+.dm-msg-meta .dm-msg-time { flex: none; }
+.dm-ticks {
+  display: inline-flex;
+  color: var(--faint);          /* 전송됨: 회색 체크 1개 */
+}
+.dm-ticks svg { width: 14px; height: 10px; display: block; }
+.dm-ticks.read { color: var(--accent); }   /* 읽음: 파란 체크 2개 */
