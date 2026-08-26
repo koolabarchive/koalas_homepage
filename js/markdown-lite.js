@@ -15,7 +15,9 @@ export function renderMarkdown(src) {
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
     .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    // 사이트 내부 페이지 링크: [텍스트](research.html), [텍스트](notice.html#post=…)
+    .replace(/\[([^\]]+)\]\(([\w-]+\.html(?:[?#][^)\s]*)?)\)/g, '<a href="$2">$1</a>');
 
   const lines = esc(src).split(/\r?\n/);
   const out = [];
