@@ -65,13 +65,26 @@ if (isConfigured) {
     return v !== "" ? v : DEFAULTS[key];
   };
 
+  // 연락처 줄의 이모지(📧 ☎ 🏢)를 SVG 아이콘으로 치환해 렌더링합니다.
+  // 관리자는 입력칸에 이모지를 그대로 쓰면 되고, 화면에는 아이콘으로 보입니다.
+  const IC = (paths) => `<svg class="ic-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+  const ICONS = {
+    mail: IC('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'),
+    phone: IC('<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.08 5.18 2 2 0 0 1 4.06 3h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 10.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/>'),
+    building: IC('<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M10 21v-3.5h4V21"/><path d="M9 7h.01M12 7h.01M15 7h.01M9 10.5h.01M12 10.5h.01M15 10.5h.01M9 14h.01M12 14h.01M15 14h.01"/>'),
+  };
+  const iconize = (escapedText) => escapedText
+    .replace(/📧|✉️|✉/g, ICONS.mail)
+    .replace(/☎️|☎|📞/g, ICONS.phone)
+    .replace(/🏢|🏫/g, ICONS.building);
+
   // ================= 렌더링 =================
   function renderAll() {
     // 프로필
     $("prof-profile").innerHTML = `
       <h3 style="font-size:1.15rem; margin-bottom:4px;">${esc(val("name"))} <small style="font-weight:500; color:var(--muted);">${esc(val("nameEn"))}</small></h3>
       <p class="study-meta" style="margin-bottom:6px;">${esc(val("titleLine"))}</p>
-      <p class="study-meta" style="margin-bottom:16px;">${esc(val("contactLine"))}</p>
+      <p class="study-meta contact-line" style="margin-bottom:16px;">${iconize(esc(val("contactLine")))}</p>
       <div class="md-body" style="font-size:0.92rem;">${renderMarkdown(val("intro"))}</div>`;
 
     // 사진
@@ -92,7 +105,7 @@ if (isConfigured) {
     if (awardsEmpty && !isAdmin) $("wrap-awards").style.display = "none";
     else {
       $("wrap-awards").style.display = "";
-      if (awardsEmpty) $("sec-awards").innerHTML = '<p style="color:var(--muted);">아직 등록된 수상 내역이 없습니다. ✎ 버튼으로 추가해 주세요.</p>';
+      if (awardsEmpty) $("sec-awards").innerHTML = '<p style="color:var(--muted);">아직 등록된 수상 내역이 없습니다. 수정 버튼으로 추가해 주세요.</p>';
     }
 
     // 수정 버튼 표시
