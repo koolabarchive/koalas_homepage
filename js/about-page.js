@@ -1,6 +1,9 @@
-// 연구실 소개 페이지 (about.html) — 소개 문단·주소·대중교통·연락처를
-// 관리자가 페이지에서 바로 수정합니다 (지도교수 페이지와 같은 방식).
-// 저장 위치: siteConfig/main 문서의 aboutPage 객체 { intro, address, transit, contact }
+// 연구실 소개 페이지 (about.html) — 관리자가 페이지에서 바로 수정합니다.
+// - 소개 문단: 제목 옆 연필 버튼 → sec-modal
+// - 찾아오시는 길: 버튼 하나(#btn-edit-visit) → visit-modal에서
+//   지도(장소 검색어 또는 구글 지도 링크)·주소·대중교통·연락처를 한 번에 수정
+// 저장 위치: siteConfig/main 문서의 aboutPage 객체
+//   { intro, mapQuery, address, transit, contact }
 // 값이 없는 필드는 아래 DEFAULTS(현재 게시 내용)로 표시됩니다.
 
 import { auth, db, isConfigured } from "./firebase-config.js";
@@ -22,13 +25,11 @@ if (isConfigured) {
 지하철 1호선 **오산대역**에서 버스 이용 가능`,
     contact: `📧 hoonjungkoo@gmail.com
 연구 참가 문의는 각 [프로젝트 페이지](research.html)의 신청 폼을 이용해 주세요.`,
+    mapQuery: "한신대학교",
   };
 
   const SECTIONS = {
     intro: "연구실 소개",
-    address: "주소",
-    transit: "대중교통",
-    contact: "연락처",
   };
 
   let about = {};      // 저장된 값 (없으면 DEFAULTS로 폴백)
@@ -52,12 +53,32 @@ if (isConfigured) {
     .replace(/☎️|☎|📞/g, ICONS.phone)
     .replace(/🏢|🏫/g, ICONS.building);
 
+  // 지도: 장소 이름·주소는 구글 지도 검색 임베드로, 구글 지도 링크는 그대로
+  // (https 구글 지도 주소만 허용해 임의 사이트 임베드를 막습니다)
+  function mapSrc(v) {
+    v = (v || "").trim() || DEFAULTS.mapQuery;
+    if (/^https:\/\/(www\.)?google\.[a-z.]{2,10}\/maps/.test(v)) {
+      return v.includes("output=embed") ? v : v + (v.includes("?") ? "&" : "?") + "output=embed";
+    }
+    return "https://www.google.com/maps?q=" + encodeURIComponent(v) + "&output=embed";
+  }
+
+  let lastMapSrc = null;
   function renderAll() {
-    Object.keys(SECTIONS).forEach((key) => {
+    ["intro", "address", "transit", "contact"].forEach((key) => {
       const box = $("ab-" + key);
       if (box) box.innerHTML = iconize(renderMarkdown(val(key)));
     });
+    // src가 같으면 다시 지정하지 않아 iframe 재로딩 깜빡임을 막습니다
+    const map = $("ab-map");
+    if (map) {
+      if (lastMapSrc === null) lastMapSrc = map.getAttribute("src");
+      const src = mapSrc(val("mapQuery"));
+      if (src !== lastMapSrc) { map.src = src; lastMapSrc = src; }
+    }
+
     document.querySelectorAll(".sec-edit").forEach((b) => (b.style.display = isAdmin ? "" : "none"));
+    $("btn-edit-visit").style.display = isAdmin ? "" : "none";
   }
 
   async function load() {
@@ -102,6 +123,36 @@ if (isConfigured) {
     } catch (err) {
       $("sec-msg").textContent = "저장 실패: " + err.message;
       $("sec-msg").className = "form-msg error";
+    }
+  });
+
+  // ================= 찾아오시는 길 수정 (지도·주소·교통·연락처 한 번에) =================
+  const visitModal = $("visit-modal");
+  $("btn-edit-visit").addEventListener("click", () => {
+    $("vm-map").value = val("mapQuery");
+    $("vm-address").value = val("address");
+    $("vm-transit").value = val("transit");
+    $("vm-contact").value = val("contact");
+    $("vm-msg").className = "form-msg";
+    visitModal.classList.add("open");
+  });
+  $("vm-cancel").addEventListener("click", () => visitModal.classList.remove("open"));
+  visitModal.addEventListener("click", (e) => { if (e.target === visitModal) visitModal.classList.remove("open"); });
+  $("vm-save").addEventListener("click", async () => {
+    const partial = {
+      mapQuery: $("vm-map").value.trim(),
+      address: $("vm-address").value,
+      transit: $("vm-transit").value,
+      contact: $("vm-contact").value,
+    };
+    try {
+      await setDoc(doc(db, "siteConfig", "main"), { aboutPage: partial }, { merge: true });
+      about = { ...about, ...partial };
+      visitModal.classList.remove("open");
+      renderAll();
+    } catch (err) {
+      $("vm-msg").textContent = "저장 실패: " + err.message;
+      $("vm-msg").className = "form-msg error";
     }
   });
 }
