@@ -13,11 +13,11 @@
       title: "마음의 어려움을 과학으로 이해하고,\n**근거 있는 개입**으로 연결합니다",
       desc: "한신대학교 심리학과 구훈정 교수 연구실은 인지행동치료와 트라우마 연구를 기반으로, AI 시대의 심리상담 교육과 실천을 탐구합니다.",
     },
+    // 홈은 별도 항목 없이 브랜드(로고·연구실 이름) 클릭이 담당합니다.
+    // 소개는 하위 메뉴(연구실·지도교수·구성원)를 가진 드롭다운입니다.
     nav: [
-      { label: "홈", href: "index.html", visible: true },
       { label: "소개", href: "about.html", visible: true },
       { label: "연구", href: "research.html", visible: true },
-      { label: "구성원", href: "members.html", visible: true },
       { label: "성과", href: "publications.html", visible: true },
       { label: "공지", href: "notice.html", visible: true },
       { label: "자료실", href: "archive.html", visible: true },

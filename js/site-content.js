@@ -19,15 +19,42 @@
   const gnb = document.querySelector(".gnb");
   if (gnb) {
     // Netlify 등에서 /research.html 이 /research 로 표시되는 경우 대응
-    const norm = (p) => (p.replace(/\.html$/, "") || "index");
+    const norm = (p) => ((p.split("#")[0]).replace(/\.html$/, "") || "index");
     const current = norm(location.pathname.split("/").pop() || "index.html");
-    const items = cfg.nav
-      .filter((item) => item.visible !== false && item.label && item.href)
-      .map((item) => {
-        const active = norm(item.href) === current ? ' class="active"' : "";
-        return `<a href="${esc(item.href)}"${active}>${esc(item.label)}</a>`;
-      })
-      .join("");
+
+    // 소개 하위 메뉴 (연구실 · 지도교수 · 구성원)
+    const ABOUT_CHILDREN = [
+      { label: "연구실 소개", href: "about.html" },
+      { label: "지도교수", href: "about.html#professor" },
+      { label: "구성원", href: "members.html" },
+    ];
+
+    // 저장된 메뉴 설정(옛 구조 포함)을 현재 구조로 변환:
+    // 홈은 브랜드 클릭이 담당하므로 제외, 구성원은 소개 하위로 이동
+    const navItems = [];
+    for (const item of cfg.nav) {
+      if (item.visible === false || !item.label || !item.href) continue;
+      const key = norm(item.href);
+      if (key === "index" || key === "members") continue;
+      if (key === "about") { navItems.push({ ...item, children: ABOUT_CHILDREN }); continue; }
+      navItems.push(item);
+    }
+
+    const items = navItems.map((item) => {
+      if (item.children) {
+        // 소개처럼 하위 메뉴가 있는 항목: 데스크톱은 호버 드롭다운,
+        // 모바일 햄버거에서는 항상 펼친 목록 (CSS 처리)
+        const childActive = item.children.some((c) => norm(c.href) === current);
+        const links = item.children.map((c) =>
+          `<a href="${esc(c.href)}">${esc(c.label)}</a>`).join("");
+        return `<div class="gnb-sub${childActive ? " active-group" : ""}">
+          <a href="${esc(item.href)}"${childActive ? ' class="active"' : ""}>${esc(item.label)}<svg class="gnb-caret" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6 6l4.5-4.5"/></svg></a>
+          <div class="gnb-sub-menu">${links}</div>
+        </div>`;
+      }
+      const active = norm(item.href) === current ? ' class="active"' : "";
+      return `<a href="${esc(item.href)}"${active}>${esc(item.label)}</a>`;
+    }).join("");
     const loginActive = current === "login" ? " active" : "";
     gnb.innerHTML =
       items +
