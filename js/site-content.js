@@ -18,33 +18,47 @@
   // ----- 상단 메뉴 반영 -----
   const gnb = document.querySelector(".gnb");
   if (gnb) {
-    // Netlify 등에서 /research.html 이 /research 로 표시되는 경우 대응
-    const norm = (p) => ((p.split("#")[0]).replace(/\.html$/, "") || "index");
-    const current = norm(location.pathname.split("/").pop() || "index.html");
+    // Netlify 등에서 /research.html 이 /research 로 표시되는 경우 대응.
+    // 커스텀 페이지(page.html?p=아이디)는 쿼리까지 포함해 구분합니다.
+    const norm = (p) => {
+      const [base, q] = p.split("#")[0].split("?");
+      const key = (base.replace(/\.html$/, "") || "index");
+      return key === "page" && q ? key + "?" + q : key;
+    };
+    const current = norm((location.pathname.split("/").pop() || "index.html") + location.search);
 
-    // 소개 하위 메뉴 (연구실 · 지도교수 · 구성원)
-    const ABOUT_CHILDREN = [
-      { label: "연구실 소개", href: "about.html" },
-      { label: "지도교수", href: "professor.html" },
-      { label: "구성원", href: "members.html" },
-    ];
-
-    // 저장된 메뉴 설정(옛 구조 포함)을 현재 구조로 변환:
-    // 홈은 브랜드 클릭이 담당하므로 제외, 구성원은 소개 하위로 이동
-    const navItems = [];
-    for (const item of cfg.nav) {
-      if (item.visible === false || !item.label || !item.href) continue;
-      const key = norm(item.href);
-      if (key === "index" || key === "members") continue;
-      if (key === "about") { navItems.push({ ...item, children: ABOUT_CHILDREN }); continue; }
-      navItems.push(item);
+    let navItems;
+    if (Array.isArray(cfg.nav2) && cfg.nav2.length) {
+      // 2단계 메뉴 저장본: 그대로 사용 (visible=false 항목만 제외)
+      navItems = cfg.nav2
+        .filter((it) => it.visible !== false && it.label && it.href)
+        .map((it) => {
+          const children = (it.children || []).filter((c) => c.visible !== false && c.label && c.href);
+          return children.length ? { ...it, children } : { label: it.label, href: it.href };
+        });
+    } else {
+      // 저장된 2단계 메뉴가 없으면 기존 1단계 메뉴를 현재 구조로 변환:
+      // 홈은 브랜드 클릭이 담당하므로 제외, 구성원은 소개 하위로 이동
+      const ABOUT_CHILDREN = [
+        { label: "연구실 소개", href: "about.html" },
+        { label: "지도교수", href: "professor.html" },
+        { label: "구성원", href: "members.html" },
+      ];
+      navItems = [];
+      for (const item of cfg.nav) {
+        if (item.visible === false || !item.label || !item.href) continue;
+        const key = norm(item.href);
+        if (key === "index" || key === "members") continue;
+        if (key === "about") { navItems.push({ ...item, children: ABOUT_CHILDREN }); continue; }
+        navItems.push(item);
+      }
     }
 
     const items = navItems.map((item) => {
       if (item.children) {
-        // 소개처럼 하위 메뉴가 있는 항목: 데스크톱은 호버 드롭다운,
+        // 하위 메뉴가 있는 항목: 데스크톱은 호버 드롭다운,
         // 모바일 햄버거에서는 항상 펼친 목록 (CSS 처리)
-        const childActive = item.children.some((c) => norm(c.href) === current);
+        const childActive = item.children.some((c) => norm(c.href) === current) || norm(item.href) === current;
         const links = item.children.map((c) =>
           `<a href="${esc(c.href)}">${esc(c.label)}</a>`).join("");
         return `<div class="gnb-sub${childActive ? " active-group" : ""}">

@@ -142,8 +142,12 @@ export function bindAttachmentEvents(db, box, byKey) {
 // edit-modal, edit-modal-title, edit-title, edit-author, edit-date, edit-scope,
 // edit-badge, edit-content, edit-att-current, edit-files, edit-file-list,
 // edit-slider, edit-cancel, edit-save, edit-msg
-export function initNoticeEditor(db, getMe) {
+// opts.pageId: 커스텀 페이지(page.html) 게시판용 — 저장되는 글에 pageId가 붙어
+//   해당 페이지에만 표시됩니다 (공지 목록에서는 제외).
+// opts.noun: 모달 제목에 쓰는 명사 (기본 "공지")
+export function initNoticeEditor(db, getMe, opts = {}) {
   const $ = (id) => document.getElementById(id);
+  const noun = opts.noun || "공지";
 
   // 제목은 한 줄 입력 — Enter로 줄바꿈이 들어가지 않게 막습니다
   $("edit-title").addEventListener("keydown", (e) => { if (e.key === "Enter") e.preventDefault(); });
@@ -213,7 +217,7 @@ export function initNoticeEditor(db, getMe) {
     const me = getMe();
     editing = post || null;
     keptAtts = post ? [...(post.attachments || [])] : [];
-    $("edit-modal-title").textContent = post ? "공지 수정" : "새 공지 작성";
+    $("edit-modal-title").textContent = post ? noun + " 수정" : "새 " + noun + " 작성";
     $("edit-title").value = post ? post.title : "";
     $("edit-author").value = post ? (post.authorName || me?.name || "") : (me?.name || "");
     datePicker.set(post ? dotToIso(post.date) : todayIso());
@@ -281,6 +285,7 @@ export function initNoticeEditor(db, getMe) {
         slider: $("edit-slider").checked,
         updatedAt: serverTimestamp(),
       };
+      if (opts.pageId) data.pageId = opts.pageId;
       if (editing) await updateDoc(doc(db, "posts", editing.id), data);
       else await addDoc(collection(db, "posts"), { ...data, createdAt: serverTimestamp() });
       modal.classList.remove("open");
