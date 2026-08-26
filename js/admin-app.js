@@ -11,6 +11,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   AFFILIATIONS, POSITIONS, STATUSES, fillSelect, resolveSelectValue, applySelectValue, bindEtcToggle, memberProfileFrom,
+  resizeImageToDataUrl,
 } from "./org-options.js";
 import { initNoticeEditor, deleteNoticeAttachments } from "./notice-form.js";
 import { createDropdown } from "./notice-ui.js";
@@ -44,28 +45,6 @@ if (isConfigured) {
       </label>`).join("");
   }
   const checkedUids = (box) => [...box.querySelectorAll("input:checked")].map((i) => i.value);
-
-  // 이미지 파일 → 512px 이하 JPEG Data URL (Firestore 문서에 직접 저장)
-  function resizeImageToDataUrl(file, max = 512) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const scale = Math.min(1, max / Math.max(img.width, img.height));
-        const w = Math.max(1, Math.round(img.width * scale));
-        const h = Math.max(1, Math.round(img.height * scale));
-        const canvas = document.createElement("canvas");
-        canvas.width = w; canvas.height = h;
-        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
-        if (dataUrl.length > 900000) reject(new Error("압축 후에도 이미지가 너무 큽니다. 더 작은 사진을 사용해 주세요."));
-        else resolve(dataUrl);
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("이미지를 읽을 수 없습니다.")); };
-      img.src = url;
-    });
-  }
 
   // 대시보드 집계용 상태
   const state = { users: [], posts: [], pubs: [], projects: [], certs: [] };
