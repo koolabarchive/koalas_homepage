@@ -29,105 +29,113 @@
     </div>
   </header>
 
-  <section class="page-head">
-    <div class="container">
-      <span class="eyebrow">My Page</span>
-      <h1>마이페이지</h1>
-      <p id="my-info" style="color:var(--muted);">불러오는 중…</p>
-      <button class="btn-sm" id="btn-edit-me" style="display:none; margin-top:12px;">내 정보 수정</button>
-    </div>
-  </section>
+  <div class="container admin-layout">
 
-  <!-- 연구 참가 신청·문의 (프로젝트 리더용) -->
-  <section class="section alt" id="my-inquiries-section" style="display:none;">
-    <div class="container">
-      <div class="section-head" style="margin-bottom: 20px;">
-        <h2 style="font-size:1.3rem;">연구 참가 신청 · 문의 <span class="nav-badge" id="my-inq-count" style="display:none; vertical-align:3px;"></span></h2>
-        <p>내가 리더인 프로젝트에 접수된 외부 참가 신청과 문의입니다.</p>
+    <!-- 사이드 내비 -->
+    <aside class="admin-side">
+      <div class="admin-user">
+        <strong id="side-user-name">—</strong>
+        <span id="side-user-role">멤버</span>
       </div>
-      <div id="my-inquiries" style="max-width:860px;">
-        <p style="color:var(--muted); font-size:0.9rem;">불러오는 중…</p>
-      </div>
-    </div>
-  </section>
+      <nav class="admin-nav" aria-label="마이페이지 메뉴">
+        <button class="active" data-panel="profile">내 정보</button>
 
-  <!-- 내 스터디 -->
-  <section class="section">
-    <div class="container">
-      <div class="section-head" style="margin-bottom: 20px;">
-        <h2 style="font-size:1.3rem;">내 스터디</h2>
-        <p>참여 중이거나 참여했던 스터디입니다. 클릭하면 해당 스터디 자료실로 이동합니다.</p>
-      </div>
-      <div class="panel-toolbar">
-        <span></span>
-        <a href="study.html" class="btn-sm primary">스터디 페이지로 →</a>
-      </div>
-      <div class="pub-list" id="my-study-list">
-        <div class="pub-item"><div></div><div class="pub-meta">불러오는 중…</div></div>
-      </div>
-    </div>
-  </section>
+        <div class="nav-label">활동</div>
+        <button data-panel="studies">내 스터디</button>
+        <button data-panel="projects">연구실 프로젝트</button>
+        <button data-panel="inquiries" style="display:none;">신청·문의 <span class="count" id="my-inq-count" style="display:none;"></span></button>
 
-  <!-- 연구참여확인서 -->
-  <section class="section alt">
-    <div class="container">
-      <div class="section-head" style="margin-bottom: 20px;">
-        <h2 style="font-size:1.3rem;">연구참여확인서</h2>
-        <p>참여한 연구 프로젝트에 대한 확인서를 신청하고, 발급이 완료되면 PDF로 내려받을 수 있습니다.</p>
-      </div>
-      <div class="panel-toolbar">
-        <span></span>
-        <button class="btn-sm primary" id="btn-apply-cert">+ 확인서 신청</button>
-      </div>
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr><th>발급번호</th><th>프로젝트</th><th>역할</th><th>참여 기간</th><th>상태</th><th>PDF</th></tr>
-          </thead>
-          <tbody id="my-cert-tbody">
-            <tr><td colspan="6" style="color:var(--muted);">불러오는 중…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
+        <div class="nav-label">등록·발급</div>
+        <button data-panel="pubs">내 연구 성과</button>
+        <button data-panel="certs">연구참여확인서</button>
+      </nav>
+    </aside>
 
-  <!-- 성과 등록 -->
-  <section class="section">
-    <div class="container">
-      <div class="section-head" style="margin-bottom: 20px;">
-        <h2 style="font-size:1.3rem;">내 연구 성과</h2>
-        <p>논문·저서·학회발표·포스터를 등록하면 관리자 검수 후 공개 사이트에 게시됩니다.</p>
-      </div>
-      <div class="panel-toolbar">
-        <span></span>
-        <button class="btn-sm primary" id="btn-add-mypub">+ 성과 등록</button>
-      </div>
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr><th>유형</th><th>제목</th><th>연도</th><th>상태</th></tr>
-          </thead>
-          <tbody id="my-pub-tbody">
-            <tr><td colspan="4" style="color:var(--muted);">불러오는 중…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
+    <!-- 패널 영역 -->
+    <main>
 
-  <!-- 연구실 프로젝트 -->
-  <section class="section alt">
-    <div class="container">
-      <div class="section-head" style="margin-bottom: 20px;">
-        <h2 style="font-size:1.3rem;">연구실 프로젝트</h2>
-        <p>클릭하면 프로젝트 상세가 열립니다. 참여 신청 후 관리자 승인을 받으면 내부 자료와 진행 메모를 공유할 수 있습니다.</p>
-      </div>
-      <div class="pub-list" id="member-project-list">
-        <div class="pub-item"><div></div><div class="pub-meta">불러오는 중…</div></div>
-      </div>
-    </div>
-  </section>
+      <!-- 내 정보 -->
+      <section class="admin-panel active" id="panel-profile">
+        <h2>내 정보</h2>
+        <p class="panel-desc" id="my-info">불러오는 중…</p>
+        <button class="btn-sm primary" id="btn-edit-me" style="display:none;">내 정보 수정</button>
+      </section>
+
+      <!-- 내 스터디 -->
+      <section class="admin-panel" id="panel-studies">
+        <h2>내 스터디</h2>
+        <p class="panel-desc">참여 중이거나 참여했던 스터디입니다. 클릭하면 해당 스터디 자료실로 이동합니다.</p>
+        <div class="panel-toolbar">
+          <span></span>
+          <a href="study.html" class="btn-sm primary">스터디 페이지로 →</a>
+        </div>
+        <div class="pub-list" id="my-study-list">
+          <div class="pub-item"><div></div><div class="pub-meta">불러오는 중…</div></div>
+        </div>
+      </section>
+
+      <!-- 연구실 프로젝트 -->
+      <section class="admin-panel" id="panel-projects">
+        <h2>연구실 프로젝트</h2>
+        <p class="panel-desc">클릭하면 프로젝트 상세가 열립니다. 참여 신청 후 관리자 승인을 받으면 내부 자료와 진행 메모를 공유할 수 있습니다.</p>
+        <div class="pub-list" id="member-project-list">
+          <div class="pub-item"><div></div><div class="pub-meta">불러오는 중…</div></div>
+        </div>
+      </section>
+
+      <!-- 연구 참가 신청·문의 (프로젝트 리더용) -->
+      <section class="admin-panel" id="panel-inquiries">
+        <h2>연구 참가 신청 · 문의</h2>
+        <p class="panel-desc">내가 리더인 프로젝트에 접수된 외부 참가 신청과 문의입니다.</p>
+        <div id="my-inquiries-section" style="display:none;">
+          <div id="my-inquiries" style="max-width:860px;">
+            <p style="color:var(--muted); font-size:0.9rem;">불러오는 중…</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 내 연구 성과 -->
+      <section class="admin-panel" id="panel-pubs">
+        <h2>내 연구 성과</h2>
+        <p class="panel-desc">논문·저서·학회발표·포스터를 등록하면 관리자 검수 후 공개 사이트에 게시됩니다.</p>
+        <div class="panel-toolbar">
+          <span></span>
+          <button class="btn-sm primary" id="btn-add-mypub">+ 성과 등록</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>유형</th><th>제목</th><th>연도</th><th>상태</th></tr>
+            </thead>
+            <tbody id="my-pub-tbody">
+              <tr><td colspan="4" style="color:var(--muted);">불러오는 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 연구참여확인서 -->
+      <section class="admin-panel" id="panel-certs">
+        <h2>연구참여확인서</h2>
+        <p class="panel-desc">참여한 연구 프로젝트에 대한 확인서를 신청하고, 발급이 완료되면 PDF로 내려받을 수 있습니다.</p>
+        <div class="panel-toolbar">
+          <span></span>
+          <button class="btn-sm primary" id="btn-apply-cert">+ 확인서 신청</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>발급번호</th><th>프로젝트</th><th>역할</th><th>참여 기간</th><th>상태</th><th>PDF</th></tr>
+            </thead>
+            <tbody id="my-cert-tbody">
+              <tr><td colspan="6" style="color:var(--muted);">불러오는 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
 
   <!-- 확인서 신청 모달 -->
   <div class="modal-backdrop" id="cert-modal">
@@ -275,6 +283,21 @@
   <script src="js/content-store.js"></script>
   <script src="js/site-content.js"></script>
   <script src="js/main.js"></script>
+  <script>
+    // 사이드바 패널 전환 (admin-demo.js와 같은 방식)
+    (function () {
+      const navButtons = document.querySelectorAll(".admin-nav button");
+      const panels = document.querySelectorAll(".admin-panel");
+      navButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          navButtons.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          panels.forEach((p) => p.classList.remove("active"));
+          document.getElementById("panel-" + btn.dataset.panel).classList.add("active");
+        });
+      });
+    })();
+  </script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="js/certificate.js"></script>
   <script type="module" src="js/firebase-public.js"></script>

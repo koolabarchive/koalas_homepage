@@ -39,8 +39,14 @@ if (!isConfigured) {
       return;
     }
 
-    const renderMyInfo = () =>
+    const renderMyInfo = () => {
       $("my-info").innerHTML = `${esc(me.name)} · ${esc(me.affiliation || "")}${me.position ? " · " + esc(me.position) : ""}${me.memberStatus ? " · " + esc(me.memberStatus) : ""} · ${me.role === "admin" ? "관리자" : "멤버"}`;
+      // 사이드바 사용자 박스 (관리자 페이지와 같은 형태)
+      const sideName = $("side-user-name");
+      if (sideName) sideName.textContent = me.name || "—";
+      const sideRole = $("side-user-role");
+      if (sideRole) sideRole.textContent = me.role === "admin" ? "관리자" : "멤버";
+    };
     renderMyInfo();
     initMyProfile(me, renderMyInfo);
 
@@ -391,9 +397,22 @@ if (!isConfigured) {
 
   // ================= 연구 참가 신청·문의 (프로젝트 리더용) =================
   function initMyInquiries(me) {
-    const section = $("my-inquiries-section");
+    const secEl = $("my-inquiries-section");
     const box = $("my-inquiries");
-    if (!section || !box) return;
+    if (!secEl || !box) return;
+
+    // 표시 여부를 사이드바의 "신청·문의" 버튼과 함께 토글합니다.
+    // (아래 코드는 section.style.display 만 조작하므로 여기서 한 번에 연동)
+    const section = {
+      style: {
+        get display() { return secEl.style.display; },
+        set display(v) {
+          secEl.style.display = v;
+          const b = document.querySelector('.admin-nav button[data-panel="inquiries"]');
+          if (b) b.style.display = v === "none" ? "none" : "";
+        },
+      },
+    };
 
     const fmtDT = (ts) => {
       if (!ts || !ts.toDate) return "";
