@@ -14,6 +14,7 @@ import {
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   AFFILIATIONS, POSITIONS, STATUSES, fillSelect, resolveSelectValue, applySelectValue, bindEtcToggle,
+  memberProfileFrom, resizeImageToDataUrl,
 } from "./org-options.js";
 
 if (!isConfigured) {
@@ -63,7 +64,80 @@ if (!isConfigured) {
     fillSelect($("me2-status"), STATUSES, "상태 선택");
     bindEtcToggle($("me2-affil"), $("me2-affil-etc-wrap"), $("me2-affil-etc"));
 
-    const open = () => {
+    // ----- 프로필 사진 (구성원 공개 프로필 members.photoData) -----
+    let myProfile = null;        // 내 계정에 연결된 구성원 프로필 문서
+    let pendingPhoto = null;     // 새로 고른 사진 (저장 시 적용)
+    let removePhoto = false;
+
+    function renderPhotoPreview() {
+      const box = $("me2-photo-preview");
+      const current = myProfile ? (myProfile.photoData || myProfile.photoUrl || "") : "";
+      const src = pendingPhoto || (!removePhoto && current) || "";
+      box.innerHTML = src
+        ? `<div class="file-row" style="align-items:center;">
+             <img src="${src}" alt="사진 미리보기" style="width:48px; height:48px; object-fit:cover; border-radius:50%; border:1px solid var(--line);" />
+             <span class="f-name">${pendingPhoto ? "새 사진 (저장 시 적용)" : "현재 사진"}</span>
+             <button type="button" class="att-remove" id="me2-photo-clear" title="사진 제거">✕</button>
+           </div>`
+        : '<p class="hint" style="margin:0;">등록된 사진이 없습니다. 파일을 선택하면 저장 시 적용됩니다.</p>';
+      const clearBtn = $("me2-photo-clear");
+      if (clearBtn) clearBtn.addEventListener("click", () => {
+        pendingPhoto = null;
+        removePhoto = true;
+        $("me2-photo-file").value = "";
+        renderPhotoPreview();
+      });
+    }
+
+    $("me2-photo-file").addEventListener("change", async () => {
+      const file = $("me2-photo-file").files[0];
+      if (!file) return;
+      const msg = $("me2-msg");
+      try {
+        pendingPhoto = await resizeImageToDataUrl(file);
+        removePhoto = false;
+        msg.className = "form-msg";
+      } catch (err) {
+        $("me2-photo-file").value = "";
+        msg.textContent = err.message;
+        msg.className = "form-msg error";
+      }
+      renderPhotoPreview();
+    });
+
+    async function loadMyProfile() {
+      try {
+        const snap = await getDocs(query(collection(db, "members"), where("linkedUid", "==", me.uid)));
+        myProfile = snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() };
+      } catch (_) { myProfile = null; }
+    }
+
+    // 사진 변경분을 구성원 프로필에 반영 (프로필이 없으면 새로 만듦)
+    async function savePhotoIfChanged() {
+      if (!pendingPhoto && !removePhoto) return;
+      const photoData = pendingPhoto || "";
+      if (myProfile) {
+        // 보안 규칙상 본인은 사진 필드만 수정할 수 있습니다
+        await updateDoc(doc(db, "members", myProfile.id), { photoData, photoUrl: "" });
+        Object.assign(myProfile, { photoData, photoUrl: "" });
+      } else if (photoData) {
+        const ref = await addDoc(collection(db, "members"), {
+          ...memberProfileFrom(me),
+          photoData,
+          createdAt: serverTimestamp(),
+        });
+        myProfile = { id: ref.id, ...memberProfileFrom(me), photoData };
+      }
+      pendingPhoto = null;
+      removePhoto = false;
+    }
+
+    const open = async () => {
+      pendingPhoto = null;
+      removePhoto = false;
+      $("me2-photo-file").value = "";
+      await loadMyProfile();
+      renderPhotoPreview();
       $("me2-name").value = me.name || "";
       applySelectValue($("me2-affil"), $("me2-affil-etc"), $("me2-affil-etc-wrap"), me.affiliation || "", AFFILIATIONS);
       $("me2-position").value = me.position || "";
@@ -89,6 +163,7 @@ if (!isConfigured) {
         // 보안 규칙상 본인은 role을 제외한 프로필만 수정할 수 있습니다
         await updateDoc(doc(db, "users", me.uid), { name, affiliation, position, memberStatus });
         Object.assign(me, { name, affiliation, position, memberStatus });
+        await savePhotoIfChanged();
         onSaved && onSaved();
         modal.classList.remove("open");
       } catch (err) {

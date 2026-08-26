@@ -203,7 +203,13 @@ service cloud.firestore {
       // (사전 등록 가입자의 프로필 자동 생성용)
       allow create: if isAdmin()
         || (isMember() && request.resource.data.linkedUid == request.auth.uid);
-      allow update, delete: if isAdmin();
+      // 본인 계정과 연결된 프로필의 사진은 스스로 변경 가능 (그 외 필드는 관리자)
+      allow update: if isAdmin()
+        || (isMember()
+            && resource.data.linkedUid == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['photoData', 'photoUrl']));
+      allow delete: if isAdmin();
     }
 
     // ---------- studies: 스터디 (멤버 전용) ----------
