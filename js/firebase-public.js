@@ -36,8 +36,12 @@ if (isConfigured) {
 
       if (stableStr(remote) !== stableStr(local)) {
         localStorage.setItem(CFG_KEY, JSON.stringify(remote));
-        // 자동 새로고침은 세션당 1회로 제한 — 어떤 경우에도 무한 루프 불가
-        if (!sessionStorage.getItem("cfgSyncedOnce")) {
+        // 새로고침 없이 메뉴·히어로를 즉시 다시 그립니다 (관리자 메뉴 관리
+        // 저장이 방문자 화면에 바로 반영되도록). 옛 캐시 등으로 refresh가
+        // 없을 때만 세션당 1회 새로고침으로 폴백합니다.
+        if (window.SiteContent?.refresh) {
+          window.SiteContent.refresh();
+        } else if (!sessionStorage.getItem("cfgSyncedOnce")) {
           sessionStorage.setItem("cfgSyncedOnce", "1");
           location.reload();
         }

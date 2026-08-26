@@ -1,9 +1,10 @@
 // 공개 페이지 렌더링: 저장된 사이트 설정을 메뉴와 히어로에 반영
 // 모든 공개 페이지에서 content-store.js 다음에 로드합니다.
+// firebase-public.js가 서버 설정을 받아온 뒤 window.SiteContent.refresh()를
+// 호출하면 새로고침 없이 메뉴가 즉시 갱신됩니다.
 
 (function () {
   if (!window.ContentStore) return;
-  const cfg = window.ContentStore.load();
 
   // 간단한 HTML 이스케이프 (저장된 문구를 안전하게 출력)
   const esc = (s) =>
@@ -15,9 +16,14 @@
       .replace(/\*\*(.+?)\*\*/g, "<em>$1</em>")
       .replace(/\n/g, "<br />");
 
+  function apply(cfg) {
+
   // ----- 상단 메뉴 반영 -----
   const gnb = document.querySelector(".gnb");
   if (gnb) {
+    // 로그인 후 firebase-public이 로그인 버튼을 "이름 님 ▾" 드롭다운으로
+    // 교체해 둔 경우, 다시 그려도 그 드롭다운을 유지합니다.
+    const memberWrap = gnb.querySelector(".gnb-member");
     // Netlify 등에서 /research.html 이 /research 로 표시되는 경우 대응.
     // 커스텀 페이지(page.html?p=아이디)는 쿼리까지 포함해 구분합니다.
     const norm = (p) => {
@@ -73,6 +79,11 @@
     gnb.innerHTML =
       items +
       `<a href="login.html" class="btn-login${loginActive}">${esc(cfg.loginLabel)}</a>`;
+
+    if (memberWrap) {
+      const lb = gnb.querySelector(".btn-login");
+      if (lb) gnb.replaceChild(memberWrap, lb);
+    }
   }
 
   // ----- 연구분야 카드 반영 -----
@@ -103,4 +114,11 @@
     if (h1) h1.innerHTML = rich(cfg.hero.title);
     if (p) p.textContent = cfg.hero.desc;
   }
+
+  }  // apply(cfg) 끝
+
+  apply(window.ContentStore.load());
+
+  // 서버 설정 동기화 직후 새로고침 없이 다시 그릴 수 있게 공개
+  window.SiteContent = { refresh: () => apply(window.ContentStore.load()) };
 })();
