@@ -3532,3 +3532,13 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
 .contact-line .ic-svg { margin-right: 4px; opacity: 0.85; }
 /* 연락처 항목이 줄바꿈될 때 아이콘과 텍스트가 떨어지지 않게 */
 .contact-line { line-height: 1.9; }
+
+/* ================================================================
+   연구실 소개 페이지: 좌측 쏠림 교정
+   페이지 제목(page-head)은 가운데인데 본문이 왼쪽에 붙어 있으면
+   오른쪽이 비어 보입니다. 소개 페이지는 제목·본문 컬럼을 가운데로.
+   ================================================================ */
+.section-head.center { text-align: center; }
+.section-head.center p { margin-inline: auto; }
+/* 행길이 제한(68ch)이 있는 본문 컬럼을 컨테이너 가운데에 배치 */
+.md-col-center { margin-inline: auto; }
