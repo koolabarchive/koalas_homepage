@@ -3684,3 +3684,12 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
   .lb-nav.prev { left: 8px; }
   .lb-nav.next { right: 8px; }
 }
+
+/* 정보 입력용 정적 카드 — 콘텐츠 카드와 달리 호버 시 떠오르는 모션 없음
+   (마이페이지 내 정보의 본인 확인·기본 정보·비밀번호 변경 등 폼 컨테이너용) */
+.card.static { transition: none; }
+.card.static:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+  border-color: var(--line-soft);
+}
