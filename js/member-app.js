@@ -8,9 +8,13 @@ import { auth, db, isConfigured } from "./firebase-config.js";
 import { uploadStoredFile } from "./file-store.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, onSnapshot,
+  collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot,
   query, where, orderBy, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  AFFILIATIONS, POSITIONS, STATUSES, fillSelect, resolveSelectValue, applySelectValue, bindEtcToggle,
+} from "./org-options.js";
 
 if (!isConfigured) {
   document.getElementById("my-info").textContent = "Firebase 연동 후 사용할 수 있는 페이지입니다.";
@@ -34,7 +38,10 @@ if (!isConfigured) {
       return;
     }
 
-    $("my-info").innerHTML = `${esc(me.name)} · ${esc(me.affiliation || "")}${me.position ? " · " + esc(me.position) : ""}${me.memberStatus ? " · " + esc(me.memberStatus) : ""} · ${me.role === "admin" ? "관리자" : "멤버"}`;
+    const renderMyInfo = () =>
+      $("my-info").innerHTML = `${esc(me.name)} · ${esc(me.affiliation || "")}${me.position ? " · " + esc(me.position) : ""}${me.memberStatus ? " · " + esc(me.memberStatus) : ""} · ${me.role === "admin" ? "관리자" : "멤버"}`;
+    renderMyInfo();
+    initMyProfile(me, renderMyInfo);
 
     initCertificates(me);
     initMyPublications(me);
@@ -44,6 +51,67 @@ if (!isConfigured) {
   });
 
   // ================= 연구참여확인서 =================
+  // ----- 내 정보 수정 (계정 프로필: 이름·소속·직책·상태) -----
+  function initMyProfile(me, onSaved) {
+    const btn = $("btn-edit-me");
+    const modal = $("me2-modal");
+    if (!btn || !modal) return;
+    btn.style.display = "";
+
+    fillSelect($("me2-affil"), AFFILIATIONS, "소속 선택");
+    fillSelect($("me2-position"), POSITIONS, "직책 선택");
+    fillSelect($("me2-status"), STATUSES, "상태 선택");
+    bindEtcToggle($("me2-affil"), $("me2-affil-etc-wrap"), $("me2-affil-etc"));
+
+    const open = () => {
+      $("me2-name").value = me.name || "";
+      applySelectValue($("me2-affil"), $("me2-affil-etc"), $("me2-affil-etc-wrap"), me.affiliation || "", AFFILIATIONS);
+      $("me2-position").value = me.position || "";
+      $("me2-status").value = me.memberStatus || "";
+      $("me2-email").value = me.email || "";
+      $("me2-msg").className = "form-msg";
+      modal.classList.add("open");
+    };
+    btn.addEventListener("click", open);
+    $("me2-cancel").addEventListener("click", () => modal.classList.remove("open"));
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("open"); });
+
+    $("me2-save").addEventListener("click", async () => {
+      const msg = $("me2-msg");
+      const name = $("me2-name").value.trim();
+      if (!name) { msg.textContent = "이름을 입력해 주세요."; msg.className = "form-msg error"; return; }
+      const saveBtn = $("me2-save");
+      saveBtn.disabled = true;
+      try {
+        const affiliation = resolveSelectValue($("me2-affil"), $("me2-affil-etc"));
+        const position = $("me2-position").value;
+        const memberStatus = $("me2-status").value;
+        // 보안 규칙상 본인은 role을 제외한 프로필만 수정할 수 있습니다
+        await updateDoc(doc(db, "users", me.uid), { name, affiliation, position, memberStatus });
+        Object.assign(me, { name, affiliation, position, memberStatus });
+        onSaved && onSaved();
+        modal.classList.remove("open");
+      } catch (err) {
+        msg.textContent = "저장 실패: " + err.message;
+        msg.className = "form-msg error";
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    $("me2-pw-reset").addEventListener("click", async () => {
+      const msg = $("me2-msg");
+      try {
+        await sendPasswordResetEmail(auth, me.email);
+        msg.textContent = "재설정 메일을 보냈습니다. 받은편지함(스팸함 포함)을 확인해 주세요.";
+        msg.className = "form-msg ok";
+      } catch (err) {
+        msg.textContent = "메일 전송 실패: " + err.message;
+        msg.className = "form-msg error";
+      }
+    });
+  }
+
   function initCertificates(me) {
     const tbody = $("my-cert-tbody");
     const modal = $("cert-modal");
