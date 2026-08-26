@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>지도교수 | 한신대학교 임상심리 연구실</title>
+  <meta name="color-scheme" content="light dark" />
+  <!-- 저장된 테마를 첫 페인트 전에 적용해 깜빡임을 막습니다. -->
+  <script>(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity="0.9"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity="0.7"/>
+          <circle cx="20" cy="20" r="5" fill="var(--accent)"/>
+        </svg>
+        <span class="brand-name">임상심리 연구실<small>HANSHIN UNIV. · PROF. HOONJUNG KOO</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="notice.html">공지</a>
+        <a href="research.html">연구</a>
+        <a href="publications.html">성과</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">Professor</span>
+      <h1>지도교수</h1>
+      <p>구훈정 교수의 프로필과 연구 출판물, 대학원 진학 문의 안내입니다.</p>
+    </div>
+  </section>
+
+  <!-- 지도교수 프로필 -->
+  <section class="section" id="professor">
+    <div class="container">
+      <div class="about-prof">
+        <div class="prof-photo" id="prof-photo">
+          <div class="prof-photo-placeholder" id="prof-photo-ph">사진</div>
+        </div>
+        <div style="min-width:0;">
+          <div id="prof-profile"><p style="color:var(--muted); font-size:0.9rem;">불러오는 중…</p></div>
+          <button class="btn-sm" id="btn-edit-profile" style="display:none; margin-top:12px;">✎ 프로필 수정</button>
+        </div>
+      </div>
+
+      <div class="prof-cv" style="margin-top:34px;">
+        <div class="grid grid-2" style="align-items:start;">
+          <div class="md-body prof-sec" style="font-size:0.9rem;">
+            <h3>학력 <button class="btn-sm sec-edit" data-sec="education" style="display:none;">✎</button></h3>
+            <div id="sec-education"></div>
+            <h3>자격 <button class="btn-sm sec-edit" data-sec="licensure" style="display:none;">✎</button></h3>
+            <div id="sec-licensure"></div>
+          </div>
+          <div class="md-body prof-sec" style="font-size:0.9rem;">
+            <h3>주요 경력 <button class="btn-sm sec-edit" data-sec="career" style="display:none;">✎</button></h3>
+            <div id="sec-career"></div>
+          </div>
+        </div>
+
+        <div class="md-body prof-sec" style="font-size:0.9rem; margin-top:10px;" id="wrap-awards">
+          <h3>수상 <button class="btn-sm sec-edit" data-sec="awards" style="display:none;">✎</button></h3>
+          <div id="sec-awards"></div>
+        </div>
+
+        <div class="md-body prof-sec" style="font-size:0.9rem; margin-top:10px;">
+          <h3>저서 <button class="btn-sm sec-edit" data-sec="books" style="display:none;">✎</button></h3>
+          <div id="sec-books"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 연구 출판물 -->
+  <section class="section alt" id="publications">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:20px;">
+        <h2 style="font-size:1.3rem;">연구 출판물</h2>
+        <p style="margin-top:6px;">최근 5년간의 논문입니다. 성과 페이지에 등록되면 자동으로 표시됩니다.</p>
+      </div>
+      <div class="pub-list" id="prof-recent-papers">
+        <div class="pub-item"><div></div><div class="pub-meta">불러오는 중…</div></div>
+      </div>
+      <p style="margin-top:16px;"><a href="publications.html" class="btn-sm" style="text-decoration:none;">연구 성과 전체 보기 →</a></p>
+    </div>
+  </section>
+
+  <!-- 대학원 진학 · 연구실 컨택 -->
+  <section class="section" id="contact">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:20px;">
+        <h2 style="font-size:1.3rem;">대학원 진학 · 연구실 컨택</h2>
+        <p style="margin-top:6px;">임상심리 연구실 진학(석사·박사)이나 연구 참여에 관심 있는 학생은
+        아래 폼으로 문의를 남겨 주세요. 확인 후 이메일 또는 연락처로 회신드립니다.</p>
+      </div>
+      <div class="grid grid-2" style="align-items:start;">
+        <div class="card" style="padding:26px 24px;">
+          <form id="prof-contact-form" novalidate>
+            <div class="field-row">
+              <div class="field">
+                <label for="pc-name">이름 *</label>
+                <input type="text" id="pc-name" placeholder="홍길동" maxlength="100" />
+              </div>
+              <div class="field">
+                <label for="pc-contact">이메일 또는 연락처 *</label>
+                <input type="text" id="pc-contact" placeholder="example@email.com" maxlength="200" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="pc-message">문의 내용 *</label>
+              <textarea id="pc-message" rows="7" maxlength="5000"
+                placeholder="소속(학교·학과)과 현재 과정, 관심 연구 주제, 진학 희망 시기 등을 간단히 소개해 주세요."></textarea>
+            </div>
+            <div class="form-actions" style="justify-content:flex-end;">
+              <button type="submit" class="btn-sm primary" id="pc-send">문의 보내기</button>
+            </div>
+            <div class="form-msg" id="pc-msg"></div>
+          </form>
+        </div>
+        <div class="md-body" style="font-size:0.92rem;">
+          <h3>이런 내용을 담아 주세요</h3>
+          <p>- 소속 학교·학과와 현재 과정 (학부/석사 등)<br>
+          - 관심 있는 연구 주제 또는 프로젝트<br>
+          - 진학 희망 시기 (예: 2027년 전기)<br>
+          - 간단한 자기소개와 연구 경험</p>
+          <h3>직접 연락</h3>
+          <p>📧 hoonjungkoo@gmail.com<br>
+          🏢 한신대학교 소통관 3층 8318호</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 관리자: 접수된 컨택 문의함 (관리자 로그인 시에만 표시) -->
+  <section class="section alt" id="prof-inbox-section" style="display:none;">
+    <div class="container">
+      <div class="section-head" style="margin-bottom:20px;">
+        <h2 style="font-size:1.3rem;">접수된 컨택 문의 <span class="tag" id="prof-inbox-count"></span></h2>
+        <p style="margin-top:6px;">관리자에게만 표시되는 목록입니다.</p>
+      </div>
+      <div class="board-list" id="prof-inbox"></div>
+    </div>
+  </section>
+
+  <!-- 섹션 내용 수정 모달 (학력·자격·경력·수상·저서 공용) -->
+  <div class="modal-backdrop" id="sec-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sec-modal-title">
+      <h3 id="sec-modal-title">수정</h3>
+      <div class="field">
+        <textarea id="sec-md" rows="12"></textarea>
+        <div class="hint">한 줄에 하나씩 "- " 로 시작하면 목록으로 표시됩니다. **굵게**, *기울임*, [링크](https://…) 마크다운을 지원해요.</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="sec-cancel">취소</button>
+        <button class="btn-sm primary" id="sec-save">저장</button>
+      </div>
+      <div class="form-msg" id="sec-msg"></div>
+    </div>
+  </div>
+
+  <!-- 프로필 수정 모달 (이름·직함·연락처·소개·사진) -->
+  <div class="modal-backdrop" id="prof-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="prof-modal-title">
+      <h3 id="prof-modal-title">지도교수 프로필 수정</h3>
+      <div class="field-row">
+        <div class="field">
+          <label for="pf-name">이름</label>
+          <input type="text" id="pf-name" placeholder="구훈정" />
+        </div>
+        <div class="field">
+          <label for="pf-name-en">영문 이름·학위</label>
+          <input type="text" id="pf-name-en" placeholder="Koo Hoon Jung, Ph.D." />
+        </div>
+      </div>
+      <div class="field">
+        <label for="pf-title">직함 줄</label>
+        <input type="text" id="pf-title" placeholder="한신대학교 심리학과 교수 · 정신분석대학원장 · …" />
+      </div>
+      <div class="field">
+        <label for="pf-contact">연락처 줄</label>
+        <input type="text" id="pf-contact" placeholder="📧 이메일 · ☎ 전화 · 🏢 연구실 위치" />
+      </div>
+      <div class="field">
+        <label for="pf-intro">소개 문단 (마크다운)</label>
+        <textarea id="pf-intro" rows="5"></textarea>
+      </div>
+      <div class="field">
+        <label>사진</label>
+        <div class="file-list" id="pf-photo-preview" style="margin-bottom:6px;"></div>
+        <input type="file" id="pf-photo" class="file-input" accept="image/*" />
+        <div class="hint">업로드하면 자동으로 512px 이하로 줄여 저장됩니다.</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="pf-cancel">취소</button>
+        <button class="btn-sm primary" id="pf-save">저장</button>
+      </div>
+      <div class="form-msg" id="pf-msg"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hoonjungkoo@gmail.com</p>
+      </div>
+      <div class="f-links">
+        <a href="research.html">연구</a>
+        <a href="archive.html">자료실</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+  <script type="module" src="js/professor-page.js"></script>
+</body>
+</html>

@@ -1,12 +1,17 @@
-// 소개 페이지 (about.html) — 지도교수 정보 전체를 관리자(교수)가 직접 수정
-// 저장 위치: siteConfig/main 문서의 professor 객체 (필드별 병합 저장)
-//   { name, nameEn, titleLine, contactLine, intro, photoData,
-//     education, licensure, career, awards, books }  ← 마크다운 텍스트
-// 값이 없는 필드는 아래 DEFAULTS(현재 게시 내용)로 표시됩니다.
+// 지도교수 페이지 (professor.html)
+// - 프로필·CV: 관리자(교수)가 직접 수정. 저장 위치는 siteConfig/main 문서의
+//   professor 객체 { name, nameEn, titleLine, contactLine, intro, photoData,
+//   education, licensure, career, awards, books } (필드별 병합 저장, 마크다운 텍스트)
+//   값이 없는 필드는 아래 DEFAULTS(현재 게시 내용)로 표시됩니다.
+// - 컨택 폼: 대학원 진학 희망 학생의 문의를 profInquiries 컬렉션에 저장
+//   (비로그인 방문자도 작성 가능, 열람·삭제는 관리자만 — firestore.rules 참고)
+// - 관리자 로그인 시 접수된 문의함이 페이지 하단에 표시됩니다.
 
 import { auth, db, isConfigured } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  collection, doc, addDoc, getDoc, setDoc, deleteDoc, onSnapshot, serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { renderMarkdown } from "./markdown-lite.js";
 
 if (isConfigured) {
@@ -116,6 +121,7 @@ if (isConfigured) {
       } catch (_) {}
     }
     renderAll();
+    syncInbox();
   });
 
   async function saveProf(partial) {
@@ -215,4 +221,78 @@ if (isConfigured) {
       msg.className = "form-msg error";
     }
   });
+
+  // ================= 대학원 진학 컨택 폼 (누구나 작성 가능) =================
+  const contactForm = $("prof-contact-form");
+  if (contactForm) contactForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = $("pc-msg");
+    const btn = $("pc-send");
+    const name = $("pc-name").value.trim();
+    const contact = $("pc-contact").value.trim();
+    const message = $("pc-message").value.trim();
+    if (!name || !contact || !message) {
+      msg.textContent = "이름·연락처·문의 내용을 모두 입력해 주세요.";
+      msg.className = "form-msg error";
+      return;
+    }
+    btn.disabled = true;
+    try {
+      await addDoc(collection(db, "profInquiries"), {
+        name, contact, message,
+        createdAt: serverTimestamp(),
+      });
+      $("pc-name").value = $("pc-contact").value = $("pc-message").value = "";
+      msg.textContent = "문의가 접수되었습니다. 확인 후 연락드리겠습니다.";
+      msg.className = "form-msg ok";
+    } catch (err) {
+      msg.textContent = "전송 실패: " + err.message;
+      msg.className = "form-msg error";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ================= 관리자: 접수된 컨택 문의함 =================
+  let inboxUnsub = null;
+
+  function syncInbox() {
+    const section = $("prof-inbox-section");
+    if (!section) return;
+    if (!isAdmin) {
+      if (inboxUnsub) { inboxUnsub(); inboxUnsub = null; }
+      section.style.display = "none";
+      return;
+    }
+    if (inboxUnsub) return; // 이미 구독 중
+    inboxUnsub = onSnapshot(collection(db, "profInquiries"), (snap) => {
+      const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      section.style.display = "";
+      $("prof-inbox-count").textContent = items.length ? items.length + "건" : "";
+      const box = $("prof-inbox");
+      if (!items.length) {
+        box.innerHTML = '<p style="color:var(--muted); font-size:0.9rem;">아직 접수된 문의가 없습니다.</p>';
+        return;
+      }
+      const fmtDate = (ts) => ts?.seconds
+        ? new Date(ts.seconds * 1000).toLocaleDateString("ko-KR") : "";
+      box.innerHTML = items.map((q) => `
+        <div class="board-item">
+          <div class="b-row static">
+            <span class="b-title">${esc(q.name)} <small style="font-weight:500; color:var(--muted);">${esc(q.contact)}</small></span>
+            <span class="b-meta">${fmtDate(q.createdAt)}
+              <button class="btn-sm danger" data-inq-del="${q.id}" style="margin-left:8px;">삭제</button></span>
+          </div>
+          ${q.message ? `<div class="b-detail"><div class="b-body">${esc(q.message)}</div></div>` : ""}
+        </div>`).join("");
+      box.querySelectorAll("button[data-inq-del]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          if (!confirm("이 문의를 삭제할까요?")) return;
+          try { await deleteDoc(doc(db, "profInquiries", btn.dataset.inqDel)); }
+          catch (err) { alert("삭제 실패: " + err.message); }
+        });
+      });
+    }, () => { section.style.display = "none"; });
+  }
 }
