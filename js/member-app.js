@@ -15,9 +15,10 @@ import {
   sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, updatePassword,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  AFFILIATIONS, POSITIONS, STATUSES, fillSelect, resolveSelectValue, applySelectValue, bindEtcToggle,
+  AFFILIATIONS, POSITIONS, STATUSES, ETC,
   memberProfileFrom, resizeImageToDataUrl,
 } from "./org-options.js";
+import { createDropdown } from "./notice-ui.js";
 
 if (!isConfigured) {
   document.getElementById("my-info").textContent = "Firebase 연동 후 사용할 수 있는 페이지입니다.";
@@ -66,10 +67,17 @@ if (!isConfigured) {
   function initMyProfile(me, onSaved) {
     if (!$("me2-name")) return;
 
-    fillSelect($("me2-affil"), AFFILIATIONS, "소속 선택");
-    fillSelect($("me2-position"), POSITIONS, "직책 선택");
-    fillSelect($("me2-status"), STATUSES, "상태 선택");
-    bindEtcToggle($("me2-affil"), $("me2-affil-etc-wrap"), $("me2-affil-etc"));
+    // 소속·직책·상태: 애플 스타일 글래스 드롭다운 (공지 말머리와 동일 위젯)
+    const toggleAffilEtc = (v) => {
+      const isEtc = v === ETC;
+      $("me2-affil-etc-wrap").style.display = isEtc ? "" : "none";
+      if (isEtc) $("me2-affil-etc").focus();
+    };
+    const affilDd = createDropdown($("me2-affil-dd"), {
+      values: AFFILIATIONS, emptyLabel: "소속 선택", onChange: toggleAffilEtc,
+    });
+    const posDd = createDropdown($("me2-position-dd"), { values: POSITIONS, emptyLabel: "직책 선택" });
+    const statusDd = createDropdown($("me2-status-dd"), { values: STATUSES, emptyLabel: "상태 선택" });
 
     // ----- 프로필 사진 (구성원 공개 프로필 members.photoData) -----
     let myProfile = null;        // 내 계정에 연결된 구성원 프로필 문서
@@ -146,9 +154,19 @@ if (!isConfigured) {
       await loadMyProfile();
       renderPhotoPreview();
       $("me2-name").value = me.name || "";
-      applySelectValue($("me2-affil"), $("me2-affil-etc"), $("me2-affil-etc-wrap"), me.affiliation || "", AFFILIATIONS);
-      $("me2-position").value = me.position || "";
-      $("me2-status").value = me.memberStatus || "";
+      // 저장된 소속이 목록에 없으면 '기타' + 직접 입력으로 표시
+      const av = me.affiliation || "";
+      if (av && !AFFILIATIONS.includes(av)) {
+        affilDd.set(ETC);
+        $("me2-affil-etc").value = av;
+        $("me2-affil-etc-wrap").style.display = "";
+      } else {
+        affilDd.set(av);
+        $("me2-affil-etc").value = "";
+        $("me2-affil-etc-wrap").style.display = "none";
+      }
+      posDd.set(me.position || "");
+      statusDd.set(me.memberStatus || "");
       $("me2-email").value = me.email || "";
     }
 
@@ -186,9 +204,12 @@ if (!isConfigured) {
       const saveBtn = $("me2-save");
       saveBtn.disabled = true;
       try {
-        const affiliation = resolveSelectValue($("me2-affil"), $("me2-affil-etc"));
-        const position = $("me2-position").value;
-        const memberStatus = $("me2-status").value;
+        const affilRaw = affilDd.get();
+        const affiliation = affilRaw === ETC
+          ? ($("me2-affil-etc").value.trim() || null)
+          : (affilRaw || null);
+        const position = posDd.get();
+        const memberStatus = statusDd.get();
         // 보안 규칙상 본인은 role을 제외한 프로필만 수정할 수 있습니다
         await updateDoc(doc(db, "users", me.uid), { name, affiliation, position, memberStatus });
         Object.assign(me, { name, affiliation, position, memberStatus });
