@@ -11,7 +11,9 @@ import {
   collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot,
   query, where, orderBy, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, updatePassword,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   AFFILIATIONS, POSITIONS, STATUSES, fillSelect, resolveSelectValue, applySelectValue, bindEtcToggle,
   memberProfileFrom, resizeImageToDataUrl,
@@ -59,11 +61,10 @@ if (!isConfigured) {
 
   // ================= 연구참여확인서 =================
   // ----- 내 정보 수정 (계정 프로필: 이름·소속·직책·상태) -----
+  // 모달이 아니라 "내 정보" 패널 안의 인라인 폼입니다. 저장·비밀번호 변경
+  // 결과도 팝업 없이 폼 아래에 바로 표시됩니다.
   function initMyProfile(me, onSaved) {
-    const btn = $("btn-edit-me");
-    const modal = $("me2-modal");
-    if (!btn || !modal) return;
-    btn.style.display = "";
+    if (!$("me2-name")) return;
 
     fillSelect($("me2-affil"), AFFILIATIONS, "소속 선택");
     fillSelect($("me2-position"), POSITIONS, "직책 선택");
@@ -138,10 +139,8 @@ if (!isConfigured) {
       removePhoto = false;
     }
 
-    const open = async () => {
-      pendingPhoto = null;
-      removePhoto = false;
-      $("me2-photo-file").value = "";
+    // 페이지에 들어오면 바로 현재 정보를 채워 보여 줍니다
+    (async () => {
       await loadMyProfile();
       renderPhotoPreview();
       $("me2-name").value = me.name || "";
@@ -149,12 +148,7 @@ if (!isConfigured) {
       $("me2-position").value = me.position || "";
       $("me2-status").value = me.memberStatus || "";
       $("me2-email").value = me.email || "";
-      $("me2-msg").className = "form-msg";
-      modal.classList.add("open");
-    };
-    btn.addEventListener("click", open);
-    $("me2-cancel").addEventListener("click", () => modal.classList.remove("open"));
-    modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("open"); });
+    })();
 
     $("me2-save").addEventListener("click", async () => {
       const msg = $("me2-msg");
@@ -170,8 +164,10 @@ if (!isConfigured) {
         await updateDoc(doc(db, "users", me.uid), { name, affiliation, position, memberStatus });
         Object.assign(me, { name, affiliation, position, memberStatus });
         await savePhotoIfChanged();
+        renderPhotoPreview();
         onSaved && onSaved();
-        modal.classList.remove("open");
+        msg.textContent = "저장되었습니다.";
+        msg.className = "form-msg ok";
       } catch (err) {
         msg.textContent = "저장 실패: " + err.message;
         msg.className = "form-msg error";
@@ -180,8 +176,41 @@ if (!isConfigured) {
       }
     });
 
+    // ----- 비밀번호 변경: 현재/새 비밀번호를 직접 입력해 즉시 변경 -----
+    $("me2-pw-change").addEventListener("click", async () => {
+      const msg = $("me2-pw-msg");
+      const say = (t, cls) => { msg.textContent = t; msg.className = "form-msg " + cls; };
+      const current = $("me2-pw-current").value;
+      const nw = $("me2-pw-new").value;
+      const nw2 = $("me2-pw-new2").value;
+      if (!current) return say("현재 비밀번호를 입력해 주세요.", "error");
+      if (nw.length < 6) return say("새 비밀번호는 6자 이상이어야 합니다.", "error");
+      if (nw !== nw2) return say("새 비밀번호가 서로 일치하지 않습니다.", "error");
+      if (nw === current) return say("현재 비밀번호와 다른 비밀번호를 입력해 주세요.", "error");
+      const btn = $("me2-pw-change");
+      btn.disabled = true;
+      try {
+        // 보안상 비밀번호 변경 전 현재 비밀번호로 재인증이 필요합니다
+        const cred = EmailAuthProvider.credential(me.email, current);
+        await reauthenticateWithCredential(auth.currentUser, cred);
+        await updatePassword(auth.currentUser, nw);
+        $("me2-pw-current").value = $("me2-pw-new").value = $("me2-pw-new2").value = "";
+        say("비밀번호가 변경되었습니다. 다음 로그인부터 새 비밀번호를 사용하세요.", "ok");
+      } catch (err) {
+        if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential")
+          say("현재 비밀번호가 올바르지 않습니다.", "error");
+        else if (err.code === "auth/weak-password")
+          say("새 비밀번호가 너무 단순합니다. 더 길거나 복잡하게 정해 주세요.", "error");
+        else if (err.code === "auth/too-many-requests")
+          say("시도가 너무 많았습니다. 잠시 후 다시 시도해 주세요.", "error");
+        else say("변경 실패: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
     $("me2-pw-reset").addEventListener("click", async () => {
-      const msg = $("me2-msg");
+      const msg = $("me2-pw-msg");
       try {
         await sendPasswordResetEmail(auth, me.email);
         msg.textContent = "재설정 메일을 보냈습니다. 받은편지함(스팸함 포함)을 확인해 주세요.";

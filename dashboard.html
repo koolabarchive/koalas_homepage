@@ -58,7 +58,73 @@
       <section class="admin-panel active" id="panel-profile">
         <h2>내 정보</h2>
         <p class="panel-desc" id="my-info">불러오는 중…</p>
-        <button class="btn-sm primary" id="btn-edit-me" style="display:none;">내 정보 수정</button>
+
+        <div class="grid grid-2" style="align-items:start; max-width:980px;">
+          <!-- 기본 정보 (인라인 수정) -->
+          <div class="card" style="padding:24px 22px;">
+            <h3 style="font-size:1.02rem; margin-bottom:16px;">기본 정보</h3>
+            <div class="field">
+              <label>프로필 사진 <span class="hint" style="display:inline;">— 구성원 페이지에 표시 · 자동으로 512px로 줄여 저장</span></label>
+              <div class="file-list" id="me2-photo-preview" style="margin-bottom:6px;"></div>
+              <input type="file" id="me2-photo-file" class="file-input" accept="image/*" />
+            </div>
+            <div class="field">
+              <label for="me2-name">이름</label>
+              <input type="text" id="me2-name" />
+            </div>
+            <div class="field">
+              <label for="me2-affil">소속</label>
+              <select id="me2-affil"></select>
+            </div>
+            <div class="field" id="me2-affil-etc-wrap" style="display:none;">
+              <label for="me2-affil-etc">소속 직접 입력</label>
+              <input type="text" id="me2-affil-etc" placeholder="소속을 입력해 주세요" />
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="me2-position">직책</label>
+                <select id="me2-position"></select>
+              </div>
+              <div class="field">
+                <label for="me2-status">상태</label>
+                <select id="me2-status"></select>
+              </div>
+            </div>
+            <div class="field">
+              <label>이메일 (로그인 계정 — 변경 불가)</label>
+              <input type="text" id="me2-email" disabled />
+            </div>
+            <div class="form-actions" style="justify-content:flex-end;">
+              <button class="btn-sm primary" id="me2-save">저장</button>
+            </div>
+            <div class="form-msg" id="me2-msg"></div>
+          </div>
+
+          <!-- 비밀번호 변경 (인라인) -->
+          <div class="card" style="padding:24px 22px;">
+            <h3 style="font-size:1.02rem; margin-bottom:16px;">비밀번호 변경</h3>
+            <div class="field">
+              <label for="me2-pw-current">현재 비밀번호</label>
+              <input type="password" id="me2-pw-current" autocomplete="current-password" />
+            </div>
+            <div class="field">
+              <label for="me2-pw-new">새 비밀번호</label>
+              <input type="password" id="me2-pw-new" autocomplete="new-password" />
+              <div class="hint">6자 이상을 권장합니다.</div>
+            </div>
+            <div class="field">
+              <label for="me2-pw-new2">새 비밀번호 확인</label>
+              <input type="password" id="me2-pw-new2" autocomplete="new-password" />
+            </div>
+            <div class="form-actions" style="justify-content:flex-end;">
+              <button class="btn-sm primary" id="me2-pw-change">비밀번호 변경</button>
+            </div>
+            <div class="form-msg" id="me2-pw-msg"></div>
+            <div class="hint" style="margin-top:14px;">현재 비밀번호가 기억나지 않으면
+              <button type="button" class="btn-sm" id="me2-pw-reset" style="margin-left:4px;">재설정 메일 보내기</button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- 내 스터디 -->
@@ -216,54 +282,6 @@
         <button class="btn-sm primary" id="mypub-submit">검수 요청</button>
       </div>
       <div class="form-msg" id="mypub-modal-msg"></div>
-    </div>
-  </div>
-
-  <!-- 내 정보 수정 모달 -->
-  <div class="modal-backdrop" id="me2-modal">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="me2-title">
-      <h3 id="me2-title">내 정보 수정</h3>
-      <div class="field">
-        <label>프로필 사진 <span class="hint" style="display:inline;">— 구성원 페이지에 표시 · 자동으로 512px로 줄여 저장</span></label>
-        <div class="file-list" id="me2-photo-preview" style="margin-bottom:6px;"></div>
-        <input type="file" id="me2-photo-file" class="file-input" accept="image/*" />
-      </div>
-      <div class="field">
-        <label for="me2-name">이름</label>
-        <input type="text" id="me2-name" />
-      </div>
-      <div class="field">
-        <label for="me2-affil">소속</label>
-        <select id="me2-affil"></select>
-      </div>
-      <div class="field" id="me2-affil-etc-wrap" style="display:none;">
-        <label for="me2-affil-etc">소속 직접 입력</label>
-        <input type="text" id="me2-affil-etc" placeholder="소속을 입력해 주세요" />
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label for="me2-position">직책</label>
-          <select id="me2-position"></select>
-        </div>
-        <div class="field">
-          <label for="me2-status">상태</label>
-          <select id="me2-status"></select>
-        </div>
-      </div>
-      <div class="field">
-        <label>이메일 (로그인 계정 — 변경 불가)</label>
-        <input type="text" id="me2-email" disabled />
-      </div>
-      <div class="field">
-        <label>비밀번호</label>
-        <button type="button" class="btn-sm" id="me2-pw-reset">비밀번호 재설정 메일 보내기</button>
-        <div class="hint">가입 이메일로 재설정 링크가 전송됩니다. 메일의 안내에 따라 새 비밀번호를 설정하세요.</div>
-      </div>
-      <div class="form-actions">
-        <button class="btn-sm" id="me2-cancel">취소</button>
-        <button class="btn-sm primary" id="me2-save">저장</button>
-      </div>
-      <div class="form-msg" id="me2-msg"></div>
     </div>
   </div>
 
