@@ -139,8 +139,10 @@ if (!isConfigured) {
       removePhoto = false;
     }
 
-    // 페이지에 들어오면 바로 현재 정보를 채워 보여 줍니다
-    (async () => {
+    // ----- 본인 확인 게이트 -----
+    // 로그인 상태여도 개인정보 확인·수정 전에 비밀번호를 한 번 더 확인합니다.
+    // 통과하면 이 페이지에 머무는 동안만 폼이 열립니다 (새로고침하면 다시 잠김).
+    async function fillForm() {
       await loadMyProfile();
       renderPhotoPreview();
       $("me2-name").value = me.name || "";
@@ -148,7 +150,34 @@ if (!isConfigured) {
       $("me2-position").value = me.position || "";
       $("me2-status").value = me.memberStatus || "";
       $("me2-email").value = me.email || "";
-    })();
+    }
+
+    async function unlock() {
+      const msg = $("me2-gate-msg");
+      const say = (t, cls) => { msg.textContent = t; msg.className = "form-msg " + cls; };
+      const pw = $("me2-gate-pw").value;
+      if (!pw) return say("비밀번호를 입력해 주세요.", "error");
+      const okBtn = $("me2-gate-ok");
+      okBtn.disabled = true;
+      try {
+        const cred = EmailAuthProvider.credential(me.email, pw);
+        await reauthenticateWithCredential(auth.currentUser, cred);
+        $("me2-gate-pw").value = "";
+        await fillForm();
+        $("me2-gate").style.display = "none";
+        $("me2-forms").style.display = "";
+      } catch (err) {
+        if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential")
+          say("비밀번호가 올바르지 않습니다.", "error");
+        else if (err.code === "auth/too-many-requests")
+          say("시도가 너무 많았습니다. 잠시 후 다시 시도해 주세요.", "error");
+        else say("확인 실패: " + err.message, "error");
+      } finally {
+        okBtn.disabled = false;
+      }
+    }
+    $("me2-gate-ok").addEventListener("click", unlock);
+    $("me2-gate-pw").addEventListener("keydown", (e) => { if (e.key === "Enter") unlock(); });
 
     $("me2-save").addEventListener("click", async () => {
       const msg = $("me2-msg");
