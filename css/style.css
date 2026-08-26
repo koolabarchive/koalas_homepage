@@ -3542,3 +3542,145 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
 .section-head.center p { margin-inline: auto; }
 /* 행길이 제한(68ch)이 있는 본문 컬럼을 컨테이너 가운데에 배치 */
 .md-col-center { margin-inline: auto; }
+
+/* ================================================================
+   관리자: 2단계 메뉴 트리 (드래그 앤 드롭)
+   ================================================================ */
+.menu-tree .menu-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  margin-bottom: 6px;
+  position: relative;
+}
+.menu-tree .menu-row.child {
+  margin-left: 34px;
+  background: var(--tint);
+}
+.menu-tree .menu-row input[type="text"] { flex: 1; min-width: 0; }
+.menu-tree .menu-row input[data-field="label"] { max-width: 160px; }
+.menu-tree .drag-handle {
+  cursor: grab;
+  color: var(--muted);
+  font-size: 1rem;
+  user-select: none;
+  padding: 2px 2px 2px 0;
+  flex: none;
+}
+.menu-tree .menu-row.dragging { opacity: 0.45; }
+.menu-tree .menu-row.drop-before { box-shadow: 0 -3px 0 0 var(--accent-bg); }
+.menu-tree .menu-row.drop-after { box-shadow: 0 3px 0 0 var(--accent-bg); }
+.menu-tree .menu-row.drop-into {
+  outline: 2px solid var(--accent-bg);
+  outline-offset: -2px;
+}
+.menu-tree .row-btns { display: flex; gap: 4px; flex: none; }
+.menu-tree .row-btns button {
+  width: 26px; height: 26px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.menu-tree .row-btns button:hover:not(:disabled) { background: var(--tint); color: var(--accent); }
+.menu-tree .row-btns button:disabled { opacity: 0.35; cursor: default; }
+.menu-tree .visible-toggle { font-size: 0.8rem; color: var(--muted); white-space: nowrap; flex: none; }
+@media (max-width: 640px) {
+  .menu-tree .menu-row { flex-wrap: wrap; }
+  .menu-tree .menu-row.child { margin-left: 18px; }
+}
+
+/* ================================================================
+   커스텀 페이지: 앨범 그리드 + 라이트박스
+   ================================================================ */
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.album-item {
+  position: relative;
+  margin: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: zoom-in;
+  background: var(--tint);
+  border: 1px solid var(--line-soft);
+}
+.album-item img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+.album-item:hover img { transform: scale(1.03); }
+.album-item figcaption {
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  background: var(--surface);
+}
+.album-del {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 28px; height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.85rem;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.album-del:hover { background: rgba(200, 40, 40, 0.85); }
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.86);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox figure { margin: 0; max-width: min(92vw, 1100px); text-align: center; }
+.lightbox img {
+  max-width: 100%;
+  max-height: 82vh;
+  border-radius: 10px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+.lightbox figcaption { color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; margin-top: 12px; }
+.lb-close, .lb-nav {
+  position: fixed;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.lb-close { top: 20px; right: 20px; width: 40px; height: 40px; font-size: 1rem; }
+.lb-nav { top: 50%; transform: translateY(-50%); width: 44px; height: 44px; font-size: 1.6rem; line-height: 1; }
+.lb-nav.prev { left: 18px; }
+.lb-nav.next { right: 18px; }
+.lb-close:hover, .lb-nav:hover { background: rgba(255, 255, 255, 0.25); }
+@media (max-width: 640px) {
+  .lb-nav { width: 38px; height: 38px; }
+  .lb-nav.prev { left: 8px; }
+  .lb-nav.next { right: 8px; }
+}

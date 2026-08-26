@@ -361,7 +361,8 @@ if (isConfigured) {
     }
 
     onSnapshot(query(collection(db, "posts"), orderBy("date", "desc")), (snap) => {
-      state.posts = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      // pageId가 있는 글은 커스텀 페이지 게시글 — 공지 관리에서 제외
+      state.posts = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((p) => !p.pageId);
       render();
       renderDashboard();
     }, snapErr("공지", "notice-tbody", 6));
@@ -1303,7 +1304,8 @@ if (isConfigured) {
       }
     }, 50);
 
-    ["site-save", "site-reset", "menu-save", "menu-reset", "research-save", "research-reset"].forEach((id) => {
+    // 메뉴 관리(menu-save 등)는 menu-admin.js가 직접 Firestore에 반영합니다.
+    ["site-save", "site-reset", "research-save", "research-reset"].forEach((id) => {
       const el = $(id);
       if (el) el.addEventListener("click", push);
     });

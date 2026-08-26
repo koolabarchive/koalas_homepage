@@ -186,7 +186,8 @@ if (isConfigured) {
       ? collection(db, "posts")
       : query(collection(db, "posts"), where("scope", "==", "public"));
     const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(byDateDesc);
+    // pageId가 있는 글은 커스텀 페이지(page.html) 전용 — 공지·슬라이더에서 제외
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((p) => !p.pageId).sort(byDateDesc);
   }
 
   async function fetchVisiblePubs() {

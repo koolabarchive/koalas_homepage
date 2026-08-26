@@ -67,6 +67,7 @@ if (isConfigured) {
 
     unsubscribe = onSnapshot(q, (snap) => {
       posts = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        .filter((p) => !p.pageId)   // 커스텀 페이지(page.html) 게시글 제외
         .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
       render();
     }, (err) => {

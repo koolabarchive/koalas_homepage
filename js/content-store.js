@@ -22,6 +22,22 @@
       { label: "공지", href: "notice.html", visible: true },
       { label: "자료실", href: "archive.html", visible: true },
     ],
+    // 2단계 메뉴 (주메뉴 + 하위메뉴). 관리자 메뉴 관리에서 편집합니다.
+    // 이 값이 저장돼 있으면 위의 nav(1단계) 대신 이 구조가 그대로 렌더링됩니다.
+    nav2: [
+      { label: "소개", href: "about.html", visible: true, children: [
+        { label: "연구실 소개", href: "about.html", visible: true },
+        { label: "지도교수", href: "professor.html", visible: true },
+        { label: "구성원", href: "members.html", visible: true },
+      ] },
+      { label: "연구", href: "research.html", visible: true, children: [] },
+      { label: "성과", href: "publications.html", visible: true, children: [] },
+      { label: "공지", href: "notice.html", visible: true, children: [] },
+      { label: "자료실", href: "archive.html", visible: true, children: [] },
+    ],
+    // 관리자가 만든 커스텀 페이지: page.html?p=<id> 로 열립니다.
+    // kind: 'board'(게시판) | 'album'(앨범) / scope: 'public' | 'member'
+    pages: [],
     loginLabel: "멤버 로그인",
     research: [
       { tag: "CBT", title: "인지행동치료와 정서조절", desc: "우울·불안을 중심으로 인지행동적 기제와 정서조절 과정을 연구하고, 치료 프로토콜의 효과성을 검증합니다." },
@@ -49,6 +65,8 @@
       return {
         hero: { ...DEFAULTS.hero, ...(saved.hero || {}) },
         nav: mergeNav(saved.nav),
+        nav2: Array.isArray(saved.nav2) && saved.nav2.length ? saved.nav2 : null,
+        pages: Array.isArray(saved.pages) ? saved.pages : [],
         loginLabel: saved.loginLabel || DEFAULTS.loginLabel,
         research: Array.isArray(saved.research) && saved.research.length ? saved.research : structuredClone(DEFAULTS.research),
       };
