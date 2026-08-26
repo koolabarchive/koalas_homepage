@@ -3516,3 +3516,19 @@ a.card { display: block; color: inherit; }
 
 /* 고정 헤더 아래로 앵커가 가려지지 않도록 (지도교수 등) */
 section[id] { scroll-margin-top: 76px; }
+
+/* ================================================================
+   인라인 SVG 아이콘 — 이모지(📧 ☎ 🏢 ✎) 대체
+   버튼·연락처 줄 등 텍스트 사이에 끼워 쓰는 작은 픽토그램입니다.
+   ================================================================ */
+.ic-svg {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  flex: none;
+}
+button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
+.contact-line .ic-svg { margin-right: 4px; opacity: 0.85; }
+/* 연락처 항목이 줄바꿈될 때 아이콘과 텍스트가 떨어지지 않게 */
+.contact-line { line-height: 1.9; }
