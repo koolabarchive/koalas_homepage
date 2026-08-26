@@ -61,53 +61,20 @@
     </div>
   </section>
 
-  <!-- 지도교수 소개 -->
-  <section class="section alt" id="professor">
+  <!-- 지도교수 · 구성원 바로가기 -->
+  <section class="section alt">
     <div class="container">
-      <div class="section-head" style="margin-bottom:24px;">
-        <h2 style="font-size:1.3rem;">지도교수</h2>
-      </div>
-      <div class="about-prof">
-        <div class="prof-photo" id="prof-photo">
-          <div class="prof-photo-placeholder" id="prof-photo-ph">사진</div>
-        </div>
-        <div style="min-width:0;">
-          <div id="prof-profile"><p style="color:var(--muted); font-size:0.9rem;">불러오는 중…</p></div>
-          <button class="btn-sm" id="btn-edit-profile" style="display:none; margin-top:12px;">✎ 프로필 수정</button>
-        </div>
-      </div>
-
-      <div class="prof-cv" style="margin-top:34px;">
-        <div class="grid grid-2" style="align-items:start;">
-          <div class="md-body prof-sec" style="font-size:0.9rem;">
-            <h3>학력 <button class="btn-sm sec-edit" data-sec="education" style="display:none;">✎</button></h3>
-            <div id="sec-education"></div>
-            <h3>자격 <button class="btn-sm sec-edit" data-sec="licensure" style="display:none;">✎</button></h3>
-            <div id="sec-licensure"></div>
-          </div>
-          <div class="md-body prof-sec" style="font-size:0.9rem;">
-            <h3>주요 경력 <button class="btn-sm sec-edit" data-sec="career" style="display:none;">✎</button></h3>
-            <div id="sec-career"></div>
-          </div>
-        </div>
-
-        <div class="md-body prof-sec" style="font-size:0.9rem; margin-top:10px;" id="wrap-awards">
-          <h3>수상 <button class="btn-sm sec-edit" data-sec="awards" style="display:none;">✎</button></h3>
-          <div id="sec-awards"></div>
-        </div>
-
-        <div class="md-body prof-sec" style="font-size:0.9rem; margin-top:10px;">
-          <h3>저서 <button class="btn-sm sec-edit" data-sec="books" style="display:none;">✎</button></h3>
-          <div id="sec-books"></div>
-        </div>
-
-        <div class="md-body" style="font-size:0.9rem; margin-top:10px;">
-          <h3>논문 (최근 5년)</h3>
-          <div class="pub-list" id="prof-recent-papers" style="margin-top:12px;">
-            <div class="pub-item"><div></div><div class="pub-meta">불러오는 중…</div></div>
-          </div>
-          <p style="margin-top:14px;"><a href="publications.html" class="btn-sm" style="text-decoration:none;">연구 성과 전체 보기 →</a></p>
-        </div>
+      <div class="grid grid-2">
+        <a href="professor.html" class="card" style="text-decoration:none; color:inherit;">
+          <span class="tag">Professor</span>
+          <h3>지도교수 소개 →</h3>
+          <p>구훈정 교수의 프로필·경력·연구 출판물과 대학원 진학 컨택 안내는 지도교수 페이지에서 확인하세요.</p>
+        </a>
+        <a href="members.html" class="card" style="text-decoration:none; color:inherit;">
+          <span class="tag">Members</span>
+          <h3>구성원 →</h3>
+          <p>연구실에서 함께 공부하고 연구하는 대학원생·연구원을 소개합니다.</p>
+        </a>
       </div>
     </div>
   </section>
@@ -143,62 +110,6 @@
     </div>
   </section>
 
-  <!-- 섹션 내용 수정 모달 (학력·자격·경력·수상·저서 공용) -->
-  <div class="modal-backdrop" id="sec-modal">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sec-modal-title">
-      <h3 id="sec-modal-title">수정</h3>
-      <div class="field">
-        <textarea id="sec-md" rows="12"></textarea>
-        <div class="hint">한 줄에 하나씩 "- " 로 시작하면 목록으로 표시됩니다. **굵게**, *기울임*, [링크](https://…) 마크다운을 지원해요.</div>
-      </div>
-      <div class="form-actions">
-        <button class="btn-sm" id="sec-cancel">취소</button>
-        <button class="btn-sm primary" id="sec-save">저장</button>
-      </div>
-      <div class="form-msg" id="sec-msg"></div>
-    </div>
-  </div>
-
-  <!-- 프로필 수정 모달 (이름·직함·연락처·소개·사진) -->
-  <div class="modal-backdrop" id="prof-modal">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="prof-modal-title">
-      <h3 id="prof-modal-title">지도교수 프로필 수정</h3>
-      <div class="field-row">
-        <div class="field">
-          <label for="pf-name">이름</label>
-          <input type="text" id="pf-name" placeholder="구훈정" />
-        </div>
-        <div class="field">
-          <label for="pf-name-en">영문 이름·학위</label>
-          <input type="text" id="pf-name-en" placeholder="Koo Hoon Jung, Ph.D." />
-        </div>
-      </div>
-      <div class="field">
-        <label for="pf-title">직함 줄</label>
-        <input type="text" id="pf-title" placeholder="한신대학교 심리학과 교수 · 정신분석대학원장 · …" />
-      </div>
-      <div class="field">
-        <label for="pf-contact">연락처 줄</label>
-        <input type="text" id="pf-contact" placeholder="📧 이메일 · ☎ 전화 · 🏢 연구실 위치" />
-      </div>
-      <div class="field">
-        <label for="pf-intro">소개 문단 (마크다운)</label>
-        <textarea id="pf-intro" rows="5"></textarea>
-      </div>
-      <div class="field">
-        <label>사진</label>
-        <div class="file-list" id="pf-photo-preview" style="margin-bottom:6px;"></div>
-        <input type="file" id="pf-photo" class="file-input" accept="image/*" />
-        <div class="hint">업로드하면 자동으로 512px 이하로 줄여 저장됩니다.</div>
-      </div>
-      <div class="form-actions">
-        <button class="btn-sm" id="pf-cancel">취소</button>
-        <button class="btn-sm primary" id="pf-save">저장</button>
-      </div>
-      <div class="form-msg" id="pf-msg"></div>
-    </div>
-  </div>
-
   <footer class="site-footer">
     <div class="container footer-inner">
       <div>
@@ -216,6 +127,5 @@
   <script src="js/site-content.js"></script>
   <script src="js/main.js"></script>
   <script type="module" src="js/firebase-public.js"></script>
-  <script type="module" src="js/about-page.js"></script>
 </body>
 </html>

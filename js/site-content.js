@@ -25,7 +25,7 @@
     // 소개 하위 메뉴 (연구실 · 지도교수 · 구성원)
     const ABOUT_CHILDREN = [
       { label: "연구실 소개", href: "about.html" },
-      { label: "지도교수", href: "about.html#professor" },
+      { label: "지도교수", href: "professor.html" },
       { label: "구성원", href: "members.html" },
     ];
 

@@ -415,7 +415,7 @@ if (isConfigured) {
       } catch (_) {}
     }
 
-    // 소개 페이지: 논문 (최근 5년) — 성과 데이터에서 자동 표시
+    // 지도교수 페이지: 연구 출판물 (최근 5년) — 성과 데이터에서 자동 표시
     const profPapers = document.getElementById("prof-recent-papers");
     if (profPapers) {
       try {

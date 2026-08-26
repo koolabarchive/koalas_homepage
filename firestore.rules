@@ -184,6 +184,18 @@ service cloud.firestore {
             && request.auth.uid in get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.leaderUids);
     }
 
+    // ---------- profInquiries: 지도교수 페이지 대학원 진학 컨택 문의 ----------
+    // 외부 방문자(비로그인)도 작성할 수 있고, 열람·삭제는 관리자만 가능합니다.
+    match /profInquiries/{inqId} {
+      allow create: if request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+        && request.resource.data.contact is string
+        && request.resource.data.contact.size() > 0 && request.resource.data.contact.size() <= 200
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 5000;
+      allow read, delete: if isAdmin();
+    }
+
     // ---------- certificates: 연구참여확인서 ----------
     match /certificates/{certId} {
       // 본인 신청 건 또는 관리자만 조회
