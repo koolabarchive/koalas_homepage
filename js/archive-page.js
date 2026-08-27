@@ -85,13 +85,13 @@ if (isConfigured) {
             ${m.scope === "member" ? '<span class="scope-chip">🔒 멤버</span>' : ""}
             ${esc(m.title)}
             ${attCount ? ` <span class="b-att">${attCount}</span>` : ""}
-            ${m.link ? ' <span class="b-att">🔗</span>' : ""}
+            ${m.link ? ' <span class="b-att link-chip icon-only" title="외부 링크 있음"></span>' : ""}
           </span>
           <span class="b-meta">${fmtDate(m.createdAt)}</span>
         </button>
         <div class="b-detail"${open ? "" : " hidden"}>
           ${m.note ? `<div class="b-body">${esc(m.note)}</div>` : ""}
-          ${m.link ? `<div class="b-body"><a href="${esc(m.link)}" target="_blank" rel="noopener noreferrer" style="color:var(--indigo); font-weight:600;">🔗 링크 열기</a></div>` : ""}
+          ${m.link ? `<div class="b-body"><a class="link-chip" href="${esc(m.link)}" target="_blank" rel="noopener noreferrer" style="color:var(--indigo); font-weight:600;">링크 열기</a></div>` : ""}
           ${(m.attachments || []).length ? `<div class="att-list">${m.attachments.map((a, i) =>
             `<span class="att-chip"><button type="button" class="att-dl" data-att="${m.id}:${i}">${esc(a.name)} <small>${fmtStoredSize(a.size)}</small></button></span>`).join("")}</div>` : ""}
           ${isAdmin ? `<div class="b-actions"><button class="btn-sm danger" data-del="${m.id}">삭제</button></div>` : ""}
