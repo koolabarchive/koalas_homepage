@@ -488,34 +488,38 @@ if (isConfigured) {
         const alumni = people.filter((p) => p.group === "alumni");
         const alumniSection = document.getElementById("group-alumni");
         if (alumni.length) {
-          // 연도(내림차순) → 같은 연도에선 후기(8월)가 전기(2월)보다 최근이므로 먼저,
-          // 그 안에서는 관리자 지정 순서. "2025 후기" 같은 묶음 제목으로 그룹핑합니다.
-          const termRank = { "후기": 0, "전기": 1 };
-          const sortedAlumni = [...alumni].sort((a, b) => {
-            const ya = parseInt(a.year) || 0, yb = parseInt(b.year) || 0;
-            if (ya !== yb) return yb - ya;
-            const ta = termRank[a.term] ?? 2, tb = termRank[b.term] ?? 2;
-            if (ta !== tb) return ta - tb;
-            return (a.order || 0) - (b.order || 0);
-          });
-          const cohorts = [];
-          sortedAlumni.forEach((p) => {
-            const label = [p.year, p.term].filter(Boolean).join(" ") || "기타";
-            const last = cohorts[cohorts.length - 1];
-            if (last && last.label === label) last.items.push(p);
-            else cohorts.push({ label, items: [p] });
-          });
-          document.getElementById("alumni-list").innerHTML = cohorts.map((c) => `
-            <div class="alumni-cohort">
-              <h4 class="cohort-label">${esc(c.label)}</h4>
-              ${c.items.map((p) => `
+          // 연도(내림차순, 2026 → 과거) 제목 아래에 전기/후기 하위 구분을 두고
+          // 명단을 정리합니다. 학기 미지정 인원은 연도 제목 바로 아래에,
+          // 연도 미지정 인원은 맨 끝 "기타" 묶음에 표시합니다.
+          const byOrder = (a, b) => (a.order || 0) - (b.order || 0);
+          const itemHtml = (p) => `
                 <div class="pub-item clickable alumni-item" data-person="${p.id}" role="button" tabindex="0">
                   <div>
                     <div class="pub-title">${esc(p.name)}${p.title ? " (" + esc(p.title) + ")" : ""}</div>
                     ${p.meta ? '<div class="pub-meta">' + esc(p.meta) + "</div>" : ""}
                   </div>
-                </div>`).join("")}
-            </div>`).join("");
+                </div>`;
+          const termBlock = (items, label) => items.length
+            ? `<div class="alumni-term"><h5 class="cohort-term">${label}</h5>${items.sort(byOrder).map(itemHtml).join("")}</div>`
+            : "";
+
+          const years = [...new Set(alumni.filter((p) => p.year).map((p) => p.year))]
+            .sort((a, b) => (parseInt(b) || 0) - (parseInt(a) || 0));
+          const noYear = alumni.filter((p) => !p.year).sort(byOrder);
+
+          document.getElementById("alumni-list").innerHTML = years.map((year) => {
+            const inYear = alumni.filter((p) => p.year === year);
+            const plain = inYear.filter((p) => p.term !== "전기" && p.term !== "후기").sort(byOrder);
+            return `
+            <div class="alumni-year">
+              <h4 class="cohort-year">${esc(year)}</h4>
+              ${plain.map(itemHtml).join("")}
+              ${termBlock(inYear.filter((p) => p.term === "전기"), "전기")}
+              ${termBlock(inYear.filter((p) => p.term === "후기"), "후기")}
+            </div>`;
+          }).join("") + (noYear.length
+            ? `<div class="alumni-year"><h4 class="cohort-year">기타</h4>${noYear.map(itemHtml).join("")}</div>`
+            : "");
           alumniSection.style.display = "";
           any = true;
         } else {
