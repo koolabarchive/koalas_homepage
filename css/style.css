@@ -3695,18 +3695,27 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
 }
 
 /* ================================================================
-   구성원 페이지: 졸업생 연도·학기(전기/후기) 묶음
-   같은 연도끼리 "2025 후기" 같은 제목 아래 모아, 행마다 연도를
-   반복하지 않습니다.
+   구성원 페이지: 졸업생 묶음 — 연도(2026 → 과거) 제목 아래
+   전기/후기 하위 구분을 두고 명단을 정리합니다.
    ================================================================ */
-.alumni-cohort { margin-bottom: 6px; }
-.alumni-cohort .cohort-label {
+.alumni-year { margin-bottom: 8px; }
+.alumni-year .cohort-year {
   font-family: var(--font-display);
-  font-size: 0.98rem;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  padding: 26px 6px 6px;
+  border-bottom: 1px solid var(--line);
+}
+.alumni-year:first-child .cohort-year { padding-top: 4px; }
+.alumni-term .cohort-term {
+  font-size: 0.86rem;
   font-weight: 700;
   color: var(--accent);
-  padding: 20px 6px 6px;
+  padding: 14px 6px 2px;
 }
-.alumni-cohort:first-child .cohort-label { padding-top: 4px; }
+/* 학기 하위 명단은 살짝 들여쓰기 */
+.alumni-term .pub-item.alumni-item { padding-left: 18px; }
 /* 연도 칸이 빠졌으므로 한 칸 그리드로 */
 .pub-item.alumni-item { grid-template-columns: 1fr; padding: 14px 6px; }
