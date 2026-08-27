@@ -3728,28 +3728,42 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
    ③ 위쪽 스펙큘러 하이라이트로 유리 두께 표현
    ================================================================ */
 :root {
-  --modal-glass-bg: rgba(255, 255, 255, 0.40);
-  --modal-glass-blur: saturate(195%) blur(42px);
+  --modal-glass-bg: rgba(255, 255, 255, 0.30);
+  --modal-glass-blur: saturate(190%) blur(22px);
   --lg-specular: rgba(255, 255, 255, 0.60);
   --lg-specular-low: rgba(255, 255, 255, 0.14);
-  --lg-edge: blur(9px) saturate(180%) brightness(1.16);
+  /* 얇은 굴절 림: 빛이 들어오는 왼쪽 위는 밝고 오른쪽 아래로 잦아듭니다 */
+  --lg-rim: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.15) 32%,
+    rgba(255, 255, 255, 0.06) 62%, rgba(255, 255, 255, 0.5));
+  /* 유리 너머가 실제로 보이도록 뒤 오버레이는 옅게 */
+  --lg-dim: rgba(15, 20, 28, 0.18);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --modal-glass-bg: rgba(24, 24, 28, 0.42);
-    --modal-glass-blur: saturate(170%) blur(42px);
+    --modal-glass-bg: rgba(24, 24, 28, 0.35);
+    --modal-glass-blur: saturate(170%) blur(22px);
     --lg-specular: rgba(255, 255, 255, 0.20);
     --lg-specular-low: rgba(255, 255, 255, 0.06);
-    --lg-edge: blur(9px) saturate(170%) brightness(1.3);
+    --lg-rim: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.10) 32%,
+      rgba(255, 255, 255, 0.04) 62%, rgba(255, 255, 255, 0.26));
+    --lg-dim: rgba(0, 0, 0, 0.30);
   }
 }
 :root[data-theme="dark"] {
-  --modal-glass-bg: rgba(24, 24, 28, 0.42);
-  --modal-glass-blur: saturate(170%) blur(42px);
+  --modal-glass-bg: rgba(24, 24, 28, 0.35);
+  --modal-glass-blur: saturate(170%) blur(22px);
   --lg-specular: rgba(255, 255, 255, 0.20);
   --lg-specular-low: rgba(255, 255, 255, 0.06);
-  --lg-edge: blur(9px) saturate(170%) brightness(1.3);
+  --lg-rim: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.10) 32%,
+    rgba(255, 255, 255, 0.04) 62%, rgba(255, 255, 255, 0.26));
+  --lg-dim: rgba(0, 0, 0, 0.30);
 }
+
+/* 모달 뒤 오버레이: 짙은 검정 대신 옅은 그늘 — 유리 투명감의 핵심 */
+.modal-backdrop { background: var(--lg-dim); }
 
 /* 유리 두께: 위 모서리 스펙큘러 + 아래 미광 */
 .modal {
@@ -3760,26 +3774,21 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
     inset 0 -1px 0 var(--lg-specular-low);
 }
 
-/* 가장자리 굴절 링: 모서리를 따라 14px 폭 링에만 추가 backdrop-filter */
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .modal::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    -webkit-backdrop-filter: var(--lg-edge);
-    backdrop-filter: var(--lg-edge);
-    /* 안쪽을 도려내 링만 남기는 마스크 */
-    padding: 14px;
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask-composite: exclude;
-  }
+/* 굴절 림: 1.5px 그라데이션 보더 — 두꺼운 띠 없이 유리 가장자리에서
+   빛이 꺾이는 얇은 하이라이트만 남깁니다 */
+.modal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1.5px;
+  background: var(--lg-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
 }
-/* 스크롤되는 시트형 모달(.modal-split)은 본문이 안쪽에서 따로 스크롤되므로
-   링이 항상 모서리에 고정됩니다. 일반 모달도 대부분 스크롤이 없어 동일. */
 
 /* 팝오버(드롭다운·달력·도움말)도 같은 유리 질감 — 얇은 스펙큘러만 */
 .dd-menu, .dp-pop, .help-pop {
