@@ -1,13 +1,18 @@
-// 회원 관리 표: 처리 버튼을 평소엔 접어 두고, 행을 왼쪽으로 드래그(마우스)
-// 하거나 스와이프(터치)하면 유리 트레이로 나타나는 모바일식 UI.
-// 데스크톱·모바일 공통 동작이며, 행 오른쪽 끝의 ⋯ 버튼으로도 열 수 있습니다.
+// 관리자 표(회원 관리·프로젝트 관리·성과 검수): 처리 버튼을 평소엔 접어 두고,
+// 행을 왼쪽으로 드래그(마우스)하거나 스와이프(터치)하면 유리 트레이로 나타나는
+// 모바일식 UI. 데스크톱·모바일 공통이며, 행 오른쪽 끝 ⋯ 버튼으로도 열 수 있습니다.
 // 행이 다시 그려져도(실시간 갱신) MutationObserver가 자동으로 다시 감쌉니다.
 
-(function () {
-  const table = document.getElementById("member-table");
-  if (!table) return;
+// 처리 열이 마지막인 표들 — tbody id 또는 table id로 지정
+["member-table", "project-tbody", "pub-tbody"].forEach(setupSwipe);
+
+function setupSwipe(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const table = el.tagName === "TABLE" ? el : el.closest("table");
+  const tbody = el.tagName === "TABLE" ? el.querySelector("tbody") : el;
+  if (!table || !tbody) return;
   table.classList.add("swipe-actions");
-  const tbody = table.querySelector("tbody");
 
   // 처리 셀의 버튼들을 트레이로 감싸고 ⋯ 손잡이를 추가
   function wrapCells() {
@@ -64,4 +69,4 @@
 
   // 표 밖을 클릭하면 닫기
   document.addEventListener("click", (e) => { if (!tbody.contains(e.target)) closeAll(); });
-})();
+}

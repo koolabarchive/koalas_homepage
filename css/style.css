@@ -3857,14 +3857,32 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
   transform: translateY(-50%) translateX(0);
 }
 
-/* 회원 관리: 제목행 클릭 정렬 표시 (없음 ↕ → 오름차순 ↑ → 내림차순 ↓) */
+/* 관리자 표: 제목행 클릭 정렬 표시
+   미정렬 = 대시(–), 오름차순 = 위 꺾쇠, 내림차순 = 아래 꺾쇠
+   (세로선 없는 꺾쇠 모양을 SVG 마스크로 그립니다) */
 .admin-table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
 .admin-table th.sortable::after {
-  content: "↕";
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
   margin-left: 5px;
-  font-size: 0.75em;
-  color: var(--faint);
+  vertical-align: -0.16em;
+  background: var(--faint);
+  /* 기본: 가로 대시 */
+  -webkit-mask: no-repeat center/0.78em 0.78em
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="black" stroke-width="1.9" stroke-linecap="round"><path d="M2.2 6h7.6"/></svg>');
+  mask: no-repeat center/0.78em 0.78em
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="black" stroke-width="1.9" stroke-linecap="round"><path d="M2.2 6h7.6"/></svg>');
 }
-.admin-table th.sortable:hover::after { color: var(--accent); }
-.admin-table th.sortable.sort-asc::after { content: "↑"; color: var(--accent); }
-.admin-table th.sortable.sort-desc::after { content: "↓"; color: var(--accent); }
+.admin-table th.sortable:hover::after { background: var(--accent); }
+.admin-table th.sortable.sort-asc::after,
+.admin-table th.sortable.sort-desc::after { background: var(--accent); }
+.admin-table th.sortable.sort-asc::after {
+  -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="black" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.4 8.2L6 4.2l3.6 4"/></svg>');
+  mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="black" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.4 8.2L6 4.2l3.6 4"/></svg>');
+}
+.admin-table th.sortable.sort-desc::after {
+  -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="black" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.4 4.4L6 8.4l3.6-4"/></svg>');
+  mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="black" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.4 4.4L6 8.4l3.6-4"/></svg>');
+}
