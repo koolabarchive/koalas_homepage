@@ -3919,3 +3919,56 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
 }
 /* 아이콘만 있는 표시(자료실 목록의 링크 배지)는 오른쪽 여백 불필요 */
 .link-chip.icon-only::before { margin-right: 0; }
+
+/* ================================================================
+   관리자 대시보드: 현황 그래프
+   단일 계열이라 범례 없이 제목이 무엇을 그린 것인지 말합니다.
+   막대는 강조색 한 가지, 눈금선·축은 가늘게 뒤로 물립니다.
+   ================================================================ */
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 34px;
+}
+.chart-card {
+  margin: 0;
+  padding: 18px 18px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+.chart-card figcaption {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+.chart-card figcaption span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.ch-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.ch-axis { stroke: var(--line); stroke-width: 1; }
+.ch-bar { fill: var(--accent-bg); transition: opacity 0.15s; }
+/* 값·항목 라벨은 막대 색이 아니라 본문 글자색을 씁니다 */
+.ch-val { font-size: 11.5px; font-weight: 700; fill: var(--ink); }
+.ch-cat { font-size: 11.5px; fill: var(--muted); }
+.ch-mark { cursor: default; outline: none; }
+.ch-mark:hover .ch-bar,
+.ch-mark:focus-visible .ch-bar { opacity: 0.72; }
+.ch-mark:focus-visible .ch-val { text-decoration: underline; }
+.chart-empty {
+  color: var(--muted);
+  font-size: 0.86rem;
+  padding: 26px 4px;
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .chart-grid { grid-template-columns: 1fr; }
+}

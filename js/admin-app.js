@@ -16,6 +16,7 @@ import {
 import { initNoticeEditor, deleteNoticeAttachments } from "./notice-form.js";
 import { createDropdown } from "./notice-ui.js";
 import { uploadStoredFile, deleteStoredFile, fmtStoredSize } from "./file-store.js";
+import { barChart, columnChart, countBy } from "./admin-charts.js";
 
 if (isConfigured) {
   window.__FB_ADMIN__ = true; // admin-demo.js의 데모 등록 핸들러 비활성화
@@ -132,6 +133,37 @@ if (isConfigured) {
   }
 
   // ================= 대시보드 =================
+  // ----- 대시보드 현황 그래프 -----
+  function renderCharts() {
+    if (!$("chart-members")) return;
+
+    // 구성원: 승인된 계정을 직책별로 (직책 미입력은 '미기재')
+    const accounts = state.users.filter((u) => u.role === "member" || u.role === "admin");
+    barChart($("chart-members"),
+      countBy(accounts, (u) => u.position || "미기재"),
+      { empty: "승인된 구성원이 없습니다.", unit: "명" });
+
+    // 프로젝트: 상태별 (진행 중 → 준비 중 → 종료 순 고정)
+    barChart($("chart-projects"),
+      countBy(state.projects, (p) => p.status, ["진행 중", "준비 중", "종료"]),
+      { empty: "등록된 프로젝트가 없습니다.", unit: "건" });
+
+    // 성과: 최근 6년 추이 (비어 있는 해도 0으로 표시해 흐름이 끊기지 않게)
+    const thisYear = new Date().getFullYear();
+    const years = Array.from({ length: 6 }, (_, i) => thisYear - 5 + i);
+    columnChart($("chart-pub-years"),
+      years.map((y) => ({
+        label: String(y),
+        value: state.pubs.filter((p) => parseInt(p.year) === y).length,
+      })),
+      { empty: "등록된 성과가 없습니다." });
+
+    // 성과: 유형별
+    barChart($("chart-pub-types"),
+      countBy(state.pubs, (p) => p.type),
+      { empty: "등록된 성과가 없습니다.", unit: "건" });
+  }
+
   function renderDashboard() {
     const activeMembers = state.users.filter((u) => u.role === "member" || u.role === "admin").length;
     const pendingUsers = state.users.filter((u) => u.role === "pending");
@@ -150,6 +182,8 @@ if (isConfigured) {
       $("stat-certs").textContent = issuedCerts;
       $("stat-certs-sub").textContent = requestedCerts ? `신청 대기 ${requestedCerts}건` : "신청 대기 없음";
     }
+
+    renderCharts();
 
     const tbody = $("pending-tbody");
     if (tbody) {
