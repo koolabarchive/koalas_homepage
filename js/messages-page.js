@@ -9,7 +9,7 @@ import {
   query, where, orderBy, serverTimestamp, increment,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
-  renderChatMessages, sendRoomMessage, markRoomRead, roomDisplayTitle, toggleMembersPop,
+  renderChatMessages, sendRoomMessage, markRoomRead, roomDisplayTitle, toggleMembersPop, addRoomMembers,
   chatAttachmentHtml, bindChatAttachments, makeChatThumb, lastMessageLabel,
 } from "./chat-room.js";
 import { uploadStoredFile, MAX_STORED_FILE } from "./file-store.js";
@@ -140,6 +140,13 @@ if (isConfigured) {
         await updateDoc(doc(db, "rooms", roomId), { ["aliases." + me.uid]: input.trim() });
       } catch (err) { alert("변경 실패: " + err.message); }
     });
+
+    // 채팅방 멤버 초대
+    $("dm-invite").addEventListener("click", openInvite);
+    $("iv-cancel").addEventListener("click", () => $("invite-modal").classList.remove("open"));
+    $("invite-modal").addEventListener("click", (e) => { if (e.target === $("invite-modal")) $("invite-modal").classList.remove("open"); });
+    $("iv-search").addEventListener("input", renderIvList);
+    $("iv-add").addEventListener("click", addInvited);
 
     // ?to=uid 로 바로 대화 열기 (구성원 페이지 등에서 연결용)
     const to = new URLSearchParams(location.search).get("to");
@@ -280,6 +287,100 @@ if (isConfigured) {
     } catch (err) { alert("단체 채팅 생성 실패: " + err.message); }
   }
 
+  // ================= 채팅방 멤버 초대 =================
+  // 프로젝트·스터디 전체 채팅방: 아직 방에 없는 "참여자"를 후보로 (참여자만 방에
+  //   들어올 수 있으므로 보안 규칙과 일치)
+  // 단체 채팅방: 방에 없는 모든 승인 멤버가 후보
+  const ivPicked = new Set();
+  let ivCandidates = [];
+
+  async function loadAccounts() {
+    if (accounts) return accounts;
+    try {
+      const snap = await getDocs(collection(db, "users"));
+      accounts = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        .filter((u) => (u.role === "member" || u.role === "admin") && u.id !== me.uid);
+    } catch (_) { accounts = []; }
+    return accounts;
+  }
+
+  async function openInvite() {
+    if (!activeKey || !activeKey.startsWith("room:")) return;
+    const room = roomConvs.find((x) => x.id === activeKey.slice(5));
+    if (!room) return;
+
+    await loadAccounts();
+    const inRoom = new Set(room.members || []);
+    const kind = room.type === "topic" ? room.parentType : room.type;
+
+    if (kind === "project" || kind === "study") {
+      // 부모 프로젝트·스터디의 참여자 중 아직 방에 없는 사람
+      let participants = [];
+      try {
+        const snap = await getDoc(doc(db, kind === "project" ? "projects" : "studies", room.refId));
+        participants = snap.exists() ? (snap.data().participantsUids || []) : [];
+      } catch (_) {}
+      ivCandidates = participants
+        .filter((uid) => !inRoom.has(uid) && uid !== me.uid)
+        .map((uid) => (accounts || []).find((a) => a.id === uid) || { id: uid, name: room.names?.[uid] || "멤버" });
+      $("iv-hint").textContent = ivCandidates.length
+        ? `${room.refTitle || "이 프로젝트"}의 참여자 중 채팅방에 없는 분을 추가합니다.`
+        : "채팅방에 없는 참여자가 없습니다. 참여자를 먼저 프로젝트에 추가해 주세요.";
+    } else {
+      ivCandidates = (accounts || []).filter((u) => !inRoom.has(u.id));
+      $("iv-hint").textContent = "이 단체 채팅방에 추가할 멤버를 선택하세요.";
+    }
+
+    ivPicked.clear();
+    $("iv-search").value = "";
+    $("iv-msg").className = "form-msg";
+    renderIvList();
+    $("invite-modal").classList.add("open");
+  }
+
+  function renderIvList() {
+    const q = $("iv-search").value.trim().toLowerCase();
+    const list = ivCandidates.filter((u) =>
+      !q || [u.name, u.affiliation, u.position].some((v) => (v || "").toLowerCase().includes(q)));
+    $("iv-list").innerHTML = list.length ? list.map((u) => `
+      <label class="member-check">
+        <input type="checkbox" value="${esc(u.id)}"${ivPicked.has(u.id) ? " checked" : ""} />
+        <span class="dm-avatar" style="width:28px; height:28px; font-size:0.76rem;">${esc((u.name || "?").charAt(0))}</span>
+        <span>${esc(u.name)} <small>${esc([u.position, u.affiliation].filter(Boolean).join(" · ") || u.email || "")}</small></span>
+      </label>`).join("")
+      : '<p style="color:var(--muted); font-size:0.84rem; padding:10px;">추가할 수 있는 멤버가 없습니다.</p>';
+    $("iv-list").querySelectorAll("input").forEach((inp) => {
+      inp.addEventListener("change", () => {
+        if (inp.checked) ivPicked.add(inp.value);
+        else ivPicked.delete(inp.value);
+        $("iv-add").disabled = ivPicked.size === 0;
+        $("iv-add").textContent = ivPicked.size ? `추가 (${ivPicked.size}명)` : "추가";
+      });
+    });
+    $("iv-add").disabled = ivPicked.size === 0;
+    $("iv-add").textContent = ivPicked.size ? `추가 (${ivPicked.size}명)` : "추가";
+  }
+
+  async function addInvited() {
+    if (!activeKey || !activeKey.startsWith("room:") || !ivPicked.size) return;
+    const roomId = activeKey.slice(5);
+    const people = [...ivPicked].map((uid) => {
+      const u = ivCandidates.find((c) => c.id === uid);
+      return { uid, name: u ? u.name : "멤버" };
+    });
+    const btn = $("iv-add");
+    btn.disabled = true;
+    try {
+      await addRoomMembers(db, roomId, people);
+      $("invite-modal").classList.remove("open");
+    } catch (err) {
+      $("iv-msg").textContent = "추가 실패: " + err.message;
+      $("iv-msg").className = "form-msg error";
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
   async function openConversationWith(uid) {
     const convId = convIdWith(uid);
     const existing = convs.find((c) => c.id === convId);
@@ -317,6 +418,7 @@ if (isConfigured) {
     $("dm-peer-name").textContent = c ? peerName(c) : "대화";
     $("dm-rename").style.display = "none";
     $("dm-members-btn").style.display = "";
+    $("dm-invite").style.display = "none";   // 1:1 대화는 초대 대상이 아닙니다
     $("dm-members-pop").style.display = "none";
 
     // 안읽음 초기화
@@ -351,6 +453,7 @@ if (isConfigured) {
       : "채팅방";
     $("dm-rename").style.display = "";
     $("dm-members-btn").style.display = "";
+    $("dm-invite").style.display = "";
     $("dm-members-pop").style.display = "none";
 
     markRoomRead(db, roomId, me.uid);

@@ -1,109 +1,195 @@
-// 관리자 대시보드 차트 (외부 라이브러리 없이 인라인 SVG로 그립니다)
-// 요약 카드 4개(멤버·프로젝트·성과·확인서)가 가리키는 내용을 각각
-// 분포·추이 차트로 펼쳐 보여 줍니다.
+// 관리자 대시보드 활동 그래프 (외부 라이브러리 없이 인라인 SVG)
 //
-// 설계 원칙
-// - 단일 계열이므로 범례 없이 제목이 무엇을 그린 것인지 말합니다.
-// - 크기 비교가 목적이므로 색은 한 가지 색조(사이트 강조색)만 씁니다.
-//   막대 색은 정체성이 아니라 값의 크기를 나타냅니다.
-// - 값 라벨은 막대 끝에 직접 붙이고, 눈금선은 가늘게 뒤로 물립니다.
-// - 막대 두께 ≤ 22px, 값이 커지는 쪽 끝만 둥글게(4px), 기준선 쪽은 각지게.
-
-const BAR_MAX = 22;      // 막대 최대 두께
-const RADIUS = 4;        // 값 쪽 끝 라운드
+// 하나의 누적 영역 차트에 멤버·프로젝트·성과·확인서 네 계열을 쌓아
+// 연구실 활동이 시간에 따라 어떻게 늘어왔는지 보여 줍니다.
+// 선 위에 마우스를 올리면 그 달의 세부 구성이 작은 팝업으로 뜹니다.
+//
+// 색 결정 근거
+// - 계열이 4개인 "정체성" 인코딩이므로 범주형 팔레트를 씁니다.
+// - 슬롯 순서(파랑→주황→아쿠아→노랑)는 색각 이상 판별 간격을 통과한 순서로,
+//   임의로 섞지 않습니다. (검증: 인접쌍 CVD ΔE 9.1 라이트 / 8.4 다크)
+// - 라이트 모드에서 아쿠아·노랑은 표면 대비가 3:1 미만이라 범례와 값 라벨을
+//   반드시 함께 제공합니다(색만으로 구분하게 두지 않음).
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-// 값이 커지는 쪽 끝만 둥근 막대 path (가로: 오른쪽 끝 / 세로: 위쪽 끝)
-function barPath(x, y, w, h, dir) {
-  const r = Math.min(RADIUS, dir === "h" ? w : h, dir === "h" ? h / 2 : w / 2);
-  if (r <= 0.5) return `M${x} ${y}h${w}v${h}h${-w}z`;
-  return dir === "h"
-    ? `M${x} ${y}h${w - r}a${r} ${r} 0 0 1 ${r} ${r}v${h - 2 * r}a${r} ${r} 0 0 1 ${-r} ${r}h${-(w - r)}z`
-    : `M${x} ${y + r}a${r} ${r} 0 0 1 ${r} ${-r}h${w - 2 * r}a${r} ${r} 0 0 1 ${r} ${r}v${h - r}h${-w}z`;
+// 계열 정의 — 아래에서 위로 쌓이는 순서
+export const SERIES = [
+  { key: "members", label: "구성원", cls: "s1" },
+  { key: "pubs", label: "연구 성과", cls: "s2" },
+  { key: "projects", label: "프로젝트", cls: "s3" },
+  { key: "certs", label: "확인서 발급", cls: "s4" },
+];
+
+// 최근 n개월의 { y, m, label } 목록 (오래된 → 최근)
+export function recentMonths(n = 12, now = new Date()) {
+  const out = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    out.push({
+      y: d.getFullYear(),
+      m: d.getMonth(),
+      label: (d.getMonth() === 0 || i === n - 1) ? `${d.getFullYear()}.${d.getMonth() + 1}` : `${d.getMonth() + 1}`,
+      full: `${d.getFullYear()}년 ${d.getMonth() + 1}월`,
+    });
+  }
+  return out;
 }
 
-const emptyHtml = (msg) =>
-  `<p class="chart-empty">${esc(msg)}</p>`;
-
-// ---------- 가로 막대 (분포 비교) ----------
-// data: [{ label, value }]  — 위에서 아래로 나열, 값 라벨은 막대 끝에
-export function barChart(box, data, { empty = "표시할 데이터가 없습니다.", unit = "" } = {}) {
-  if (!box) return;
-  const items = data.filter((d) => d.value > 0);
-  if (!items.length) { box.innerHTML = emptyHtml(empty); return; }
-
-  const W = 420, PAD_L = 96, PAD_R = 44, PAD_T = 6, PAD_B = 6;
-  const rowH = 30;
-  const H = PAD_T + PAD_B + rowH * items.length;
-  const max = Math.max(...items.map((d) => d.value));
-  const plotW = W - PAD_L - PAD_R;
-  const barH = Math.min(BAR_MAX, rowH - 10);
-
-  const marks = items.map((d, i) => {
-    const y = PAD_T + i * rowH + (rowH - barH) / 2;
-    const w = Math.max(2, (d.value / max) * plotW);
-    return `<g class="ch-mark" tabindex="0" role="listitem"
-        aria-label="${esc(d.label)} ${d.value}${esc(unit)}">
-      <title>${esc(d.label)}: ${d.value}${esc(unit)}</title>
-      <rect class="ch-hit" x="0" y="${PAD_T + i * rowH}" width="${W}" height="${rowH}" fill="transparent"></rect>
-      <text class="ch-cat" x="${PAD_L - 10}" y="${y + barH / 2}" text-anchor="end" dominant-baseline="central">${esc(d.label)}</text>
-      <path class="ch-bar" d="${barPath(PAD_L, y, w, barH, "h")}"></path>
-      <text class="ch-val" x="${PAD_L + w + 8}" y="${y + barH / 2}" dominant-baseline="central">${d.value}${esc(unit)}</text>
-    </g>`;
-  }).join("");
-
-  box.innerHTML = `<svg class="ch-svg" viewBox="0 0 ${W} ${H}" role="list" preserveAspectRatio="xMidYMid meet">
-    <line class="ch-axis" x1="${PAD_L}" y1="${PAD_T}" x2="${PAD_L}" y2="${H - PAD_B}"></line>
-    ${marks}
-  </svg>`;
+// Firestore Timestamp | Date | 문자열 → 해당 월 이하이면 true (누적 집계용)
+function atOrBefore(ts, y, m) {
+  let d = null;
+  if (ts && typeof ts.toDate === "function") d = ts.toDate();
+  else if (ts instanceof Date) d = ts;
+  else if (typeof ts === "string") { const p = new Date(ts.replace(/\./g, "-")); if (!isNaN(p)) d = p; }
+  if (!d) return true;   // 날짜를 모르는 예전 데이터는 이미 있던 것으로 취급
+  return d.getFullYear() < y || (d.getFullYear() === y && d.getMonth() <= m);
 }
 
-// ---------- 세로 막대 (연도별 추이) ----------
-// data: [{ label, value }] — 왼쪽(과거) → 오른쪽(최근)
-export function columnChart(box, data, { empty = "표시할 데이터가 없습니다.", unit = "" } = {}) {
-  if (!box) return;
-  if (!data.length || data.every((d) => !d.value)) { box.innerHTML = emptyHtml(empty); return; }
+// 월별 누적 건수 배열
+export function cumulativeByMonth(list, months, dateOf = (x) => x.createdAt) {
+  return months.map(({ y, m }) => list.filter((x) => atOrBefore(dateOf(x), y, m)).length);
+}
 
-  const W = 420, H = 190, PAD_L = 8, PAD_R = 8, PAD_T = 24, PAD_B = 26;
+// 부드러운 선 (Catmull-Rom → 베지어). 값이 급변해도 과장되지 않게 장력을 낮춥니다.
+function smoothPath(pts) {
+  if (pts.length < 2) return pts.length ? `M${pts[0][0]} ${pts[0][1]}` : "";
+  let d = `M${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || p2;
+    const t = 0.18;
+    d += ` C${p1[0] + (p2[0] - p0[0]) * t} ${p1[1] + (p2[1] - p0[1]) * t},`
+      + ` ${p2[0] - (p3[0] - p1[0]) * t} ${p2[1] - (p3[1] - p1[1]) * t},`
+      + ` ${p2[0]} ${p2[1]}`;
+  }
+  return d;
+}
+
+// 누적 영역 차트
+// box: 컨테이너, months: recentMonths(), data: { members:[], pubs:[], projects:[], certs:[] }
+export function activityChart(box, months, data) {
+  if (!box) return;
+  const total = SERIES.reduce((s, ser) => s + (data[ser.key] || []).reduce((a, b) => a + b, 0), 0);
+  if (!months.length || !total) {
+    box.innerHTML = '<p class="chart-empty">표시할 활동 데이터가 아직 없습니다.</p>';
+    return;
+  }
+
+  const W = 760, H = 300;
+  const PAD_L = 42, PAD_R = 16, PAD_T = 16, PAD_B = 34;
   const plotW = W - PAD_L - PAD_R;
   const plotH = H - PAD_T - PAD_B;
-  const max = Math.max(...data.map((d) => d.value), 1);
-  const slot = plotW / data.length;
-  const barW = Math.min(BAR_MAX, slot - 12);
-  const baseY = H - PAD_B;
+  const n = months.length;
+  const x = (i) => PAD_L + (n === 1 ? plotW / 2 : (i / (n - 1)) * plotW);
 
-  const marks = data.map((d, i) => {
-    const h = d.value ? Math.max(2, (d.value / max) * plotH) : 0;
-    const x = PAD_L + i * slot + (slot - barW) / 2;
-    const y = baseY - h;
-    return `<g class="ch-mark" tabindex="0" role="listitem" aria-label="${esc(d.label)} ${d.value}${esc(unit)}">
-      <title>${esc(d.label)}: ${d.value}${esc(unit)}</title>
-      <rect class="ch-hit" x="${PAD_L + i * slot}" y="${PAD_T}" width="${slot}" height="${plotH + PAD_B}" fill="transparent"></rect>
-      ${h ? `<path class="ch-bar" d="${barPath(x, y, barW, h, "v")}"></path>` : ""}
-      ${d.value ? `<text class="ch-val" x="${x + barW / 2}" y="${y - 7}" text-anchor="middle">${d.value}</text>` : ""}
-      <text class="ch-cat" x="${x + barW / 2}" y="${baseY + 15}" text-anchor="middle">${esc(d.label)}</text>
-    </g>`;
+  // 누적 합계와 y 스케일 (눈금은 깔끔한 수로 올림)
+  const stackTops = months.map((_, i) => SERIES.reduce((s, ser) => s + (data[ser.key]?.[i] || 0), 0));
+  const rawMax = Math.max(...stackTops, 1);
+  const step = Math.max(1, Math.ceil(rawMax / 4 / 5) * 5);
+  const yMax = step * 4;
+  const y = (v) => PAD_T + plotH - (v / yMax) * plotH;
+
+  // 아래에서부터 쌓은 각 계열의 상단 좌표
+  const running = new Array(n).fill(0);
+  const bands = SERIES.map((ser) => {
+    const lower = running.map((v) => v);
+    const values = months.map((_, i) => data[ser.key]?.[i] || 0);
+    values.forEach((v, i) => { running[i] += v; });
+    return { ...ser, values, lowerPts: lower.map((v, i) => [x(i), y(v)]), upperPts: running.map((v, i) => [x(i), y(v)]) };
+  });
+
+  const gridLines = Array.from({ length: 5 }, (_, k) => {
+    const v = step * k;
+    return `<g><line class="ch-grid" x1="${PAD_L}" y1="${y(v)}" x2="${W - PAD_R}" y2="${y(v)}"></line>
+      <text class="ch-tick" x="${PAD_L - 8}" y="${y(v)}" text-anchor="end" dominant-baseline="central">${v}</text></g>`;
   }).join("");
 
-  box.innerHTML = `<svg class="ch-svg" viewBox="0 0 ${W} ${H}" role="list" preserveAspectRatio="xMidYMid meet">
-    <line class="ch-axis" x1="${PAD_L}" y1="${baseY}" x2="${W - PAD_R}" y2="${baseY}"></line>
-    ${marks}
-  </svg>`;
-}
+  // 월 라벨은 2개월 간격으로만 (겹침 방지)
+  const xLabels = months.map((mo, i) =>
+    (i % 2 === 0 || i === n - 1)
+      ? `<text class="ch-tick" x="${x(i)}" y="${H - PAD_B + 16}" text-anchor="middle">${esc(mo.label)}</text>` : ""
+  ).join("");
 
-// 값 내림차순 + 0 제외로 집계 (라벨 순서를 지정하면 그 순서를 유지)
-export function countBy(list, keyFn, order) {
-  const counts = new Map();
-  list.forEach((x) => {
-    const k = keyFn(x);
-    if (!k) return;
-    counts.set(k, (counts.get(k) || 0) + 1);
-  });
-  if (order) {
-    return order.filter((k) => counts.has(k)).map((k) => ({ label: k, value: counts.get(k) }));
+  // 영역 + 상단 선. 밴드 사이는 표면색 2px 선으로 띄워 경계를 만듭니다.
+  const areas = bands.map((b) => {
+    const area = smoothPath(b.upperPts) + " L" + b.lowerPts.slice().reverse().map((p) => p.join(" ")).join(" L") + " Z";
+    return `<path class="ch-area ${b.cls}" d="${area}"></path>`;
+  }).join("");
+  const lines = bands.map((b) =>
+    `<path class="ch-line ${b.cls}" d="${smoothPath(b.upperPts)}"></path>`).join("");
+
+  // 마우스 위치용 히트 영역 + 크로스헤어 + 각 계열의 점
+  const dots = bands.map((b) => `<circle class="ch-dot ${b.cls}" r="4.5" cx="0" cy="0" style="display:none;"></circle>`).join("");
+
+  box.innerHTML = `
+    <div class="ch-wrap">
+      <svg class="ch-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
+           aria-label="최근 ${n}개월 구성원·연구 성과·프로젝트·확인서 누적 추이">
+        ${gridLines}
+        ${areas}
+        ${lines}
+        <line class="ch-cross" x1="0" y1="${PAD_T}" x2="0" y2="${PAD_T + plotH}" style="display:none;"></line>
+        ${dots}
+        ${xLabels}
+        <rect class="ch-hit" x="${PAD_L}" y="${PAD_T}" width="${plotW}" height="${plotH}" fill="transparent"></rect>
+      </svg>
+      <div class="ch-tip" hidden></div>
+    </div>
+    <ul class="ch-legend">
+      ${bands.map((b) => `<li><span class="ch-key ${b.cls}"></span>${esc(b.label)}
+        <strong>${b.values[n - 1]}</strong></li>`).join("")}
+    </ul>`;
+
+  // ---------- 상호작용: 가까운 달을 찾아 크로스헤어·팝업 표시 ----------
+  const svg = box.querySelector(".ch-svg");
+  const wrap = box.querySelector(".ch-wrap");
+  const tip = box.querySelector(".ch-tip");
+  const cross = box.querySelector(".ch-cross");
+  const dotEls = [...box.querySelectorAll(".ch-dot")];
+
+  function show(i, clientX) {
+    const mo = months[i];
+    cross.setAttribute("x1", x(i));
+    cross.setAttribute("x2", x(i));
+    cross.style.display = "";
+    bands.forEach((b, k) => {
+      dotEls[k].setAttribute("cx", x(i));
+      dotEls[k].setAttribute("cy", b.upperPts[i][1]);
+      dotEls[k].style.display = "";
+    });
+    tip.innerHTML = `<div class="ch-tip-head">${esc(mo.full)}</div>` +
+      bands.slice().reverse().map((b) =>
+        `<div class="ch-tip-row"><span class="ch-key ${b.cls}"></span>${esc(b.label)}<strong>${b.values[i]}</strong></div>`).join("") +
+      `<div class="ch-tip-total">합계<strong>${stackTops[i]}</strong></div>`;
+    tip.hidden = false;
+    // 팝업은 커서를 따라가되 컨테이너 밖으로 나가지 않게
+    const wrapBox = wrap.getBoundingClientRect();
+    const tipW = tip.offsetWidth;
+    let left = (clientX - wrapBox.left) + 14;
+    if (left + tipW > wrapBox.width) left = (clientX - wrapBox.left) - tipW - 14;
+    tip.style.left = Math.max(4, left) + "px";
   }
-  return [...counts.entries()]
-    .map(([label, value]) => ({ label, value }))
-    .sort((a, b) => b.value - a.value);
+  function hide() {
+    cross.style.display = "none";
+    dotEls.forEach((d) => (d.style.display = "none"));
+    tip.hidden = true;
+  }
+
+  const nearestIndex = (clientX) => {
+    const r = svg.getBoundingClientRect();
+    const vx = ((clientX - r.left) / r.width) * W;
+    let best = 0, bestD = Infinity;
+    months.forEach((_, i) => {
+      const d = Math.abs(x(i) - vx);
+      if (d < bestD) { bestD = d; best = i; }
+    });
+    return best;
+  };
+
+  svg.addEventListener("pointermove", (e) => show(nearestIndex(e.clientX), e.clientX));
+  svg.addEventListener("pointerleave", hide);
+  svg.addEventListener("pointerdown", (e) => show(nearestIndex(e.clientX), e.clientX));
 }

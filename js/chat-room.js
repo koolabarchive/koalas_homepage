@@ -65,6 +65,36 @@ export async function ensureMainRoom(db, me, { type, refId, refTitle }) {
   return id;
 }
 
+// 채팅방에 멤버 추가 (초대)
+// people: [{ uid, name }] — 이미 들어와 있는 사람은 건너뜁니다.
+// 프로젝트·스터디 참여자가 나중에 합류했을 때 기존 멤버가 불러들이는 용도이며,
+// 참여자 추가 시 관리자 화면에서도 같은 함수로 자동 동기화합니다.
+export async function addRoomMembers(db, roomId, people) {
+  const list = (people || []).filter((p) => p && p.uid);
+  if (!list.length) return 0;
+  const upd = { members: arrayUnion(...list.map((p) => p.uid)) };
+  list.forEach((p) => {
+    upd["names." + p.uid] = p.name || "멤버";
+    upd["unread." + p.uid] = 0;
+  });
+  await updateDoc(doc(db, "rooms", roomId), upd);
+  return list.length;
+}
+
+// 프로젝트·스터디 전체 채팅방이 이미 있으면 참여자를 방에도 넣어 줍니다.
+// (방이 아직 없으면 아무 것도 하지 않습니다 — 처음 여는 사람이 만듭니다)
+export async function syncMainRoomMembers(db, { type, refId }, people) {
+  const id = mainRoomId(type, refId);
+  try {
+    const snap = await getDoc(doc(db, "rooms", id));
+    if (!snap.exists()) return 0;
+    const have = new Set(snap.data().members || []);
+    const missing = (people || []).filter((p) => p && p.uid && !have.has(p.uid));
+    if (!missing.length) return 0;
+    return await addRoomMembers(db, id, missing);
+  } catch (_) { return 0; }
+}
+
 export async function markRoomRead(db, roomId, uid) {
   try {
     await updateDoc(doc(db, "rooms", roomId), {

@@ -19,11 +19,7 @@
   <header class="site-header">
     <div class="container header-inner">
       <a href="index.html" class="brand">
-        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
-          <circle cx="20" cy="20" r="17" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity="0.9"/>
-          <circle cx="20" cy="20" r="11" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity="0.7"/>
-          <circle cx="20" cy="20" r="5" fill="var(--accent)"/>
-        </svg>
+        <img class="brand-mark light" src="img/logo-hanshin.svg" alt="한신대학교" width="40" height="40" /><img class="brand-mark dark" src="img/logo-hanshin-dark.svg" alt="" aria-hidden="true" width="40" height="40" />
         <span class="brand-name">임상심리 연구실<small>ADMIN CONSOLE</small></span>
       </a>
       <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
@@ -92,26 +88,10 @@
           </div>
         </div>
 
-        <h2 style="font-size:1.1rem; margin-top:8px;">현황 그래프</h2>
-        <p class="panel-desc">요약 카드의 숫자를 항목별로 나눠 봅니다.</p>
-        <div class="chart-grid">
-          <figure class="chart-card">
-            <figcaption>구성원 구성 <span>직책별 인원</span></figcaption>
-            <div id="chart-members"></div>
-          </figure>
-          <figure class="chart-card">
-            <figcaption>프로젝트 상태 <span>상태별 건수</span></figcaption>
-            <div id="chart-projects"></div>
-          </figure>
-          <figure class="chart-card">
-            <figcaption>연도별 연구 성과 <span>최근 6년 등록 건수</span></figcaption>
-            <div id="chart-pub-years"></div>
-          </figure>
-          <figure class="chart-card">
-            <figcaption>성과 유형 <span>유형별 등록 건수</span></figcaption>
-            <div id="chart-pub-types"></div>
-          </figure>
-        </div>
+        <figure class="chart-card chart-activity">
+          <figcaption>활동 추이 <span>최근 12개월 누적 — 선 위에 마우스를 올리면 그 달의 구성이 표시됩니다</span></figcaption>
+          <div id="chart-activity"></div>
+        </figure>
 
         <h2 style="font-size:1.1rem;">최근 처리 필요 항목</h2>
         <p class="panel-desc">승인·검수 대기 중인 항목입니다.</p>
