@@ -774,7 +774,7 @@ if (isConfigured) {
         </button>
         <div class="b-detail"${open ? "" : " hidden"}>
           ${m.note ? `<div class="b-body">${esc(m.note)}</div>` : ""}
-          ${m.link ? `<div class="b-body"><a href="${esc(m.link)}" target="_blank" rel="noopener noreferrer" style="color:var(--indigo); font-weight:600;">🔗 외부 링크 열기</a></div>` : ""}
+          ${m.link ? `<div class="b-body"><a class="link-chip" href="${esc(m.link)}" target="_blank" rel="noopener noreferrer" style="color:var(--indigo); font-weight:600;">외부 링크 열기</a></div>` : ""}
           ${attachmentChips(m.attachments, m.id)}
           ${canDelete ? `<div class="b-actions"><button class="btn-sm danger" data-del="${m.id}">삭제</button></div>` : ""}
         </div>

@@ -493,7 +493,7 @@ if (isConfigured) {
         const linkedCount = (p.memberUids || []).length;
         return `<tr>
           <td>${esc(p.type)}</td>
-          <td>${esc(p.title)}${linkedCount ? ` <span class="sub" style="display:inline;">🔗 ${linkedCount}명</span>` : ""}${pubFilesOf(p).length ? ` <span class="sub att-count" style="display:inline;">${pubFilesOf(p).length}</span>` : ""}${p.link ? ' <span class="sub" style="display:inline;">↗</span>' : ""}${p.meta ? ' <span class="sub">' + esc(p.meta) + "</span>" : ""}</td>
+          <td>${esc(p.title)}${linkedCount ? ` <span class="sub people-count" style="display:inline;" title="연결된 구성원 ${linkedCount}명">${linkedCount}명</span>` : ""}${pubFilesOf(p).length ? ` <span class="sub att-count" style="display:inline;" title="첨부파일 ${pubFilesOf(p).length}개">${pubFilesOf(p).length}</span>` : ""}${p.link ? ' <span class="sub link-chip icon-only" style="display:inline;" title="원문 링크 있음"></span>' : ""}${p.meta ? ' <span class="sub">' + esc(p.meta) + "</span>" : ""}</td>
           <td>${esc(p.createdByName || "—")}</td>
           <td>${STATUS_BADGE[p.status] || esc(p.status)}</td>
           <td class="cell-actions">${actions}</td>
@@ -1029,7 +1029,7 @@ if (isConfigured) {
         const note = p.group === "alumni" ? [grad, p.meta].filter(Boolean).join(" · ") : (p.interest || "");
         const linkedUser = p.linkedUid ? state.users.find((u) => u.id === p.linkedUid) : null;
         return `<tr>
-          <td class="cell-name">${esc(p.name)}${linkedUser ? `<span class="sub">🔗 ${esc(linkedUser.name)} 계정</span>` : `<span class="sub" style="color:var(--danger);">계정 미연동</span>`}</td>
+          <td class="cell-name">${esc(p.name)}${linkedUser ? `<span class="sub link-chip">${esc(linkedUser.name)} 계정</span>` : `<span class="sub" style="color:var(--danger);">계정 미연동</span>`}</td>
           <td>${GROUP_LABEL[p.group] || esc(p.group)}</td>
           <td>${esc(p.title || "—")}</td>
           <td>${esc(note || "—")}</td>
