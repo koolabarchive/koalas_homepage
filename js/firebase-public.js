@@ -488,13 +488,33 @@ if (isConfigured) {
         const alumni = people.filter((p) => p.group === "alumni");
         const alumniSection = document.getElementById("group-alumni");
         if (alumni.length) {
-          document.getElementById("alumni-list").innerHTML = alumni.map((p) => `
-            <div class="pub-item clickable" data-person="${p.id}" role="button" tabindex="0">
-              <div class="pub-year">${esc(p.year || "")}</div>
-              <div>
-                <div class="pub-title">${esc(p.name)}${p.title ? " (" + esc(p.title) + ")" : ""}</div>
-                ${p.meta ? '<div class="pub-meta">' + esc(p.meta) + "</div>" : ""}
-              </div>
+          // 연도(내림차순) → 같은 연도에선 후기(8월)가 전기(2월)보다 최근이므로 먼저,
+          // 그 안에서는 관리자 지정 순서. "2025 후기" 같은 묶음 제목으로 그룹핑합니다.
+          const termRank = { "후기": 0, "전기": 1 };
+          const sortedAlumni = [...alumni].sort((a, b) => {
+            const ya = parseInt(a.year) || 0, yb = parseInt(b.year) || 0;
+            if (ya !== yb) return yb - ya;
+            const ta = termRank[a.term] ?? 2, tb = termRank[b.term] ?? 2;
+            if (ta !== tb) return ta - tb;
+            return (a.order || 0) - (b.order || 0);
+          });
+          const cohorts = [];
+          sortedAlumni.forEach((p) => {
+            const label = [p.year, p.term].filter(Boolean).join(" ") || "기타";
+            const last = cohorts[cohorts.length - 1];
+            if (last && last.label === label) last.items.push(p);
+            else cohorts.push({ label, items: [p] });
+          });
+          document.getElementById("alumni-list").innerHTML = cohorts.map((c) => `
+            <div class="alumni-cohort">
+              <h4 class="cohort-label">${esc(c.label)}</h4>
+              ${c.items.map((p) => `
+                <div class="pub-item clickable alumni-item" data-person="${p.id}" role="button" tabindex="0">
+                  <div>
+                    <div class="pub-title">${esc(p.name)}${p.title ? " (" + esc(p.title) + ")" : ""}</div>
+                    ${p.meta ? '<div class="pub-meta">' + esc(p.meta) + "</div>" : ""}
+                  </div>
+                </div>`).join("")}
             </div>`).join("");
           alumniSection.style.display = "";
           any = true;
@@ -529,7 +549,7 @@ if (isConfigured) {
               : `<div class="member-photo" style="width:64px; height:64px; margin:0; font-size:1.4rem;">${esc((p.name || "?").charAt(0))}</div>`;
             document.getElementById("person-name").textContent = p.name;
             document.getElementById("person-title").textContent =
-              [p.title, p.group === "alumni" ? [p.year, p.meta].filter(Boolean).join(" · ") : ""].filter(Boolean).join(" · ");
+              [p.title, p.group === "alumni" ? [[p.year, p.term].filter(Boolean).join(" "), p.meta].filter(Boolean).join(" · ") : ""].filter(Boolean).join(" · ");
             document.getElementById("person-interest").innerHTML = p.interest
               ? `<span class="hint" style="display:block; margin-bottom:4px;">관심 분야</span><div style="font-size:0.92rem;">${esc(p.interest)}</div>`
               : "";

@@ -969,7 +969,8 @@ if (isConfigured) {
         const next = sorted[idx + 1];
         const canUp = prev && prev.group === p.group;
         const canDown = next && next.group === p.group;
-        const note = p.group === "alumni" ? [p.year, p.meta].filter(Boolean).join(" · ") : (p.interest || "");
+        const grad = [p.year, p.term].filter(Boolean).join(" ");
+        const note = p.group === "alumni" ? [grad, p.meta].filter(Boolean).join(" · ") : (p.interest || "");
         const linkedUser = p.linkedUid ? state.users.find((u) => u.id === p.linkedUid) : null;
         return `<tr>
           <td class="cell-name">${esc(p.name)}${linkedUser ? `<span class="sub">🔗 ${esc(linkedUser.name)} 계정</span>` : `<span class="sub" style="color:var(--danger);">계정 미연동</span>`}</td>
@@ -991,6 +992,13 @@ if (isConfigured) {
       people = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       render();
     }, snapErr("구성원 프로필", "people-tbody", 5));
+
+    // 졸업 학기 (전기/후기) — 애플 스타일 드롭다운
+    const ppTermDd = createDropdown($("pp-term-dd"), {
+      values: ["전기", "후기"],
+      emptyLabel: "선택 안 함",
+      onChange: (v) => { $("pp-term").value = v; },
+    });
 
     // 졸업생 선택 시 전용 필드 표시
     $("pp-group").addEventListener("change", () => {
@@ -1064,6 +1072,8 @@ if (isConfigured) {
       $("pp-title").value = p ? (p.title || "") : "";
       $("pp-interest").value = p ? (p.interest || "") : "";
       $("pp-year").value = p ? (p.year || "") : "";
+      ppTermDd.set(p ? (p.term || "") : "");
+      $("pp-term").value = p ? (p.term || "") : "";
       $("pp-meta").value = p ? (p.meta || "") : "";
       // 멤버 계정 연결 옵션 (승인된 멤버·관리자)
       const accounts = state.users.filter((u) => u.role === "member" || u.role === "admin");
@@ -1118,6 +1128,7 @@ if (isConfigured) {
         title: $("pp-title").value.trim(),
         interest: $("pp-interest").value.trim(),
         year: $("pp-year").value.trim(),
+        term: $("pp-term").value,
         meta: $("pp-meta").value.trim(),
         linkedUid: $("pp-linked").value || "",
         photoData: pendingPhoto || (removePhoto ? "" : (current?.photoData || "")),

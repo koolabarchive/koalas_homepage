@@ -618,8 +618,17 @@
         <input type="text" id="pp-interest" placeholder="예: AI 상담 시뮬레이션 · 상담자 교육" />
       </div>
       <div class="field" id="pp-alumni-fields" style="display:none;">
-        <label for="pp-year">졸업 연도</label>
-        <input type="text" id="pp-year" placeholder="예: 2025" style="margin-bottom:12px;" />
+        <div class="field-row">
+          <div class="field">
+            <label for="pp-year">졸업 연도</label>
+            <input type="text" id="pp-year" placeholder="예: 2025" />
+          </div>
+          <div class="field">
+            <label>졸업 학기</label>
+            <div id="pp-term-dd"></div>
+            <input type="hidden" id="pp-term" />
+          </div>
+        </div>
         <label for="pp-meta">학위논문 · 현 소속 (선택)</label>
         <input type="text" id="pp-meta" placeholder="예: 학위논문 제목 · 현 소속" />
       </div>

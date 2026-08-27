@@ -3693,3 +3693,20 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
   box-shadow: var(--shadow-sm);
   border-color: var(--line-soft);
 }
+
+/* ================================================================
+   구성원 페이지: 졸업생 연도·학기(전기/후기) 묶음
+   같은 연도끼리 "2025 후기" 같은 제목 아래 모아, 행마다 연도를
+   반복하지 않습니다.
+   ================================================================ */
+.alumni-cohort { margin-bottom: 6px; }
+.alumni-cohort .cohort-label {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 20px 6px 6px;
+}
+.alumni-cohort:first-child .cohort-label { padding-top: 4px; }
+/* 연도 칸이 빠졌으므로 한 칸 그리드로 */
+.pub-item.alumni-item { grid-template-columns: 1fr; padding: 14px 6px; }
