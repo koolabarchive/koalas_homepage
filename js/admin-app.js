@@ -46,6 +46,39 @@ if (isConfigured) {
   }
   const checkedUids = (box) => [...box.querySelectorAll("input:checked")].map((i) => i.value);
 
+  // ----- 표 제목행 클릭 정렬 -----
+  // 같은 열을 다시 누르면 오름차순 → 내림차순 → 해제(기본 정렬) 순으로 순환합니다.
+  //   const sort = makeSorter("#table thead", render);
+  //   sort.apply(list, { key: (item) => 비교값, ... }, 기본비교함수)
+  function makeSorter(theadSelector, onChange) {
+    const thead = document.querySelector(theadSelector);
+    let key = null;
+    let dir = 1;
+    if (thead) thead.addEventListener("click", (e) => {
+      const th = e.target.closest("th.sortable");
+      if (!th) return;
+      if (key !== th.dataset.sort) { key = th.dataset.sort; dir = 1; }
+      else if (dir === 1) dir = -1;
+      else key = null;
+      thead.querySelectorAll("th.sortable").forEach((t) => {
+        t.classList.toggle("sort-asc", key === t.dataset.sort && dir === 1);
+        t.classList.toggle("sort-desc", key === t.dataset.sort && dir === -1);
+      });
+      onChange();
+    });
+    return {
+      apply(list, getters, fallback) {
+        const get = key && getters[key];
+        return [...list].sort((a, b) => {
+          if (!get) return fallback ? fallback(a, b) : 0;
+          const va = get(a), vb = get(b);
+          if (typeof va === "number" && typeof vb === "number") return dir * (va - vb);
+          return dir * String(va).localeCompare(String(vb), "ko");
+        });
+      },
+    };
+  }
+
   // 대시보드 집계용 상태
   const state = { users: [], posts: [], pubs: [], projects: [], certs: [] };
 
@@ -153,24 +186,7 @@ if (isConfigured) {
       rejected: '<span class="status rejected">거절됨</span>',
     };
 
-    // ----- 제목행 클릭 정렬: 없음 → 오름차순 → 내림차순 → 없음(기본) -----
-    let sortKey = null;   // "name" | "date" | null
-    let sortDir = 1;      // 1=오름차순, -1=내림차순
-
-    const memberThead = document.querySelector("#member-table thead");
-    memberThead.addEventListener("click", (e) => {
-      const th = e.target.closest("th.sortable");
-      if (!th) return;
-      const key = th.dataset.sort;
-      if (sortKey !== key) { sortKey = key; sortDir = 1; }
-      else if (sortDir === 1) sortDir = -1;
-      else sortKey = null;                       // 정렬 해제 → 기본(승인 대기 우선)
-      memberThead.querySelectorAll("th.sortable").forEach((t) => {
-        t.classList.toggle("sort-asc", sortKey === t.dataset.sort && sortDir === 1);
-        t.classList.toggle("sort-desc", sortKey === t.dataset.sort && sortDir === -1);
-      });
-      render();
-    });
+    const sort = makeSorter("#member-table thead", () => render());
 
     function render() {
       const rows = [];
@@ -186,11 +202,10 @@ if (isConfigured) {
         </tr>`);
       });
 
-      const sorted = [...state.users].sort((a, b) => {
-        if (sortKey === "name")
-          return sortDir * String(a.name || "").localeCompare(String(b.name || ""), "ko");
-        if (sortKey === "date")
-          return sortDir * ((a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+      const sorted = sort.apply(state.users, {
+        name: (u) => u.name || "",
+        date: (u) => u.createdAt?.seconds || 0,
+      }, (a, b) => {
         // 기본: 승인 대기 → 멤버 → 관리자 순
         const w = (r) => (r === "pending" ? 0 : r === "member" ? 1 : r === "admin" ? 2 : 3);
         return w(a.role) - w(b.role);
@@ -448,8 +463,17 @@ if (isConfigured) {
       internal: '<span class="status member">비공개</span>',
     };
 
+    const sort = makeSorter("#pub-table thead", () => render());
+
     function render() {
-      const sorted = [...state.pubs].sort((a, b) => {
+      const STATUS_ORDER = { pending: 0, approved: 1, internal: 2 };
+      const sorted = sort.apply(state.pubs, {
+        type: (p) => p.type || "",
+        title: (p) => p.title || "",
+        author: (p) => p.createdByName || "",
+        status: (p) => STATUS_ORDER[p.status] ?? 3,
+      }, (a, b) => {
+        // 기본: 검수 대기 우선 → 최근 연도순
         const w = (s) => (s === "pending" ? 0 : 1);
         if (w(a.status) !== w(b.status)) return w(a.status) - w(b.status);
         return (parseInt(b.year) || 0) - (parseInt(a.year) || 0);
@@ -695,8 +719,16 @@ if (isConfigured) {
 
     const STATUS_CLS = { "진행 중": "approved", "준비 중": "pending", "종료": "member" };
 
+    const sort = makeSorter("#project-table thead", () => render());
+
     function render() {
-      const rows = state.projects.map((p) => {
+      const STATUS_ORDER = { "진행 중": 0, "준비 중": 1, "종료": 2 };
+      const sorted = sort.apply(state.projects, {
+        title: (p) => p.title || "",
+        people: (p) => (p.participantsUids || []).length || p.memberCount || 0,
+        status: (p) => STATUS_ORDER[p.status] ?? 3,
+      });
+      const rows = sorted.map((p) => {
         const n = (p.participantsUids || []).length;
         return `<tr>
         <td>${esc(p.title)}${p.meta ? ' <span class="sub">' + esc(p.meta) + "</span>" : ""}${p.public === false ? ' <span class="sub">(비공개)</span>' : ""}</td>

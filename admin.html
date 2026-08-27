@@ -135,9 +135,9 @@
           <button class="btn-sm primary" id="btn-add-project">+ 새 프로젝트</button>
         </div>
         <div class="admin-table-wrap">
-          <table class="admin-table">
+          <table class="admin-table" id="project-table">
             <thead>
-              <tr><th>프로젝트</th><th>기간</th><th>참여 인원</th><th>상태</th><th>관리</th></tr>
+              <tr><th class="sortable" data-sort="title">프로젝트</th><th>기간</th><th class="sortable" data-sort="people">참여 인원</th><th class="sortable" data-sort="status">상태</th><th>관리</th></tr>
             </thead>
             <tbody id="project-tbody">
               <tr><td colspan="5" style="color:var(--muted);">불러오는 중…</td></tr>
@@ -157,7 +157,7 @@
         <div class="admin-table-wrap">
           <table class="admin-table" id="pub-table">
             <thead>
-              <tr><th>유형</th><th>제목</th><th>등록자</th><th>상태</th><th>처리</th></tr>
+              <tr><th class="sortable" data-sort="type">유형</th><th class="sortable" data-sort="title">제목</th><th class="sortable" data-sort="author">등록자</th><th class="sortable" data-sort="status">상태</th><th>처리</th></tr>
             </thead>
             <tbody id="pub-tbody">
               <tr><td colspan="5" style="color:var(--muted);">불러오는 중…</td></tr>
