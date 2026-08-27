@@ -3797,3 +3797,62 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
     inset 0 1px 0 var(--lg-specular),
     inset 0 -1px 0 var(--lg-specular-low);
 }
+
+/* ================================================================
+   회원 관리 표: 스와이프 처리 트레이
+   처리 열은 평소 접혀 있고(소속 등 나머지 열이 넓어짐), 행을 왼쪽으로
+   드래그·스와이프하거나 ⋯ 버튼을 누르면 유리 트레이가 나타납니다.
+   ================================================================ */
+.swipe-actions thead th:last-child { width: 34px; padding: 0; font-size: 0; }
+.swipe-actions td.cell-actions {
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+  position: relative;
+  white-space: nowrap;
+}
+.swipe-actions tbody tr { touch-action: pan-y; position: relative; }
+
+/* ⋯ 손잡이: 행 오른쪽 끝의 작은 원형 버튼 */
+.swipe-actions .row-more {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+.swipe-actions .row-more:hover { color: var(--accent); border-color: var(--accent); }
+.swipe-actions tr.swiped .row-more { color: var(--accent); border-color: var(--accent); }
+
+/* 처리 트레이: 행 오른쪽에서 미끄러져 들어오는 유리 패널 */
+.swipe-actions .row-tray {
+  position: absolute;
+  top: 50%;
+  right: 40px;
+  transform: translateY(-50%) translateX(16px);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 7px 9px;
+  background: var(--modal-glass-bg);
+  backdrop-filter: var(--modal-glass-blur);
+  -webkit-backdrop-filter: var(--modal-glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 6;
+}
+.swipe-actions tr.swiped .row-tray {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0);
+}
