@@ -467,7 +467,7 @@ if (isConfigured) {
           </div>`;
 
         const groups = [
-          // 지도교수는 전용 페이지(professor.html)에서 소개하므로 구성원 목록에서 제외
+          { key: "professor", grid: "grid-professor", section: "group-professor" },
           { key: "phd", grid: "grid-phd", section: "group-phd" },
           { key: "ms", grid: "grid-ms", section: "group-ms" },
         ];
