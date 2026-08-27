@@ -3856,3 +3856,15 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
   pointer-events: auto;
   transform: translateY(-50%) translateX(0);
 }
+
+/* 회원 관리: 제목행 클릭 정렬 표시 (없음 ↕ → 오름차순 ↑ → 내림차순 ↓) */
+.admin-table th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+.admin-table th.sortable::after {
+  content: "↕";
+  margin-left: 5px;
+  font-size: 0.75em;
+  color: var(--faint);
+}
+.admin-table th.sortable:hover::after { color: var(--accent); }
+.admin-table th.sortable.sort-asc::after { content: "↑"; color: var(--accent); }
+.admin-table th.sortable.sort-desc::after { content: "↓"; color: var(--accent); }

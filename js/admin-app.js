@@ -153,6 +153,25 @@ if (isConfigured) {
       rejected: '<span class="status rejected">거절됨</span>',
     };
 
+    // ----- 제목행 클릭 정렬: 없음 → 오름차순 → 내림차순 → 없음(기본) -----
+    let sortKey = null;   // "name" | "date" | null
+    let sortDir = 1;      // 1=오름차순, -1=내림차순
+
+    const memberThead = document.querySelector("#member-table thead");
+    memberThead.addEventListener("click", (e) => {
+      const th = e.target.closest("th.sortable");
+      if (!th) return;
+      const key = th.dataset.sort;
+      if (sortKey !== key) { sortKey = key; sortDir = 1; }
+      else if (sortDir === 1) sortDir = -1;
+      else sortKey = null;                       // 정렬 해제 → 기본(승인 대기 우선)
+      memberThead.querySelectorAll("th.sortable").forEach((t) => {
+        t.classList.toggle("sort-asc", sortKey === t.dataset.sort && sortDir === 1);
+        t.classList.toggle("sort-desc", sortKey === t.dataset.sort && sortDir === -1);
+      });
+      render();
+    });
+
     function render() {
       const rows = [];
 
@@ -168,6 +187,11 @@ if (isConfigured) {
       });
 
       const sorted = [...state.users].sort((a, b) => {
+        if (sortKey === "name")
+          return sortDir * String(a.name || "").localeCompare(String(b.name || ""), "ko");
+        if (sortKey === "date")
+          return sortDir * ((a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+        // 기본: 승인 대기 → 멤버 → 관리자 순
         const w = (r) => (r === "pending" ? 0 : r === "member" ? 1 : r === "admin" ? 2 : 3);
         return w(a.role) - w(b.role);
       });
