@@ -2449,7 +2449,8 @@ h1, h2, h3, .brand-name {
 /* ---------- 헤더 ---------- */
 .header-inner { height: 60px; }
 
-.brand-name small { letter-spacing: 0.04em; color: var(--faint); }
+/* 한글 부제는 영문 대문자용 자간이 필요 없어 좁힙니다 */
+.brand-name small { letter-spacing: 0; color: var(--faint); }
 
 .gnb a {
   font-size: 0.88rem;
