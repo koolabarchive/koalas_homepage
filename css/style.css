@@ -3637,6 +3637,7 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
   align-items: center;
   justify-content: center;
 }
+.lightbox[hidden] { display: none; }
 .lightbox figure { margin: 0; max-width: min(92vw, 1100px); text-align: center; }
 .lightbox img {
   max-width: 100%;
@@ -4114,4 +4115,137 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
 .gallery-more { display: flex; justify-content: center; margin-top: 22px; }
 @media (max-width: 640px) {
   .gallery-preview { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+}
+
+
+/* ================================================================
+   연구실 사진 페이지 (gallery.html): 앨범 칩 + 매스너리 그리드
+   ================================================================ */
+.gl-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm);
+}
+.gl-toolbar .hint { font-size: 0.82rem; color: var(--muted); }
+
+.gl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 26px;
+}
+.gl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.gl-chip:hover { border-color: var(--ink); color: var(--ink); }
+.gl-chip.on { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+.gl-chip .gl-n { font-size: 0.74rem; font-weight: 500; opacity: 0.7; }
+
+.gl-album + .gl-album { margin-top: 44px; }
+.gl-album-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.gl-album-head h2 { font-size: 1.08rem; margin: 0; }
+.gl-count { font-size: 0.8rem; color: var(--muted); }
+
+/* 세로·가로 사진의 원래 비율을 살리는 매스너리 (CSS columns) */
+.gl-masonry {
+  column-count: 3;
+  column-gap: 14px;
+}
+.gl-item {
+  position: relative;
+  margin: 0 0 14px;
+  break-inside: avoid;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--tint);
+  border: 1px solid var(--line-soft);
+  cursor: zoom-in;
+}
+.gl-item img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.3s ease;
+}
+.gl-item:hover img { transform: scale(1.03); }
+.gl-item figcaption {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 26px 12px 10px;
+  font-size: 0.8rem;
+  color: #fff;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  word-break: keep-all;
+}
+.gl-item:hover figcaption { opacity: 1; }
+.gl-lock {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  background: rgba(255, 255, 255, 0.22);
+}
+.gl-del {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 30px; height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.gl-del .ic-svg { width: 14px; height: 14px; }
+.gl-item:hover .gl-del, .gl-del:focus-visible { opacity: 1; }
+.gl-del:hover { background: rgba(200, 40, 40, 0.85); }
+.lightbox figcaption small { display: block; margin-top: 4px; font-size: 0.78rem; color: rgba(255, 255, 255, 0.6); }
+
+@media (max-width: 900px) {
+  .gl-masonry { column-count: 2; column-gap: 10px; }
+  .gl-item { margin-bottom: 10px; border-radius: 12px; }
+}
+@media (max-width: 480px) {
+  .gl-masonry { column-gap: 8px; }
+  .gl-item { margin-bottom: 8px; border-radius: 10px; }
+  .gl-item figcaption { opacity: 1; padding: 20px 10px 8px; font-size: 0.74rem; }
+  .gl-del { opacity: 1; width: 28px; height: 28px; }
+}
+@media (hover: none) {
+  .gl-item figcaption, .gl-del { opacity: 1; }
 }

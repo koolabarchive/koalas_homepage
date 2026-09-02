@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>연구실 사진 | 한신대학교 임상심리 연구실</title>
+  <meta name="color-scheme" content="light dark" />
+  <!-- 저장된 테마를 첫 페인트 전에 적용해 깜빡임을 막습니다. -->
+  <script>(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img class="brand-mark light" src="img/logo-hanshin.svg" alt="한신대학교" width="40" height="40" /><img class="brand-mark dark" src="img/logo-hanshin-dark.svg" alt="" aria-hidden="true" width="40" height="40" />
+        <span class="brand-name">한신대학교 심리학과<small>구훈정 교수님 임상 및 상담심리 연구실</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="gnb" aria-label="주 메뉴">
+        <a href="notice.html">공지</a>
+        <a href="research.html">연구</a>
+        <a href="publications.html">성과</a>
+        <a href="login.html" class="btn-login">멤버 로그인</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <span class="eyebrow">Gallery</span>
+      <h1>연구실 사진</h1>
+      <p id="gl-desc">세미나·워크숍·모임 등 연구실의 순간들을 모아 봅니다.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:36px;">
+    <div class="container">
+      <div class="gl-toolbar" id="gl-toolbar" style="display:none;">
+        <span class="hint" id="gl-admin-hint">사진을 올리면 바로 게시됩니다. 앨범별로 묶어 정리할 수 있어요.</span>
+        <button class="btn-sm primary" id="btn-gl-add">+ 사진 올리기</button>
+      </div>
+      <div id="gl-content">
+        <p style="color:var(--muted); font-size:0.9rem; padding:12px 4px;">불러오는 중…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 사진 올리기 모달 (관리자) -->
+  <div class="modal-backdrop" id="gl-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="gl-modal-title">
+      <h3 id="gl-modal-title">사진 올리기</h3>
+      <div class="field">
+        <label>앨범</label>
+        <div id="gl-album-dd"></div>
+        <input type="hidden" id="gl-album" />
+        <div class="hint">기본 앨범 외에 관리자 → 메뉴 관리 → 새 페이지 만들기(앨범)로 만든 앨범도 고를 수 있습니다.</div>
+      </div>
+      <div class="field">
+        <label for="gl-files">사진 선택 <span class="hint" style="display:inline;">— 여러 장 선택 가능, 자동으로 줄여 저장됩니다</span></label>
+        <input type="file" id="gl-files" class="file-input" accept="image/*" multiple />
+        <div class="file-list" id="gl-file-list"></div>
+      </div>
+      <div class="field">
+        <label for="gl-caption">설명 (선택)</label>
+        <input type="text" id="gl-caption" placeholder="예: 2026 여름 워크숍" maxlength="100" />
+      </div>
+      <div class="field">
+        <div class="check-row">
+          <label class="check-line">
+            <input type="checkbox" id="gl-member-only" />
+            <span class="check-mark" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-6.5"/></svg></span>
+            멤버에게만 공개
+          </label>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="gl-cancel">취소</button>
+        <button class="btn-sm primary" id="gl-save">올리기</button>
+      </div>
+      <div class="form-msg" id="gl-msg"></div>
+    </div>
+  </div>
+
+  <!-- 라이트박스 -->
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lb-close" id="lb-close" aria-label="닫기">✕</button>
+    <button class="lb-nav prev" id="lb-prev" aria-label="이전 사진">‹</button>
+    <figure>
+      <img id="lb-img" alt="" />
+      <figcaption><span id="lb-caption"></span><small id="lb-meta"></small></figcaption>
+    </figure>
+    <button class="lb-nav next" id="lb-next" aria-label="다음 사진">›</button>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="f-brand">한신대학교 임상심리 연구실</div>
+        <p>경기도 오산시 한신대길 137 한신대학교 심리학과<br />지도교수 구훈정 · hoonjungkoo@gmail.com</p>
+      </div>
+      <div class="f-links">
+        <a href="research.html">연구</a>
+        <a href="archive.html">자료실</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/content-store.js"></script>
+  <script src="js/site-content.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/firebase-public.js"></script>
+  <script type="module" src="js/gallery-page.js"></script>
+</body>
+</html>
