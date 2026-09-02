@@ -10,6 +10,7 @@ import { auth, db, isConfigured } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { renderMarkdown } from "./markdown-lite.js";
+import { createDropdown } from "./notice-ui.js";
 
 if (isConfigured) {
   const $ = (id) => document.getElementById(id);
@@ -26,6 +27,12 @@ if (isConfigured) {
     contact: `📧 hoonjungkoo@gmail.com
 연구 참가 문의는 각 [프로젝트 페이지](research.html)의 신청 폼을 이용해 주세요.`,
     mapQuery: "한신대학교",
+    // 네이버 지도: Client ID가 등록되면 구글 대신 표시 (좌표는 한신대 오산캠퍼스)
+    mapProvider: "google",      // 'google' | 'naver'
+    naverClientId: "",
+    naverLat: "37.1948",
+    naverLng: "127.0258",
+    naverLabel: "한신대학교 심리학과",
   };
 
   const SECTIONS = {
@@ -64,18 +71,86 @@ if (isConfigured) {
   }
 
   let lastMapSrc = null;
+
+  // ---------- 네이버 지도 ----------
+  // Maps API 스크립트는 Client ID가 있을 때만 동적으로 불러옵니다.
+  // 키가 잘못됐거나 도메인 미등록으로 인증에 실패하면 구글 지도로 되돌립니다.
+  let naverScript = null;      // { id, promise }
+  let naverMap = null;
+  let naverMarker = null;
+
+  function loadNaverMaps(clientId) {
+    if (naverScript && naverScript.id === clientId) return naverScript.promise;
+    const promise = new Promise((resolve, reject) => {
+      // 인증 실패 콜백 (네이버 API가 전역 함수를 호출합니다)
+      window.navermap_authFailure = () => reject(new Error("auth"));
+      const sc = document.createElement("script");
+      sc.src = "https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=" + encodeURIComponent(clientId);
+      sc.async = true;
+      sc.onload = () => (window.naver && window.naver.maps ? resolve() : reject(new Error("load")));
+      sc.onerror = () => reject(new Error("load"));
+      document.head.appendChild(sc);
+    });
+    naverScript = { id: clientId, promise };
+    return promise;
+  }
+
+  function showGoogleMap() {
+    const map = $("ab-map");
+    const nv = $("ab-map-naver");
+    if (nv) nv.style.display = "none";
+    if (!map) return;
+    map.style.display = "";
+    if (lastMapSrc === null) lastMapSrc = map.getAttribute("src");
+    const src = mapSrc(val("mapQuery"));
+    // src가 같으면 다시 지정하지 않아 iframe 재로딩 깜빡임을 막습니다
+    if (src !== lastMapSrc) { map.src = src; lastMapSrc = src; }
+  }
+
+  async function showNaverMap() {
+    const map = $("ab-map");
+    const nv = $("ab-map-naver");
+    const note = $("ab-map-note");
+    const lat = parseFloat(val("naverLat"));
+    const lng = parseFloat(val("naverLng"));
+    if (!nv || isNaN(lat) || isNaN(lng)) return showGoogleMap();
+    try {
+      await loadNaverMaps(val("naverClientId"));
+      if (map) map.style.display = "none";
+      nv.style.display = "";
+      if (note) note.style.display = "none";
+      const pos = new naver.maps.LatLng(lat, lng);
+      if (!naverMap) {
+        naverMap = new naver.maps.Map(nv, { center: pos, zoom: 16, mapTypeControl: false });
+        naverMarker = new naver.maps.Marker({ position: pos, map: naverMap, title: val("naverLabel") });
+      } else {
+        naverMap.setCenter(pos);
+        naverMarker.setPosition(pos);
+        naverMarker.setTitle(val("naverLabel"));
+      }
+    } catch (err) {
+      // 키 오류·도메인 미등록·네트워크 실패 → 구글 지도로 폴백하고 관리자에게만 안내
+      showGoogleMap();
+      if (note && isAdmin) {
+        note.style.display = "";
+        note.textContent = err.message === "auth"
+          ? "네이버 지도 인증에 실패해 구글 지도로 표시 중입니다. Client ID와 네이버 클라우드 플랫폼의 Web 서비스 URL 등록을 확인해 주세요."
+          : "네이버 지도를 불러오지 못해 구글 지도로 표시 중입니다.";
+      }
+    }
+  }
+
+  function renderMap() {
+    if (val("mapProvider") === "naver" && val("naverClientId")) showNaverMap();
+    else showGoogleMap();
+  }
+
   function renderAll() {
     ["intro", "address", "transit", "contact"].forEach((key) => {
       const box = $("ab-" + key);
       if (box) box.innerHTML = iconize(renderMarkdown(val(key)));
     });
-    // src가 같으면 다시 지정하지 않아 iframe 재로딩 깜빡임을 막습니다
-    const map = $("ab-map");
-    if (map) {
-      if (lastMapSrc === null) lastMapSrc = map.getAttribute("src");
-      const src = mapSrc(val("mapQuery"));
-      if (src !== lastMapSrc) { map.src = src; lastMapSrc = src; }
-    }
+    renderMap();
 
     document.querySelectorAll(".sec-edit").forEach((b) => (b.style.display = isAdmin ? "" : "none"));
     $("btn-edit-visit").style.display = isAdmin ? "" : "none";
@@ -128,7 +203,28 @@ if (isConfigured) {
 
   // ================= 찾아오시는 길 수정 (지도·주소·교통·연락처 한 번에) =================
   const visitModal = $("visit-modal");
+  const PROVIDER_LABEL = { google: "구글 지도", naver: "네이버 지도" };
+  const providerKey = (label) => (label === PROVIDER_LABEL.naver ? "naver" : "google");
+  const syncProviderFields = () => {
+    const isNaver = providerKey($("vm-provider").value) === "naver";
+    $("vm-google-fields").style.display = isNaver ? "none" : "";
+    $("vm-naver-fields").style.display = isNaver ? "" : "none";
+  };
+  const providerDd = createDropdown($("vm-provider-dd"), {
+    values: [PROVIDER_LABEL.google, PROVIDER_LABEL.naver],
+    allowEmpty: false,
+    onChange: (v) => { $("vm-provider").value = v; syncProviderFields(); },
+  });
+
   $("btn-edit-visit").addEventListener("click", () => {
+    const provLabel = PROVIDER_LABEL[val("mapProvider")] || PROVIDER_LABEL.google;
+    providerDd.set(provLabel);
+    $("vm-provider").value = provLabel;
+    $("vm-naver-id").value = val("naverClientId");
+    $("vm-naver-lat").value = val("naverLat");
+    $("vm-naver-lng").value = val("naverLng");
+    $("vm-naver-label").value = val("naverLabel");
+    syncProviderFields();
     $("vm-map").value = val("mapQuery");
     $("vm-address").value = val("address");
     $("vm-transit").value = val("transit");
@@ -140,11 +236,22 @@ if (isConfigured) {
   visitModal.addEventListener("click", (e) => { if (e.target === visitModal) visitModal.classList.remove("open"); });
   $("vm-save").addEventListener("click", async () => {
     const partial = {
+      mapProvider: providerKey($("vm-provider").value),
       mapQuery: $("vm-map").value.trim(),
+      naverClientId: $("vm-naver-id").value.trim(),
+      naverLat: $("vm-naver-lat").value.trim(),
+      naverLng: $("vm-naver-lng").value.trim(),
+      naverLabel: $("vm-naver-label").value.trim(),
       address: $("vm-address").value,
       transit: $("vm-transit").value,
       contact: $("vm-contact").value,
     };
+    if (partial.mapProvider === "naver"
+        && (isNaN(parseFloat(partial.naverLat)) || isNaN(parseFloat(partial.naverLng)))) {
+      $("vm-msg").textContent = "네이버 지도를 쓰려면 위도·경도를 숫자로 입력해 주세요.";
+      $("vm-msg").className = "form-msg error";
+      return;
+    }
     try {
       await setDoc(doc(db, "siteConfig", "main"), { aboutPage: partial }, { merge: true });
       about = { ...about, ...partial };
