@@ -23,6 +23,7 @@ if (isConfigured) {
   let isMember = false;
   let pages = [];          // siteConfig.pages (이전 앨범 페이지 제목용)
   let albums = [];         // galleryAlbums
+  let albumsLoaded = false;
   let photos = [];         // galleryPhotos
   let legacy = [];         // posts(kind='album')
   const unsubs = [];
@@ -53,7 +54,9 @@ if (isConfigured) {
     unsubs.push(onSnapshot(collection(db, "galleryAlbums"), (snap) => {
       albums = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
         .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+      albumsLoaded = true;
       render();
+      if (isAdmin && legacy.length) migrateLegacy();
     }, () => {}));
 
     onAuthStateChanged(auth, async (user) => {
@@ -93,7 +96,43 @@ if (isConfigured) {
           albumIds: x.pageId && x.pageId !== "gallery" ? ["page:" + x.pageId] : [] };
       }).filter((p) => p.imageData);
       render();
+      if (isAdmin && legacy.length) migrateLegacy();
     }, () => {});
+  }
+
+  // ---------- 이전 방식 사진 자동 이전 (관리자 접속 시 1회) ----------
+  // posts(kind='album')에 있던 사진을 galleryPhotos로 옮기고 원본을 지웁니다.
+  // 옛 앨범 페이지의 사진은 그 페이지 제목과 같은 이름의 앨범(태그)을 만들어 붙입니다.
+  // 새 규칙이 아직 게시되지 않았으면 조용히 건너뛰고 다음 접속 때 다시 시도합니다.
+  let migrating = false;
+  async function migrateLegacy() {
+    if (migrating || !albumsLoaded) return;   // 앨범 목록을 알아야 같은 이름 중복 생성을 막을 수 있음
+    migrating = true;
+    const albumByName = new Map(albums.map((a) => [a.name, a.id]));
+    const items = [...legacy];
+    try {
+      for (const p of items) {
+        let albumIds = [];
+        if (p.pageId && p.pageId !== "gallery") {
+          const page = pages.find((x) => x.id === p.pageId);
+          const name = page ? page.title : p.pageId;
+          if (!albumByName.has(name)) albumByName.set(name, await createAlbum(name));
+          albumIds = [albumByName.get(name)];
+        }
+        await addDoc(collection(db, "galleryPhotos"), {
+          imageData: p.imageData, caption: p.caption || "", albumIds, scope: p.scope || "public",
+          date: p.date || isoToDot(todayIso()),
+          authorUid: p.authorUid || me.uid, authorName: p.authorName || me.name || "",
+          createdAt: p.createdAt || serverTimestamp(),
+          migratedFrom: p.id,
+        });
+        await deleteDoc(doc(db, "posts", p.id));
+      }
+    } catch (_) {
+      // 규칙 미게시 등으로 실패하면 남은 사진은 그대로 두고 다음에 다시 시도
+    } finally {
+      migrating = false;
+    }
   }
 
   // ---------- 렌더링 ----------
