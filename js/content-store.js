@@ -29,12 +29,13 @@
         { label: "연구실 소개", href: "about.html", visible: true },
         { label: "지도교수", href: "professor.html", visible: true },
         { label: "구성원", href: "members.html", visible: true },
-        { label: "연구실 사진", href: "gallery.html", visible: true },
       ] },
       { label: "연구", href: "research.html", visible: true, children: [] },
       { label: "성과", href: "publications.html", visible: true, children: [] },
       { label: "공지", href: "notice.html", visible: true, children: [] },
-      { label: "자료실", href: "archive.html", visible: true, children: [] },
+      { label: "자료실", href: "archive.html", visible: true, children: [
+        { label: "연구실 사진", href: "gallery.html", visible: true },
+      ] },
     ],
     // 관리자가 만든 커스텀 페이지: page.html?p=<id> 로 열립니다.
     // kind: 'board'(게시판) | 'album'(앨범) / scope: 'public' | 'member'
@@ -59,6 +60,28 @@
     return nav;
   }
 
+  // 저장된 2단계 메뉴에 나중에 추가된 기본 하위 항목을 병합합니다.
+  // (관리자가 일부러 지운 항목이 되살아나지 않도록, 새로 도입된 페이지만 나열)
+  // 기본 구조에서 그 항목이 속한 주메뉴(href 기준)를 찾아 하위로 넣고,
+  // 그 주메뉴가 없으면 맨 뒤에 주메뉴로 추가합니다.
+  const NEW_NAV2_HREFS = ["gallery.html"];
+  function mergeNav2(savedNav2) {
+    if (!Array.isArray(savedNav2) || !savedNav2.length) return null;
+    const nav2 = savedNav2.map((x) => ({ ...x, children: (x.children || []).map((c) => ({ ...c })) }));
+    const hrefs = new Set();
+    nav2.forEach((x) => { hrefs.add(x.href); x.children.forEach((c) => hrefs.add(c.href)); });
+    DEFAULTS.nav2.forEach((d) => {
+      d.children.forEach((c) => {
+        if (!NEW_NAV2_HREFS.includes(c.href) || hrefs.has(c.href)) return;
+        const parent = nav2.find((x) => x.href === d.href);
+        if (parent) parent.children.push({ ...c });
+        else nav2.push({ ...c, children: [] });
+        hrefs.add(c.href);
+      });
+    });
+    return nav2;
+  }
+
   function load() {
     try {
       const saved = JSON.parse(localStorage.getItem(KEY));
@@ -66,7 +89,7 @@
       return {
         hero: { ...DEFAULTS.hero, ...(saved.hero || {}) },
         nav: mergeNav(saved.nav),
-        nav2: Array.isArray(saved.nav2) && saved.nav2.length ? saved.nav2 : null,
+        nav2: mergeNav2(saved.nav2),
         pages: Array.isArray(saved.pages) ? saved.pages : [],
         loginLabel: saved.loginLabel || DEFAULTS.loginLabel,
         research: Array.isArray(saved.research) && saved.research.length ? saved.research : structuredClone(DEFAULTS.research),
