@@ -85,20 +85,18 @@ export function activityChart(box, months, data) {
   const n = months.length;
   const x = (i) => PAD_L + (n === 1 ? plotW / 2 : (i / (n - 1)) * plotW);
 
-  // 누적 합계와 y 스케일 (눈금은 깔끔한 수로 올림)
+  // 합계(팝업 표시용)와 y 스케일 (눈금은 깔끔한 수로 올림)
+  // 선은 쌓지 않고 각 계열의 누적값을 그대로 그립니다.
   const stackTops = months.map((_, i) => SERIES.reduce((s, ser) => s + (data[ser.key]?.[i] || 0), 0));
-  const rawMax = Math.max(...stackTops, 1);
+  const rawMax = Math.max(1, ...SERIES.map((ser) => Math.max(...months.map((_, i) => data[ser.key]?.[i] || 0))));
   const step = Math.max(1, Math.ceil(rawMax / 4 / 5) * 5);
   const yMax = step * 4;
   const y = (v) => PAD_T + plotH - (v / yMax) * plotH;
 
-  // 아래에서부터 쌓은 각 계열의 상단 좌표
-  const running = new Array(n).fill(0);
+  // 각 계열의 좌표
   const bands = SERIES.map((ser) => {
-    const lower = running.map((v) => v);
     const values = months.map((_, i) => data[ser.key]?.[i] || 0);
-    values.forEach((v, i) => { running[i] += v; });
-    return { ...ser, values, lowerPts: lower.map((v, i) => [x(i), y(v)]), upperPts: running.map((v, i) => [x(i), y(v)]) };
+    return { ...ser, values, upperPts: values.map((v, i) => [x(i), y(v)]) };
   });
 
   const gridLines = Array.from({ length: 5 }, (_, k) => {
@@ -113,11 +111,7 @@ export function activityChart(box, months, data) {
       ? `<text class="ch-tick" x="${x(i)}" y="${H - PAD_B + 16}" text-anchor="middle">${esc(mo.label)}</text>` : ""
   ).join("");
 
-  // 영역 + 상단 선. 밴드 사이는 표면색 2px 선으로 띄워 경계를 만듭니다.
-  const areas = bands.map((b) => {
-    const area = smoothPath(b.upperPts) + " L" + b.lowerPts.slice().reverse().map((p) => p.join(" ")).join(" L") + " Z";
-    return `<path class="ch-area ${b.cls}" d="${area}"></path>`;
-  }).join("");
+  // 계열별 선 (면 채움 없음)
   const lines = bands.map((b) =>
     `<path class="ch-line ${b.cls}" d="${smoothPath(b.upperPts)}"></path>`).join("");
 
@@ -129,7 +123,6 @@ export function activityChart(box, months, data) {
       <svg class="ch-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
            aria-label="최근 ${n}개월 구성원·연구 성과·프로젝트·확인서 누적 추이">
         ${gridLines}
-        ${areas}
         ${lines}
         <line class="ch-cross" x1="0" y1="${PAD_T}" x2="0" y2="${PAD_T + plotH}" style="display:none;"></line>
         ${dots}
@@ -161,7 +154,7 @@ export function activityChart(box, months, data) {
       dotEls[k].style.display = "";
     });
     tip.innerHTML = `<div class="ch-tip-head">${esc(mo.full)}</div>` +
-      bands.slice().reverse().map((b) =>
+      bands.map((b) =>
         `<div class="ch-tip-row"><span class="ch-key ${b.cls}"></span>${esc(b.label)}<strong>${b.values[i]}</strong></div>`).join("") +
       `<div class="ch-tip-total">합계<strong>${stackTops[i]}</strong></div>`;
     tip.hidden = false;
