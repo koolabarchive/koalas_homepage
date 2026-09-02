@@ -29,6 +29,7 @@
         { label: "연구실 소개", href: "about.html", visible: true },
         { label: "지도교수", href: "professor.html", visible: true },
         { label: "구성원", href: "members.html", visible: true },
+        { label: "연구실 사진", href: "gallery.html", visible: true },
       ] },
       { label: "연구", href: "research.html", visible: true, children: [] },
       { label: "성과", href: "publications.html", visible: true, children: [] },

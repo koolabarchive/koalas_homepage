@@ -28,7 +28,7 @@ if (isConfigured) {
     contact: `📧 hoonjungkoo@gmail.com
 연구 참가 문의는 각 [프로젝트 페이지](research.html)의 신청 폼을 이용해 주세요.`,
     mapQuery: "한신대학교",
-    galleryPageId: "",          // 미리보기로 쓸 앨범 페이지 id (비우면 첫 앨범 자동)
+    galleryPageId: "",          // 미리보기로 쓸 앨범 id (비우면 모든 앨범의 최신 사진)
     galleryDesc: "함께한 순간들을 사진으로 모아 봅니다.",
   };
 
@@ -99,14 +99,16 @@ if (isConfigured) {
   load();
 
   // ================= 연구실 사진 미리보기 =================
-  // 앨범형 커스텀 페이지(page.html?p=<id>)의 공개 사진 중 최근 6장을 보여 주고
-  // 전체 보기로 연결합니다. 앨범이 없으면 방문자에게는 섹션을 숨기고
-  // 관리자에게만 만드는 방법을 안내합니다.
+  // 연구실 사진 페이지(gallery.html)에 올린 공개 사진 중 최근 6장을 보여 주고
+  // 전체 보기로 연결합니다. 기본은 모든 앨범의 최신 사진이며, 관리자 설정에서
+  // 특정 앨범(메뉴 관리에서 만든 앨범 페이지)만 고를 수도 있습니다.
   const GALLERY_COUNT = 6;
-  const albumPages = () => pages.filter((p) => p.kind === "album");
+  const ALL_LABEL = "전체 사진 (모든 앨범)";
+  const DEFAULT_ALBUM = { id: "gallery", title: "연구실 사진" };
+  const albumPages = () => [DEFAULT_ALBUM, ...pages.filter((p) => p.kind === "album")];
   const galleryPage = () => {
     const id = val("galleryPageId");
-    return albumPages().find((p) => p.id === id) || albumPages()[0] || null;
+    return albumPages().find((p) => p.id === id) || null;   // null = 전체
   };
 
   async function renderGallery() {
@@ -117,23 +119,17 @@ if (isConfigured) {
     $("ab-gallery-desc").textContent = val("galleryDesc");
     $("btn-edit-gallery").style.display = isAdmin ? "" : "none";
 
-    if (!page) {
-      // 앨범이 없음: 관리자에게만 안내
-      sec.style.display = isAdmin ? "" : "none";
-      $("ab-gallery-link").style.display = "none";
-      grid.innerHTML = '<p class="chart-empty">아직 앨범 페이지가 없습니다. 관리자 → 메뉴 관리 → "새 페이지 만들기"에서 <strong>앨범</strong> 형태의 페이지를 만들고 사진을 올리면 이곳에 미리보기가 표시됩니다.</p>';
-      return;
-    }
-
-    const href = "page.html?p=" + encodeURIComponent(page.id);
+    const href = "gallery.html" + (page ? "?album=" + encodeURIComponent(page.id) : "");
     const link = $("ab-gallery-link");
     link.href = href;
     link.style.display = "";
 
     let photos = [];
     try {
-      const snap = await getDocs(query(collection(db, "posts"),
-        where("pageId", "==", page.id), where("scope", "==", "public")));
+      const q = page
+        ? query(collection(db, "posts"), where("pageId", "==", page.id), where("scope", "==", "public"))
+        : query(collection(db, "posts"), where("kind", "==", "album"), where("scope", "==", "public"));
+      const snap = await getDocs(q);
       photos = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
         .filter((p) => p.imageData)
         .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
@@ -141,14 +137,17 @@ if (isConfigured) {
     } catch (_) {}
 
     if (!photos.length) {
+      // 사진이 없음: 관리자에게만 안내
       sec.style.display = isAdmin ? "" : "none";
-      grid.innerHTML = `<p class="chart-empty">"${esc(page.title)}" 앨범에 아직 공개 사진이 없습니다. <a href="${href}">앨범 페이지</a>에서 사진을 올려 주세요.</p>`;
+      grid.innerHTML = page
+        ? `<p class="chart-empty">"${esc(page.title)}" 앨범에 아직 공개 사진이 없습니다. <a href="${href}">연구실 사진 페이지</a>에서 올려 주세요.</p>`
+        : '<p class="chart-empty">아직 올린 사진이 없습니다. <a href="gallery.html">연구실 사진 페이지</a>에서 "사진 올리기"로 올리면 이곳에 최근 사진이 표시됩니다.</p>';
       return;
     }
     sec.style.display = "";
     grid.innerHTML = photos.map((p) => `
-      <a class="gallery-thumb" href="${href}" title="${esc(p.title || page.title)}">
-        <img src="${p.imageData}" alt="${esc(p.title || page.title)}" loading="lazy" />
+      <a class="gallery-thumb" href="${href}" title="${esc(p.title || "연구실 사진")}">
+        <img src="${p.imageData}" alt="${esc(p.title || "연구실 사진")}" loading="lazy" />
       </a>`).join("");
   }
 
@@ -159,12 +158,10 @@ if (isConfigured) {
     onChange: (v) => { $("gm-album").value = v; },
   });
   $("btn-edit-gallery").addEventListener("click", () => {
-    const albums = albumPages();
-    const labels = albums.map((p) => p.title);
-    gmDd.setOptions(labels.length ? labels : ["앨범 페이지 없음"]);
+    gmDd.setOptions([ALL_LABEL, ...albumPages().map((p) => p.title)]);
     const cur = galleryPage();
-    gmDd.set(cur ? cur.title : (labels[0] || "앨범 페이지 없음"));
-    $("gm-album").value = cur ? cur.title : "";
+    gmDd.set(cur ? cur.title : ALL_LABEL);
+    $("gm-album").value = cur ? cur.title : ALL_LABEL;
     $("gm-desc").value = val("galleryDesc");
     $("gm-msg").className = "form-msg";
     galleryModal.classList.add("open");
