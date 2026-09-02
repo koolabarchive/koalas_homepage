@@ -4070,3 +4070,35 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
 @media (max-width: 640px) {
   .brand-mark { width: 30px; height: 30px; }
 }
+
+/* ================================================================
+   섹션 하단 구석의 관리자 수정 버튼 (연구실 소개 페이지)
+   자주 쓰는 기능이 아니므로 제목 옆이 아니라 섹션 끝 오른쪽에,
+   은은한 고스트 스타일로 두 버튼을 같은 모양으로 둡니다.
+   ================================================================ */
+.sec-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+.btn-edit-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.btn-edit-ghost:hover,
+.btn-edit-ghost:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--tint);
+}
+.btn-edit-ghost .ic-svg { width: 13px; height: 13px; }
