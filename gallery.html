@@ -39,8 +39,11 @@
   <section class="section" style="padding-top:36px;">
     <div class="container">
       <div class="gl-toolbar" id="gl-toolbar" style="display:none;">
-        <span class="hint" id="gl-admin-hint">사진을 올리면 바로 게시됩니다. 앨범별로 묶어 정리할 수 있어요.</span>
-        <button class="btn-sm primary" id="btn-gl-add">+ 사진 올리기</button>
+        <span class="hint">연구실 멤버는 누구나 사진을 올리고 앨범을 만들 수 있어요. 사진 하나를 여러 앨범에 넣을 수도 있습니다.</span>
+        <span class="gl-toolbar-btns">
+          <button class="btn-sm" id="btn-gl-album">+ 새 앨범</button>
+          <button class="btn-sm primary" id="btn-gl-add">+ 사진 올리기</button>
+        </span>
       </div>
       <div id="gl-content">
         <p style="color:var(--muted); font-size:0.9rem; padding:12px 4px;">불러오는 중…</p>
@@ -48,17 +51,11 @@
     </div>
   </section>
 
-  <!-- 사진 올리기 모달 (관리자) -->
+  <!-- 사진 올리기 / 수정 모달 (멤버) -->
   <div class="modal-backdrop" id="gl-modal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="gl-modal-title">
       <h3 id="gl-modal-title">사진 올리기</h3>
-      <div class="field">
-        <label>앨범</label>
-        <div id="gl-album-dd"></div>
-        <input type="hidden" id="gl-album" />
-        <div class="hint">기본 앨범 외에 관리자 → 메뉴 관리 → 새 페이지 만들기(앨범)로 만든 앨범도 고를 수 있습니다.</div>
-      </div>
-      <div class="field">
+      <div class="field" id="gl-files-field">
         <label for="gl-files">사진 선택 <span class="hint" style="display:inline;">— 여러 장 선택 가능, 자동으로 줄여 저장됩니다</span></label>
         <input type="file" id="gl-files" class="file-input" accept="image/*" multiple />
         <div class="file-list" id="gl-file-list"></div>
@@ -66,6 +63,11 @@
       <div class="field">
         <label for="gl-caption">설명 (선택)</label>
         <input type="text" id="gl-caption" placeholder="예: 2026 여름 워크숍" maxlength="100" />
+      </div>
+      <div class="field">
+        <label>앨범 <span class="hint" style="display:inline;">— 여러 개 선택 가능</span></label>
+        <div class="gl-picker" id="gl-picker"></div>
+        <button type="button" class="btn-edit-ghost" id="gl-new-album" style="margin-top:8px;">+ 새 앨범 만들기</button>
       </div>
       <div class="field">
         <div class="check-row">
@@ -81,6 +83,23 @@
         <button class="btn-sm primary" id="gl-save">올리기</button>
       </div>
       <div class="form-msg" id="gl-msg"></div>
+    </div>
+  </div>
+
+  <!-- 앨범 만들기 / 이름 바꾸기 모달 -->
+  <div class="modal-backdrop" id="gl-album-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="gl-album-title">
+      <h3 id="gl-album-title">새 앨범 만들기</h3>
+      <div class="field">
+        <label for="ga-name">앨범 이름</label>
+        <input type="text" id="ga-name" placeholder="예: 2026 학회, 여름 워크숍, 졸업식" maxlength="40" />
+        <div class="hint">앨범은 태그처럼 동작해요. 사진 하나를 여러 앨범에 넣을 수 있고, 상단 칩으로 골라 볼 수 있습니다.</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="ga-cancel">취소</button>
+        <button class="btn-sm primary" id="ga-save">만들기</button>
+      </div>
+      <div class="form-msg" id="ga-msg"></div>
     </div>
   </div>
 

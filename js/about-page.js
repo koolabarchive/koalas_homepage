@@ -28,7 +28,7 @@ if (isConfigured) {
     contact: `📧 hoonjungkoo@gmail.com
 연구 참가 문의는 각 [프로젝트 페이지](research.html)의 신청 폼을 이용해 주세요.`,
     mapQuery: "한신대학교",
-    galleryPageId: "",          // 미리보기로 쓸 앨범 id (비우면 모든 앨범의 최신 사진)
+    galleryAlbumId: "",         // 미리보기로 쓸 앨범(태그) id (비우면 모든 사진의 최신순)
     galleryDesc: "함께한 순간들을 사진으로 모아 봅니다.",
   };
 
@@ -99,39 +99,50 @@ if (isConfigured) {
   load();
 
   // ================= 연구실 사진 미리보기 =================
-  // 연구실 사진 페이지(gallery.html)에 올린 공개 사진 중 최근 6장을 보여 주고
-  // 전체 보기로 연결합니다. 기본은 모든 앨범의 최신 사진이며, 관리자 설정에서
-  // 특정 앨범(메뉴 관리에서 만든 앨범 페이지)만 고를 수도 있습니다.
+  // 연구실 사진 페이지(gallery.html)의 공개 사진 중 최근 6장을 보여 주고 전체 보기로
+  // 연결합니다. 기본은 모든 사진의 최신순이며, 관리자 설정에서 특정 앨범(태그)만
+  // 고를 수도 있습니다. 이전 방식(posts kind='album')의 사진도 함께 셉니다.
   const GALLERY_COUNT = 6;
   const ALL_LABEL = "전체 사진 (모든 앨범)";
-  const DEFAULT_ALBUM = { id: "gallery", title: "연구실 사진" };
-  const albumPages = () => [DEFAULT_ALBUM, ...pages.filter((p) => p.kind === "album")];
-  const galleryPage = () => {
-    const id = val("galleryPageId");
-    return albumPages().find((p) => p.id === id) || null;   // null = 전체
+  let albums = [];   // galleryAlbums
+  const galleryAlbum = () => {
+    const id = val("galleryAlbumId");
+    return albums.find((a) => a.id === id) || null;   // null = 전체
   };
+
+  async function loadAlbums() {
+    try {
+      const snap = await getDocs(collection(db, "galleryAlbums"));
+      albums = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+    } catch (_) { albums = []; }
+  }
 
   async function renderGallery() {
     const sec = $("ab-gallery-sec");
     const grid = $("ab-gallery");
     if (!sec || !grid) return;
-    const page = galleryPage();
+    await loadAlbums();
+    const album = galleryAlbum();
     $("ab-gallery-desc").textContent = val("galleryDesc");
     $("btn-edit-gallery").style.display = isAdmin ? "" : "none";
 
-    const href = "gallery.html" + (page ? "?album=" + encodeURIComponent(page.id) : "");
+    const href = "gallery.html" + (album ? "?album=" + encodeURIComponent(album.id) : "");
     const link = $("ab-gallery-link");
     link.href = href;
     link.style.display = "";
 
     let photos = [];
     try {
-      const q = page
-        ? query(collection(db, "posts"), where("pageId", "==", page.id), where("scope", "==", "public"))
-        : query(collection(db, "posts"), where("kind", "==", "album"), where("scope", "==", "public"));
-      const snap = await getDocs(q);
+      // (앨범 필터는 복합 색인 없이 쓰도록 클라이언트에서 거릅니다)
+      const snap = await getDocs(query(collection(db, "galleryPhotos"), where("scope", "==", "public")));
       photos = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-        .filter((p) => p.imageData)
+        .filter((p) => !album || (p.albumIds || []).includes(album.id));
+      if (!album) {
+        const old = await getDocs(query(collection(db, "posts"), where("kind", "==", "album"), where("scope", "==", "public")));
+        photos.push(...old.docs.map((d) => ({ id: d.id, ...d.data(), caption: d.data().title || "" })));
+      }
+      photos = photos.filter((p) => p.imageData)
         .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
         .slice(0, GALLERY_COUNT);
     } catch (_) {}
@@ -139,15 +150,15 @@ if (isConfigured) {
     if (!photos.length) {
       // 사진이 없음: 관리자에게만 안내
       sec.style.display = isAdmin ? "" : "none";
-      grid.innerHTML = page
-        ? `<p class="chart-empty">"${esc(page.title)}" 앨범에 아직 공개 사진이 없습니다. <a href="${href}">연구실 사진 페이지</a>에서 올려 주세요.</p>`
+      grid.innerHTML = album
+        ? `<p class="chart-empty">"${esc(album.name)}" 앨범에 아직 공개 사진이 없습니다. <a href="${href}">연구실 사진 페이지</a>에서 올려 주세요.</p>`
         : '<p class="chart-empty">아직 올린 사진이 없습니다. <a href="gallery.html">연구실 사진 페이지</a>에서 "사진 올리기"로 올리면 이곳에 최근 사진이 표시됩니다.</p>';
       return;
     }
     sec.style.display = "";
     grid.innerHTML = photos.map((p) => `
-      <a class="gallery-thumb" href="${href}" title="${esc(p.title || "연구실 사진")}">
-        <img src="${p.imageData}" alt="${esc(p.title || "연구실 사진")}" loading="lazy" />
+      <a class="gallery-thumb" href="${href}" title="${esc(p.caption || "연구실 사진")}">
+        <img src="${p.imageData}" alt="${esc(p.caption || "연구실 사진")}" loading="lazy" />
       </a>`).join("");
   }
 
@@ -158,10 +169,10 @@ if (isConfigured) {
     onChange: (v) => { $("gm-album").value = v; },
   });
   $("btn-edit-gallery").addEventListener("click", () => {
-    gmDd.setOptions([ALL_LABEL, ...albumPages().map((p) => p.title)]);
-    const cur = galleryPage();
-    gmDd.set(cur ? cur.title : ALL_LABEL);
-    $("gm-album").value = cur ? cur.title : ALL_LABEL;
+    gmDd.setOptions([ALL_LABEL, ...albums.map((a) => a.name)]);
+    const cur = galleryAlbum();
+    gmDd.set(cur ? cur.name : ALL_LABEL);
+    $("gm-album").value = cur ? cur.name : ALL_LABEL;
     $("gm-desc").value = val("galleryDesc");
     $("gm-msg").className = "form-msg";
     galleryModal.classList.add("open");
@@ -169,9 +180,9 @@ if (isConfigured) {
   $("gm-cancel").addEventListener("click", () => galleryModal.classList.remove("open"));
   galleryModal.addEventListener("click", (e) => { if (e.target === galleryModal) galleryModal.classList.remove("open"); });
   $("gm-save").addEventListener("click", async () => {
-    const chosen = albumPages().find((p) => p.title === $("gm-album").value);
+    const chosen = albums.find((a) => a.name === $("gm-album").value);
     const partial = {
-      galleryPageId: chosen ? chosen.id : "",
+      galleryAlbumId: chosen ? chosen.id : "",
       galleryDesc: $("gm-desc").value.trim(),
     };
     try {
