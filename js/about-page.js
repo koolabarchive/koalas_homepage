@@ -8,11 +8,13 @@
 
 import { auth, db, isConfigured } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { renderMarkdown } from "./markdown-lite.js";
+import { createDropdown } from "./notice-ui.js";
 
 if (isConfigured) {
   const $ = (id) => document.getElementById(id);
+  const esc = (t) => String(t ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
   const DEFAULTS = {
     intro: `한신대학교 심리아동학부 심리학전공은 인간의 마음과 행동을 과학적으로 탐구하고, 이를 바탕으로 개인과 공동체의 심리적 안녕에 기여하는 전문가를 양성합니다. 학부 과정과 함께 일반대학원 심리학과(임상 및 상담심리 전공), 정신분석대학원, 교육대학원 과정을 통해 이론과 실무를 아우르는 교육을 제공합니다.
@@ -26,6 +28,8 @@ if (isConfigured) {
     contact: `📧 hoonjungkoo@gmail.com
 연구 참가 문의는 각 [프로젝트 페이지](research.html)의 신청 폼을 이용해 주세요.`,
     mapQuery: "한신대학교",
+    galleryPageId: "",          // 미리보기로 쓸 앨범 페이지 id (비우면 첫 앨범 자동)
+    galleryDesc: "함께한 순간들을 사진으로 모아 봅니다.",
   };
 
   const SECTIONS = {
@@ -33,6 +37,7 @@ if (isConfigured) {
   };
 
   let about = {};      // 저장된 값 (없으면 DEFAULTS로 폴백)
+  let pages = [];      // 관리자가 만든 커스텀 페이지 목록 (앨범 찾기용)
   let isAdmin = false;
   let editingSec = null;
 
@@ -84,11 +89,104 @@ if (isConfigured) {
   async function load() {
     try {
       const snap = await getDoc(doc(db, "siteConfig", "main"));
-      about = (snap.exists() && snap.data().aboutPage) || {};
-    } catch (_) { about = {}; }
+      const data = snap.exists() ? snap.data() : {};
+      about = data.aboutPage || {};
+      pages = Array.isArray(data.pages) ? data.pages : [];
+    } catch (_) { about = {}; pages = []; }
     renderAll();
+    renderGallery();
   }
   load();
+
+  // ================= 연구실 사진 미리보기 =================
+  // 앨범형 커스텀 페이지(page.html?p=<id>)의 공개 사진 중 최근 6장을 보여 주고
+  // 전체 보기로 연결합니다. 앨범이 없으면 방문자에게는 섹션을 숨기고
+  // 관리자에게만 만드는 방법을 안내합니다.
+  const GALLERY_COUNT = 6;
+  const albumPages = () => pages.filter((p) => p.kind === "album");
+  const galleryPage = () => {
+    const id = val("galleryPageId");
+    return albumPages().find((p) => p.id === id) || albumPages()[0] || null;
+  };
+
+  async function renderGallery() {
+    const sec = $("ab-gallery-sec");
+    const grid = $("ab-gallery");
+    if (!sec || !grid) return;
+    const page = galleryPage();
+    $("ab-gallery-desc").textContent = val("galleryDesc");
+    $("btn-edit-gallery").style.display = isAdmin ? "" : "none";
+
+    if (!page) {
+      // 앨범이 없음: 관리자에게만 안내
+      sec.style.display = isAdmin ? "" : "none";
+      $("ab-gallery-link").style.display = "none";
+      grid.innerHTML = '<p class="chart-empty">아직 앨범 페이지가 없습니다. 관리자 → 메뉴 관리 → "새 페이지 만들기"에서 <strong>앨범</strong> 형태의 페이지를 만들고 사진을 올리면 이곳에 미리보기가 표시됩니다.</p>';
+      return;
+    }
+
+    const href = "page.html?p=" + encodeURIComponent(page.id);
+    const link = $("ab-gallery-link");
+    link.href = href;
+    link.style.display = "";
+
+    let photos = [];
+    try {
+      const snap = await getDocs(query(collection(db, "posts"),
+        where("pageId", "==", page.id), where("scope", "==", "public")));
+      photos = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        .filter((p) => p.imageData)
+        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+        .slice(0, GALLERY_COUNT);
+    } catch (_) {}
+
+    if (!photos.length) {
+      sec.style.display = isAdmin ? "" : "none";
+      grid.innerHTML = `<p class="chart-empty">"${esc(page.title)}" 앨범에 아직 공개 사진이 없습니다. <a href="${href}">앨범 페이지</a>에서 사진을 올려 주세요.</p>`;
+      return;
+    }
+    sec.style.display = "";
+    grid.innerHTML = photos.map((p) => `
+      <a class="gallery-thumb" href="${href}" title="${esc(p.title || page.title)}">
+        <img src="${p.imageData}" alt="${esc(p.title || page.title)}" loading="lazy" />
+      </a>`).join("");
+  }
+
+  // ----- 미리보기 설정 모달 -----
+  const galleryModal = $("gallery-modal");
+  const gmDd = createDropdown($("gm-album-dd"), {
+    values: [], allowEmpty: false,
+    onChange: (v) => { $("gm-album").value = v; },
+  });
+  $("btn-edit-gallery").addEventListener("click", () => {
+    const albums = albumPages();
+    const labels = albums.map((p) => p.title);
+    gmDd.setOptions(labels.length ? labels : ["앨범 페이지 없음"]);
+    const cur = galleryPage();
+    gmDd.set(cur ? cur.title : (labels[0] || "앨범 페이지 없음"));
+    $("gm-album").value = cur ? cur.title : "";
+    $("gm-desc").value = val("galleryDesc");
+    $("gm-msg").className = "form-msg";
+    galleryModal.classList.add("open");
+  });
+  $("gm-cancel").addEventListener("click", () => galleryModal.classList.remove("open"));
+  galleryModal.addEventListener("click", (e) => { if (e.target === galleryModal) galleryModal.classList.remove("open"); });
+  $("gm-save").addEventListener("click", async () => {
+    const chosen = albumPages().find((p) => p.title === $("gm-album").value);
+    const partial = {
+      galleryPageId: chosen ? chosen.id : "",
+      galleryDesc: $("gm-desc").value.trim(),
+    };
+    try {
+      await setDoc(doc(db, "siteConfig", "main"), { aboutPage: partial }, { merge: true });
+      about = { ...about, ...partial };
+      galleryModal.classList.remove("open");
+      renderGallery();
+    } catch (err) {
+      $("gm-msg").textContent = "저장 실패: " + err.message;
+      $("gm-msg").className = "form-msg error";
+    }
+  });
 
   onAuthStateChanged(auth, async (user) => {
     isAdmin = false;
@@ -99,6 +197,7 @@ if (isConfigured) {
       } catch (_) {}
     }
     renderAll();
+    renderGallery();
   });
 
   // ================= 섹션 수정 모달 =================

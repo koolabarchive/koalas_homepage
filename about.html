@@ -77,8 +77,25 @@
     </div>
   </section>
 
+  <!-- 연구실 사진 미리보기 (앨범 페이지의 최근 사진 → 전체 보기 링크) -->
+  <section class="section" id="ab-gallery-sec" style="display:none;">
+    <div class="container">
+      <div class="section-head center" style="margin-bottom:28px;">
+        <h2 style="font-size:1.3rem;">연구실 사진</h2>
+        <p style="margin-top:6px;" id="ab-gallery-desc">함께한 순간들을 사진으로 모아 봅니다.</p>
+      </div>
+      <div class="gallery-preview" id="ab-gallery"></div>
+      <div class="gallery-more">
+        <a class="btn-sm" id="ab-gallery-link" href="#" style="text-decoration:none;">사진 전체 보기 →</a>
+      </div>
+      <div class="sec-foot">
+        <button class="btn-edit-ghost" id="btn-edit-gallery" style="display:none;"><svg class="ic-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> 수정</button>
+      </div>
+    </div>
+  </section>
+
   <!-- 찾아오시는 길 -->
-  <section class="section">
+  <section class="section alt">
     <div class="container">
       <div class="section-head center" style="margin-bottom:28px;">
         <h2 style="font-size:1.3rem;">찾아오시는 길</h2>
@@ -130,6 +147,28 @@
         <button class="btn-sm primary" id="sec-save">저장</button>
       </div>
       <div class="form-msg" id="sec-msg"></div>
+    </div>
+  </div>
+
+  <!-- 연구실 사진 미리보기 설정 모달 (관리자 전용) -->
+  <div class="modal-backdrop" id="gallery-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="gallery-modal-title">
+      <h3 id="gallery-modal-title">연구실 사진 미리보기 설정</h3>
+      <div class="field">
+        <label>미리보기에 쓸 앨범</label>
+        <div id="gm-album-dd"></div>
+        <input type="hidden" id="gm-album" />
+        <div class="hint">관리자 → 메뉴 관리 → "새 페이지 만들기"에서 <strong>앨범</strong> 형태로 만든 페이지가 목록에 나옵니다. 선택한 앨범의 최근 사진 6장이 이곳에 표시됩니다.</div>
+      </div>
+      <div class="field">
+        <label for="gm-desc">소개 문구</label>
+        <input type="text" id="gm-desc" placeholder="함께한 순간들을 사진으로 모아 봅니다." maxlength="80" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="gm-cancel">취소</button>
+        <button class="btn-sm primary" id="gm-save">저장</button>
+      </div>
+      <div class="form-msg" id="gm-msg"></div>
     </div>
   </div>
 
