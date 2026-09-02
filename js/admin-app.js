@@ -7,7 +7,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import {
   collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
   onSnapshot, query, where, orderBy, serverTimestamp, runTransaction,
-  arrayUnion, arrayRemove, deleteField,
+  arrayUnion, arrayRemove, deleteField, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   AFFILIATIONS, POSITIONS, STATUSES, fillSelect, resolveSelectValue, applySelectValue, bindEtcToggle, memberProfileFrom,
@@ -182,7 +182,64 @@ if (isConfigured) {
       state.certs.filter((c) => c.status === "requested").forEach((c) => rows.push(
         `<tr><td>확인서</td><td>${esc(c.requesterName)} — ${esc(c.projectTitle)}</td><td>${fmtDate(c.createdAt)}</td><td><span class="status pending">신청</span></td></tr>`
       ));
+      state.users.filter((u) => u.deletion?.status === "pending").forEach((u) => rows.push(
+        `<tr><td>계정 삭제</td><td>${esc(u.name)} <span class="sub">${u.deletion.appeal ? "소명 답변 도착" : "유보 기간 중"}</span></td><td>${fmtDate(u.deletion.requestedAt)}</td><td>${deletionBadge(u)}</td></tr>`
+      ));
       tbody.innerHTML = rows.join("") || '<tr><td colspan="4" style="color:var(--muted);">처리 대기 항목이 없습니다.</td></tr>';
+    }
+  }
+
+  // ================= 계정 삭제 유보 =================
+  // 관리자가 삭제를 요청하면 14일 유보 기간을 두고, 본인이 마이페이지에서 소명 답변을
+  // 남길 수 있습니다. 기한까지 소명이 없으면 관리자 접속 시 자동으로 삭제 처리되고,
+  // 소명이 있으면 관리자가 직접 판단(복구 또는 삭제 확정)합니다.
+  // 삭제된 계정은 role='deleted'로 바뀌어 접근이 막히지만 문서는 그대로 남아
+  // 언제든 복구할 수 있습니다.
+  const GRACE_DAYS = 14;
+  const toDate = (ts) => (ts && ts.toDate ? ts.toDate() : ts instanceof Date ? ts : null);
+  const daysLeft = (u) => {
+    const d = toDate(u.deletion?.deadline);
+    return d ? Math.ceil((d.getTime() - Date.now()) / 86400000) : null;
+  };
+  function deletionBadge(u) {
+    const d = u.deletion;
+    if (!d) return "";
+    if (d.status === "deleted") return '<span class="status rejected">삭제됨</span>';
+    const left = daysLeft(u);
+    const dday = left === null ? "" : (left > 0 ? `D-${left}` : "기한 만료");
+    return `<span class="status pending">삭제 예정 ${dday}</span>${d.appeal ? ' <span class="status member">소명 도착</span>' : ""}`;
+  }
+  // 연동된 구성원 프로필 숨김/표시 (삭제 시 공개 구성원 페이지에서 감춤)
+  async function setLinkedProfileHidden(uid, hidden) {
+    try {
+      const linked = await getDocs(query(collection(db, "members"), where("linkedUid", "==", uid)));
+      await Promise.all(linked.docs.map((d) => updateDoc(d.ref, { hidden })));
+    } catch (err) { console.warn("구성원 프로필 숨김 처리 실패:", err.message); }
+  }
+  async function finalizeDeletion(u) {
+    await updateDoc(doc(db, "users", u.id), {
+      role: "deleted",
+      "deletion.status": "deleted",
+      "deletion.prevRole": u.deletion?.prevRole || u.role,
+      "deletion.deletedAt": serverTimestamp(),
+    });
+    await setLinkedProfileHidden(u.id, true);
+  }
+  async function restoreAccount(u) {
+    const role = u.deletion?.prevRole || (u.role === "deleted" ? "member" : u.role);
+    await updateDoc(doc(db, "users", u.id), { role, deletion: deleteField() });
+    await setLinkedProfileHidden(u.id, false);
+  }
+  const sweeping = new Set();
+  async function sweepExpiredDeletions() {
+    for (const u of state.users) {
+      const d = u.deletion;
+      if (!d || d.status !== "pending" || d.appeal || sweeping.has(u.id)) continue;
+      const left = daysLeft(u);
+      if (left === null || left > 0) continue;
+      sweeping.add(u.id);
+      try { await finalizeDeletion(u); } catch (err) { console.warn("자동 삭제 처리 실패:", err.message); }
+      finally { sweeping.delete(u.id); }
     }
   }
 
@@ -203,6 +260,7 @@ if (isConfigured) {
       member:   '<span class="status member">멤버</span>',
       pending:  '<span class="status pending">승인 대기</span>',
       rejected: '<span class="status rejected">거절됨</span>',
+      deleted:  '<span class="status rejected">삭제됨</span>',
     };
 
     const sort = makeSorter("#member-table thead", () => render());
@@ -225,31 +283,42 @@ if (isConfigured) {
         name: (u) => u.name || "",
         date: (u) => u.createdAt?.seconds || 0,
       }, (a, b) => {
-        // 기본: 승인 대기 → 멤버 → 관리자 순
-        const w = (r) => (r === "pending" ? 0 : r === "member" ? 1 : r === "admin" ? 2 : 3);
+        // 기본: 승인 대기 → 멤버 → 관리자 → 거절/삭제 순
+        const w = (r) => (r === "pending" ? 0 : r === "member" ? 1 : r === "admin" ? 2 : r === "deleted" ? 4 : 3);
         return w(a.role) - w(b.role);
       });
 
+      const isSelf = (u) => auth.currentUser && u.id === auth.currentUser.uid;
       sorted.forEach((u) => {
         let actions = "";
-        if (u.role === "pending") {
+        const pendingDel = u.deletion?.status === "pending";
+        if (u.role === "deleted") {
+          actions = `<button class="btn-sm primary" data-act="restore" data-id="${u.id}">복구</button>`;
+        } else if (pendingDel) {
+          actions = `<button class="btn-sm primary" data-act="restore" data-id="${u.id}">삭제 취소</button>`
+            + (u.deletion.appeal ? `<button class="btn-sm" data-act="appeal" data-id="${u.id}">소명 보기</button>` : "")
+            + `<button class="btn-sm danger" data-act="finalize" data-id="${u.id}">즉시 삭제</button>`;
+        } else if (u.role === "pending") {
           actions = `<button class="btn-sm primary" data-act="approve" data-id="${u.id}">승인</button>
                      <button class="btn-sm danger" data-act="reject" data-id="${u.id}">거절</button>`;
         } else if (u.role === "member") {
           actions = `<button class="btn-sm" data-act="make-admin" data-id="${u.id}">관리자로 변경</button>`;
         } else if (u.role === "admin") {
-          actions = auth.currentUser && u.id !== auth.currentUser.uid
+          actions = !isSelf(u)
             ? `<button class="btn-sm" data-act="make-member" data-id="${u.id}">멤버로 변경</button>` : "";
         } else if (u.role === "rejected") {
           actions = `<button class="btn-sm primary" data-act="approve" data-id="${u.id}">재승인</button>`;
         }
         actions += `<button class="btn-sm" data-act="edit" data-id="${u.id}">정보 수정</button>`;
-        rows.push(`<tr>
+        if (!pendingDel && u.role !== "deleted" && u.role !== "pending" && !isSelf(u))
+          actions += `<button class="btn-sm danger" data-act="del-request" data-id="${u.id}">삭제</button>`;
+        const roleCell = pendingDel ? `${ROLE_BADGE[u.role] || esc(u.role)} ${deletionBadge(u)}` : (ROLE_BADGE[u.role] || esc(u.role));
+        rows.push(`<tr${u.role === "deleted" ? ' class="row-deleted"' : ""}>
           <td class="cell-name">${esc(u.name)}</td>
           <td>${esc(u.affiliation || "—")}${subInfo(u)}</td>
           <td>${esc(u.email)}</td>
           <td>${fmtDate(u.createdAt)}</td>
-          <td>${ROLE_BADGE[u.role] || esc(u.role)}</td>
+          <td>${roleCell}</td>
           <td class="cell-actions">${actions}</td>
         </tr>`);
       });
@@ -262,6 +331,7 @@ if (isConfigured) {
       state.users = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       render();
       renderDashboard();
+      sweepExpiredDeletions();   // 유보 기간이 지나고 소명이 없는 계정은 자동 삭제 처리
     }, snapErr("회원", "#member-table tbody", 6));
     onSnapshot(collection(db, "invites"), (snap) => {
       invites = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -302,9 +372,73 @@ if (isConfigured) {
         if (act === "invite-del" && confirm("사전 등록을 취소할까요?"))
           await deleteDoc(doc(db, "invites", id));
         if (act === "edit") openMemberEdit(id);
+        const u = state.users.find((x) => x.id === id);
+        if (act === "del-request" && u) openDeleteRequest(u);
+        if (act === "restore" && u && confirm(`${u.name} 계정을 복구할까요? 삭제 요청이 취소되고 이전 권한으로 돌아갑니다.`))
+          await restoreAccount(u);
+        if (act === "finalize" && u && confirm(`${u.name} 계정을 지금 삭제 처리할까요?\n데이터는 남고 접근만 막히며, 나중에 복구할 수 있습니다.`))
+          await finalizeDeletion(u);
+        if (act === "appeal" && u) openAppeal(u);
       } catch (err) {
         alert("처리 중 오류가 발생했습니다: " + err.message);
       }
+    });
+
+    // ----- 계정 삭제 요청 모달 -----
+    const delModal = $("member-del-modal");
+    let delTarget = null;
+    function openDeleteRequest(u) {
+      delTarget = u;
+      $("md-name").textContent = `${u.name} (${u.email})`;
+      $("md-reason").value = "";
+      $("md-msg").className = "form-msg";
+      delModal.classList.add("open");
+    }
+    $("md-cancel").addEventListener("click", () => delModal.classList.remove("open"));
+    delModal.addEventListener("click", (e) => { if (e.target === delModal) delModal.classList.remove("open"); });
+    $("md-save").addEventListener("click", async () => {
+      if (!delTarget) return;
+      const reason = $("md-reason").value.trim();
+      const msg = $("md-msg");
+      if (!reason) { msg.textContent = "삭제 사유를 입력해 주세요. 본인에게 그대로 표시됩니다."; msg.className = "form-msg error"; return; }
+      try {
+        await updateDoc(doc(db, "users", delTarget.id), {
+          deletion: {
+            status: "pending", reason,
+            requestedAt: serverTimestamp(),
+            requestedByUid: auth.currentUser.uid,
+            deadline: Timestamp.fromDate(new Date(Date.now() + GRACE_DAYS * 86400000)),
+            prevRole: delTarget.role,
+          },
+        });
+        delModal.classList.remove("open");
+      } catch (err) {
+        msg.textContent = "저장 실패: " + err.message; msg.className = "form-msg error";
+      }
+    });
+
+    // ----- 소명 답변 보기 모달 -----
+    const apModal = $("appeal-modal");
+    let apTarget = null;
+    function openAppeal(u) {
+      apTarget = u;
+      $("ap-name").textContent = `${u.name} (${u.email})`;
+      $("ap-reason").textContent = u.deletion?.reason || "—";
+      $("ap-body").textContent = u.deletion?.appeal || "";
+      $("ap-date").textContent = fmtDate(u.deletion?.appealAt);
+      apModal.classList.add("open");
+    }
+    $("ap-close").addEventListener("click", () => apModal.classList.remove("open"));
+    apModal.addEventListener("click", (e) => { if (e.target === apModal) apModal.classList.remove("open"); });
+    $("ap-restore").addEventListener("click", async () => {
+      if (!apTarget) return;
+      try { await restoreAccount(apTarget); apModal.classList.remove("open"); }
+      catch (err) { alert("처리 실패: " + err.message); }
+    });
+    $("ap-delete").addEventListener("click", async () => {
+      if (!apTarget || !confirm(`${apTarget.name} 계정을 삭제 처리할까요? 나중에 복구할 수 있습니다.`)) return;
+      try { await finalizeDeletion(apTarget); apModal.classList.remove("open"); }
+      catch (err) { alert("처리 실패: " + err.message); }
     });
 
     // ----- 회원 직접 등록 모달 -----

@@ -110,7 +110,7 @@
       <!-- 회원 관리 -->
       <section class="admin-panel" id="panel-members">
         <h2>회원 관리</h2>
-        <p class="panel-desc">가입 신청을 승인·거절하고, 멤버의 권한을 관리합니다. 직접 등록한 이메일은 해당 주소로 가입 시 자동 승인됩니다.</p>
+        <p class="panel-desc">가입 신청을 승인·거절하고, 멤버의 권한을 관리합니다. 직접 등록한 이메일은 해당 주소로 가입 시 자동 승인됩니다. 계정 삭제는 14일 유보 기간을 두며, 본인이 소명 답변을 남기지 않으면 자동으로 삭제 처리됩니다. 삭제된 계정의 데이터는 남아 있어 언제든 복구할 수 있습니다.</p>
         <div class="panel-toolbar">
           <span></span>
           <button class="btn-sm primary" id="btn-add-member">+ 회원 직접 등록</button>
@@ -426,6 +426,45 @@
   </div>
 
   <!-- 회원 정보 수정 모달 -->
+  <!-- 계정 삭제 요청 모달 -->
+  <div class="modal-backdrop" id="member-del-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="member-del-title">
+      <h3 id="member-del-title">계정 삭제 요청</h3>
+      <p class="hint" style="margin-top:-6px;"><strong id="md-name"></strong></p>
+      <div class="field">
+        <label for="md-reason">삭제 사유 <span class="hint" style="display:inline;">— 본인의 마이페이지에 그대로 표시됩니다</span></label>
+        <textarea id="md-reason" rows="4" placeholder="예: 졸업 후 1년 이상 활동이 없어 계정을 정리합니다."></textarea>
+        <div class="hint">요청 즉시 14일의 유보 기간이 시작됩니다. 그동안 본인은 평소처럼 이용할 수 있고 마이페이지에서 소명 답변을 남길 수 있습니다. 기한까지 소명이 없으면 관리자 접속 시 자동으로 삭제 처리되고, 소명이 있으면 관리자가 복구 또는 삭제를 결정합니다.</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="md-cancel">취소</button>
+        <button class="btn-sm danger" id="md-save">삭제 요청</button>
+      </div>
+      <div class="form-msg" id="md-msg"></div>
+    </div>
+  </div>
+
+  <!-- 소명 답변 보기 모달 -->
+  <div class="modal-backdrop" id="appeal-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="appeal-title">
+      <h3 id="appeal-title">소명 답변</h3>
+      <p class="hint" style="margin-top:-6px;"><strong id="ap-name"></strong></p>
+      <div class="field">
+        <label>삭제 사유</label>
+        <div class="appeal-box" id="ap-reason"></div>
+      </div>
+      <div class="field">
+        <label>본인 소명 <span class="hint" style="display:inline;" id="ap-date"></span></label>
+        <div class="appeal-box" id="ap-body"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="ap-close">닫기</button>
+        <button class="btn-sm danger" id="ap-delete">삭제 확정</button>
+        <button class="btn-sm primary" id="ap-restore">복구</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="member-edit-modal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="member-edit-title">
       <h3 id="member-edit-title">회원 정보 수정</h3>
