@@ -4133,6 +4133,7 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
   border-radius: var(--radius-sm);
 }
 .gl-toolbar .hint { font-size: 0.82rem; color: var(--muted); }
+.gl-toolbar-btns { display: flex; gap: 8px; flex: none; }
 
 .gl-chips {
   display: flex;
@@ -4170,6 +4171,7 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
 }
 .gl-album-head h2 { font-size: 1.08rem; margin: 0; }
 .gl-count { font-size: 0.8rem; color: var(--muted); }
+.gl-album-tools { margin-left: auto; display: flex; gap: 6px; align-self: center; }
 
 /* 세로·가로 사진의 원래 비율을 살리는 매스너리 (CSS columns) */
 .gl-masonry {
@@ -4185,11 +4187,16 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
   background: var(--tint);
   border: 1px solid var(--line-soft);
   cursor: zoom-in;
+  /* 자식 이미지가 transform될 때 둥근 모서리 클리핑이 풀리는 브라우저 버그 방지 */
+  isolation: isolate;
+  transform: translateZ(0);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 .gl-item img {
   display: block;
   width: 100%;
   height: auto;
+  border-radius: inherit;
   transition: transform 0.3s ease;
 }
 .gl-item:hover img { transform: scale(1.03); }
@@ -4206,6 +4213,9 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
   word-break: keep-all;
 }
 .gl-item:hover figcaption { opacity: 1; }
+.gl-item figcaption .gl-cap { display: block; }
+.gl-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.gl-tag { font-size: 0.7rem; opacity: 0.85; }
 .gl-lock {
   display: inline-block;
   margin-right: 6px;
@@ -4214,9 +4224,15 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
   font-size: 0.68rem;
   background: rgba(255, 255, 255, 0.22);
 }
-.gl-del {
+.gl-tools {
   position: absolute;
   top: 8px; right: 8px;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.gl-tools.open { opacity: 1; }
+.gl-tool {
   width: 30px; height: 30px;
   border: none;
   border-radius: 50%;
@@ -4226,14 +4242,66 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  transition: opacity 0.15s ease, background 0.15s ease;
+  transition: background 0.15s ease;
 }
-.gl-del .ic-svg { width: 14px; height: 14px; }
-.gl-item:hover .gl-del, .gl-del:focus-visible { opacity: 1; }
-.gl-del:hover { background: rgba(200, 40, 40, 0.85); }
+.gl-tool { padding: 0; }
+.gl-tool .ic-svg { width: 16px; height: 16px; margin: 0; vertical-align: 0; }
+.gl-item:hover .gl-tools, .gl-tools:focus-within { opacity: 1; }
+.gl-tool:hover, .gl-tools.open .gl-tool { background: rgba(0, 0, 0, 0.75); }
+
+/* ⋯ 메뉴: 수정 / 삭제 (글래스 드롭다운과 같은 결) */
+.gl-menu {
+  position: absolute;
+  top: 36px; right: 0;
+  min-width: 120px;
+  padding: 5px;
+  background: var(--modal-glass-bg);
+  backdrop-filter: var(--modal-glass-blur);
+  -webkit-backdrop-filter: var(--modal-glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  cursor: default;
+}
+.gl-menu[hidden] { display: none; }
+.gl-menu button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.86rem;
+  text-align: left;
+  cursor: pointer;
+}
+.gl-menu button .ic-svg { margin: 0; width: 14px; height: 14px; }
+.gl-menu button:hover { background: var(--accent-bg); color: var(--on-accent); }
+.gl-menu button.danger:hover { background: var(--danger); color: #fff; }
+
+/* 올리기·수정 모달의 앨범 선택 칩 (다중 선택) */
+.gl-picker { display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px; }
+.gl-picker .hint { font-size: 0.8rem; color: var(--muted); }
+.gl-pick {
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.gl-pick:hover { border-color: var(--indigo); color: var(--indigo); }
+.gl-pick.on { background: var(--accent-bg); border-color: var(--indigo); color: var(--on-accent); }
 .lightbox figcaption small { display: block; margin-top: 4px; font-size: 0.78rem; color: rgba(255, 255, 255, 0.6); }
 
 @media (max-width: 900px) {
@@ -4244,8 +4312,11 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
   .gl-masonry { column-gap: 8px; }
   .gl-item { margin-bottom: 8px; border-radius: 10px; }
   .gl-item figcaption { opacity: 1; padding: 20px 10px 8px; font-size: 0.74rem; }
-  .gl-del { opacity: 1; width: 28px; height: 28px; }
+  .gl-tools { opacity: 1; }
+  .gl-tool { width: 28px; height: 28px; }
+  .gl-album-head { flex-wrap: wrap; }
+  .gl-album-tools { margin-left: 0; width: 100%; }
 }
 @media (hover: none) {
-  .gl-item figcaption, .gl-del { opacity: 1; }
+  .gl-item figcaption, .gl-tools { opacity: 1; }
 }
