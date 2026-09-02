@@ -36,11 +36,17 @@ if (!isConfigured) {
 
     const snap = await getDoc(doc(db, "users", user.uid));
     const me = snap.exists() ? { uid: user.uid, ...snap.data() } : null;
+    if (me && me.role === "deleted") {
+      alert("삭제 처리된 계정입니다. 복구가 필요하면 관리자에게 문의해 주세요.");
+      location.href = "index.html";
+      return;
+    }
     if (!me || (me.role !== "member" && me.role !== "admin")) {
       alert("승인된 멤버만 이용할 수 있는 페이지입니다.");
       location.href = "index.html";
       return;
     }
+    renderDeletionNotice(me);
 
     const renderMyInfo = () => {
       $("my-info").innerHTML = `${esc(me.name)} · ${esc(me.affiliation || "")}${me.position ? " · " + esc(me.position) : ""}${me.memberStatus ? " · " + esc(me.memberStatus) : ""} · ${me.role === "admin" ? "관리자" : "멤버"}`;
@@ -64,6 +70,52 @@ if (!isConfigured) {
   // ----- 내 정보 수정 (계정 프로필: 이름·소속·직책·상태) -----
   // 모달이 아니라 "내 정보" 패널 안의 인라인 폼입니다. 저장·비밀번호 변경
   // 결과도 팝업 없이 폼 아래에 바로 표시됩니다.
+  // ----- 계정 삭제 유보 안내 + 소명 답변 -----
+  // 관리자가 삭제를 요청하면 14일 동안 이 안내가 뜨고, 소명 답변을 남길 수 있습니다.
+  // (보안 규칙상 본인은 deletion.appeal / appealAt만 수정할 수 있습니다)
+  function renderDeletionNotice(me) {
+    const box = $("del-notice");
+    if (!box) return;
+    const d = me.deletion;
+    if (!d || d.status !== "pending") { box.style.display = "none"; return; }
+    const deadline = d.deadline && d.deadline.toDate ? d.deadline.toDate() : null;
+    const left = deadline ? Math.ceil((deadline.getTime() - Date.now()) / 86400000) : null;
+    const dday = left === null ? "" : (left > 0 ? ` (D-${left})` : " (기한 만료)");
+    box.style.display = "";
+    box.innerHTML = `
+      <div class="del-notice">
+        <div class="del-notice-head">
+          <span class="status pending">계정 삭제 예정</span>
+          <strong>관리자가 이 계정의 삭제를 요청했습니다.</strong>
+        </div>
+        <p><span class="del-label">사유</span>${esc(d.reason || "—")}</p>
+        <p><span class="del-label">기한</span>${deadline ? fmtDate(d.deadline) : "—"}${dday}</p>
+        <p class="hint">기한까지 소명 답변이 없으면 계정이 삭제 처리됩니다. 소명을 남기면 자동 삭제가 멈추고 관리자가 검토한 뒤 복구 여부를 결정합니다. 삭제된 뒤에도 데이터는 남아 있어 관리자가 복구할 수 있습니다.</p>
+        <div class="field" style="margin-top:12px;">
+          <label for="del-appeal">소명 답변${d.appeal ? ` <span class="hint" style="display:inline;">— 제출됨 ${fmtDate(d.appealAt)}</span>` : ""}</label>
+          <textarea id="del-appeal" rows="4" placeholder="계정을 유지해야 하는 이유나 상황을 적어 주세요.">${esc(d.appeal || "")}</textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn-sm primary" id="del-appeal-save">${d.appeal ? "소명 수정" : "소명 제출"}</button>
+        </div>
+        <div class="form-msg" id="del-appeal-msg"></div>
+      </div>`;
+    $("del-appeal-save").addEventListener("click", async () => {
+      const text = $("del-appeal").value.trim();
+      const msg = $("del-appeal-msg");
+      if (!text) { msg.textContent = "소명 내용을 입력해 주세요."; msg.className = "form-msg error"; return; }
+      try {
+        await updateDoc(doc(db, "users", me.uid), { "deletion.appeal": text, "deletion.appealAt": serverTimestamp() });
+        me.deletion = { ...d, appeal: text, appealAt: { toDate: () => new Date() } };
+        renderDeletionNotice(me);
+        $("del-appeal-msg").textContent = "소명이 제출되었습니다. 관리자가 검토합니다.";
+        $("del-appeal-msg").className = "form-msg ok";
+      } catch (err) {
+        msg.textContent = "제출 실패: " + err.message; msg.className = "form-msg error";
+      }
+    });
+  }
+
   function initMyProfile(me, onSaved) {
     if (!$("me2-name")) return;
 

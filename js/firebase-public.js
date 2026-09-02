@@ -464,6 +464,7 @@ if (isConfigured) {
       try {
         const snap = await getDocs(collection(db, "members"));
         const people = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+          .filter((p) => !p.hidden)     // 삭제 처리된 계정의 프로필은 감춤 (복구 시 다시 표시)
           .sort((a, b) => (a.order || 0) - (b.order || 0));
 
         const photoSrc = (p) => p.photoData || p.photoUrl || "";

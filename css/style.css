@@ -4315,3 +4315,31 @@ button .ic-svg { margin-right: 3px; vertical-align: -2.5px; }
 @media (hover: none) {
   .gl-item figcaption, .gl-tools { opacity: 1; }
 }
+
+
+/* ================================================================
+   계정 삭제 유보: 마이페이지 안내 카드 + 관리자 소명 보기
+   ================================================================ */
+.del-notice {
+  margin: 14px 0 22px;
+  padding: 18px 20px;
+  border: 1px solid var(--warn);
+  border-radius: var(--radius-sm);
+  background: var(--warn-soft);
+}
+.del-notice-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.del-notice p { margin: 4px 0; font-size: 0.92rem; }
+.del-notice .hint { font-size: 0.82rem; margin-top: 8px; }
+.del-notice .del-label { display: inline-block; min-width: 40px; color: var(--muted); font-size: 0.82rem; }
+.del-notice textarea { background: var(--surface); }
+.appeal-box {
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--tint);
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+.admin-table tr.row-deleted td { color: var(--muted); }
+.admin-table tr.row-deleted .cell-name { text-decoration: line-through; }
