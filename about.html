@@ -82,11 +82,15 @@
       </div>
       <div class="grid grid-2" style="align-items:start;">
         <div class="about-map">
+          <!-- 기본은 구글 지도 임베드. 관리자가 네이버 Client ID를 등록하면
+               아래 네이버 지도 컨테이너로 전환됩니다 (about-page.js). -->
           <iframe id="ab-map"
             src="https://www.google.com/maps?q=%ED%95%9C%EC%8B%A0%EB%8C%80%ED%95%99%EA%B5%90&output=embed"
             width="100%" height="340" style="border:0; border-radius:14px;"
             allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
             title="연구실 위치 지도"></iframe>
+          <div id="ab-map-naver" class="naver-map" style="display:none;" aria-label="연구실 위치 지도 (네이버)"></div>
+          <p class="hint" id="ab-map-note" style="display:none; margin-top:8px;"></p>
         </div>
         <div class="md-body contact-line" style="font-size:0.93rem;">
           <h3>주소</h3>
@@ -132,9 +136,38 @@
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="visit-modal-title">
       <h3 id="visit-modal-title">찾아오시는 길 수정</h3>
       <div class="field">
-        <label for="vm-map">지도 (장소 이름·주소 또는 구글 지도 링크)</label>
-        <input type="text" id="vm-map" placeholder="한신대학교" />
-        <div class="hint">장소 이름이나 주소를 쓰면 구글 지도에서 검색해 표시합니다. 구글 지도 링크(https://www.google.com/maps/…)를 붙여넣어도 됩니다.</div>
+        <label>지도 서비스</label>
+        <div id="vm-provider-dd"></div>
+        <input type="hidden" id="vm-provider" value="구글 지도" />
+      </div>
+      <div id="vm-google-fields">
+        <div class="field">
+          <label for="vm-map">지도 (장소 이름·주소 또는 구글 지도 링크)</label>
+          <input type="text" id="vm-map" placeholder="한신대학교" />
+          <div class="hint">장소 이름이나 주소를 쓰면 구글 지도에서 검색해 표시합니다. 구글 지도 링크(https://www.google.com/maps/…)를 붙여넣어도 됩니다.</div>
+        </div>
+      </div>
+      <div id="vm-naver-fields" style="display:none;">
+        <div class="field">
+          <label for="vm-naver-id">네이버 지도 Client ID</label>
+          <input type="text" id="vm-naver-id" placeholder="네이버 클라우드 플랫폼에서 발급" autocomplete="off" />
+          <div class="hint">네이버 클라우드 플랫폼 → AI·NAVER API → Maps → Application 등록 후 발급되는 Client ID(Key ID)입니다. 등록 시 Web 서비스 URL에 이 사이트 주소를 넣어야 지도가 표시됩니다. 비워 두면 구글 지도로 표시됩니다.</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="vm-naver-lat">위도</label>
+            <input type="text" id="vm-naver-lat" placeholder="37.1948" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="vm-naver-lng">경도</label>
+            <input type="text" id="vm-naver-lng" placeholder="127.0258" inputmode="decimal" />
+          </div>
+        </div>
+        <div class="hint" style="margin-top:-6px; margin-bottom:12px;">네이버 지도에서 장소를 검색한 뒤 주소창 URL의 <code>?c=경도,위도,...</code> 부분에서 값을 가져오거나, 지도에서 마우스 오른쪽 클릭 → 좌표를 확인해 입력하세요.</div>
+        <div class="field">
+          <label for="vm-naver-label">마커 이름 (선택)</label>
+          <input type="text" id="vm-naver-label" placeholder="한신대학교 심리학과" />
+        </div>
       </div>
       <div class="field">
         <label for="vm-address">주소</label>
