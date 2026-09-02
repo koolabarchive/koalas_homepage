@@ -1,6 +1,6 @@
 // 관리자 대시보드 활동 그래프 (외부 라이브러리 없이 인라인 SVG)
 //
-// 하나의 누적 영역 차트에 멤버·프로젝트·성과·확인서 네 계열을 쌓아
+// 하나의 선 그래프에 멤버·프로젝트·성과·확인서 네 계열의 누적값을 그려
 // 연구실 활동이 시간에 따라 어떻게 늘어왔는지 보여 줍니다.
 // 선 위에 마우스를 올리면 그 달의 세부 구성이 작은 팝업으로 뜹니다.
 //
@@ -13,7 +13,7 @@
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-// 계열 정의 — 아래에서 위로 쌓이는 순서
+// 계열 정의 — 범례·팝업 표시 순서
 export const SERIES = [
   { key: "members", label: "구성원", cls: "s1" },
   { key: "pubs", label: "연구 성과", cls: "s2" },
@@ -51,24 +51,40 @@ export function cumulativeByMonth(list, months, dateOf = (x) => x.createdAt) {
   return months.map(({ y, m }) => list.filter((x) => atOrBefore(dateOf(x), y, m)).length);
 }
 
-// 부드러운 선 (Catmull-Rom → 베지어). 값이 급변해도 과장되지 않게 장력을 낮춥니다.
+// 단조 3차 보간(Fritsch–Carlson, d3 curveMonotoneX와 같은 방식).
+// 값이 오르기만 하는 누적 데이터에서 Catmull-Rom처럼 아래로 파이거나
+// 위로 튀는 오버슈트가 생기지 않아 선이 울렁이지 않습니다.
 function smoothPath(pts) {
-  if (pts.length < 2) return pts.length ? `M${pts[0][0]} ${pts[0][1]}` : "";
-  let d = `M${pts[0][0]} ${pts[0][1]}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] || pts[i];
-    const p1 = pts[i];
-    const p2 = pts[i + 1];
-    const p3 = pts[i + 2] || p2;
-    const t = 0.18;
-    d += ` C${p1[0] + (p2[0] - p0[0]) * t} ${p1[1] + (p2[1] - p0[1]) * t},`
-      + ` ${p2[0] - (p3[0] - p1[0]) * t} ${p2[1] - (p3[1] - p1[1]) * t},`
-      + ` ${p2[0]} ${p2[1]}`;
+  const n = pts.length;
+  if (n < 2) return n ? `M${pts[0][0]} ${pts[0][1]}` : "";
+  const xs = pts.map((p) => p[0]);
+  const ys = pts.map((p) => p[1]);
+  const dx = [], dy = [], slope = [];
+  for (let i = 0; i < n - 1; i++) {
+    dx[i] = xs[i + 1] - xs[i];
+    dy[i] = ys[i + 1] - ys[i];
+    slope[i] = dx[i] ? dy[i] / dx[i] : 0;
+  }
+  // 각 점의 접선 기울기: 이웃 구간 기울기의 부호가 다르거나 0이면 0(평평)
+  const m = new Array(n);
+  m[0] = slope[0];
+  m[n - 1] = slope[n - 2];
+  for (let i = 1; i < n - 1; i++) {
+    if (slope[i - 1] * slope[i] <= 0) { m[i] = 0; continue; }
+    const w1 = 2 * dx[i] + dx[i - 1];
+    const w2 = dx[i] + 2 * dx[i - 1];
+    m[i] = (w1 + w2) / (w1 / slope[i - 1] + w2 / slope[i]);
+  }
+  const f = (v) => Math.round(v * 100) / 100;
+  let d = `M${f(xs[0])} ${f(ys[0])}`;
+  for (let i = 0; i < n - 1; i++) {
+    const h = dx[i] / 3;
+    d += ` C${f(xs[i] + h)} ${f(ys[i] + m[i] * h)}, ${f(xs[i + 1] - h)} ${f(ys[i + 1] - m[i + 1] * h)}, ${f(xs[i + 1])} ${f(ys[i + 1])}`;
   }
   return d;
 }
 
-// 누적 영역 차트
+// 누적 추이 선 그래프
 // box: 컨테이너, months: recentMonths(), data: { members:[], pubs:[], projects:[], certs:[] }
 export function activityChart(box, months, data) {
   if (!box) return;
