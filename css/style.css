@@ -1787,23 +1787,6 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   vertical-align: 1px;
 }
 .gnb-member-btn .nav-badge.on-btn { background: var(--surface); color: var(--notif-bg); margin-left: 7px; }
-.gnb-mail {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  padding: 7px 9px;
-  text-decoration: none;
-  color: var(--ink);
-  border-radius: 8px;
-}
-.gnb-mail svg { display: block; }
-.gnb-mail:hover { color: var(--indigo); }
-.gnb-mail .nav-badge { position: absolute; top: 0; right: -4px; margin: 0; }
-@media (max-width: 640px) {
-  .gnb-mail { align-self: flex-start; font-size: 1rem; padding: 10px 4px; }
-  .gnb-mail .nav-badge { position: static; margin-left: 6px; }
-  .gnb-mail::after { content: " 메시지"; font-size: 0.9rem; font-weight: 600; }
-}
 
 /* ---------- 메시지(DM) ---------- */
 .dm-layout {

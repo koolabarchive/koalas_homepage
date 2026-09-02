@@ -87,14 +87,17 @@ if (isConfigured) {
     const items = [
       ["dashboard.html", "마이페이지"],
       ["study.html", "스터디"],
+      ["messages.html", "메시지"],
     ];
     if (role === "admin") items.push(["admin.html", "관리자"]);
     let adminItem = null;
+    let mailItem = null;
     items.forEach(([href, label]) => {
       const a = document.createElement("a");
       a.href = href;
       a.textContent = label;
       if (href === "admin.html") adminItem = a;
+      if (href === "messages.html") mailItem = a;
       if (location.pathname.endsWith("/" + href)) a.classList.add("active");
       menu.appendChild(a);
     });
@@ -125,24 +128,36 @@ if (isConfigured) {
     wrap.appendChild(menu);
     gnb.replaceChild(wrap, loginBtn);
 
+    // ----- "이름 님 ▾" 버튼 배지: 메뉴가 닫혀 있어도 처리할 일이 있음을 알립니다
+    //       (관리자 처리 대기 + 안 읽은 메시지 합계) -----
+    const btnBadge = document.createElement("span");
+    btnBadge.className = "nav-badge on-btn";
+    btnBadge.style.display = "none";
+    btn.appendChild(btnBadge);
+    const btnTotals = { admin: 0, mail: 0, adminTitle: "" };
+    const refreshBtnBadge = () => {
+      const total = btnTotals.admin + btnTotals.mail;
+      btnBadge.textContent = total > 99 ? "99+" : total || "";
+      btnBadge.style.display = total ? "" : "none";
+      btnBadge.title = [btnTotals.mail ? `안 읽은 메시지 ${btnTotals.mail}` : "", btnTotals.adminTitle]
+        .filter(Boolean).join(" · ");
+    };
+
     // ----- 관리자: 승인 대기 건수 배지 (가입 승인 + 성과 검수 + 확인서 신청) -----
     if (role === "admin" && adminItem) {
       const counts = { users: 0, pubs: 0, certs: 0 };
       const badgeMenu = document.createElement("span");
       badgeMenu.className = "nav-badge";
       adminItem.appendChild(badgeMenu);
-      const badgeBtn = document.createElement("span");
-      badgeBtn.className = "nav-badge on-btn";
-      btn.appendChild(badgeBtn);
 
       const refresh = () => {
         const total = counts.users + counts.pubs + counts.certs;
         badgeMenu.textContent = total || "";
         badgeMenu.style.display = total ? "" : "none";
-        badgeBtn.textContent = total || "";
-        badgeBtn.style.display = total ? "" : "none";
-        badgeMenu.title = badgeBtn.title =
-          `가입 승인 ${counts.users} · 성과 검수 ${counts.pubs} · 확인서 신청 ${counts.certs}`;
+        badgeMenu.title = `가입 승인 ${counts.users} · 성과 검수 ${counts.pubs} · 확인서 신청 ${counts.certs}`;
+        btnTotals.admin = total;
+        btnTotals.adminTitle = total ? badgeMenu.title : "";
+        refreshBtnBadge();
       };
       refresh();
       onSnapshot(query(collection(db, "users"), where("role", "==", "pending")),
@@ -153,22 +168,20 @@ if (isConfigured) {
         (s) => { counts.certs = s.size; refresh(); }, () => {});
     }
 
-    // ----- 멤버: 메시지(✉) 아이콘 + 안읽음 배지 -----
-    const mail = document.createElement("a");
-    mail.href = "messages.html";
-    mail.className = "gnb-mail";
-    mail.setAttribute("aria-label", "메시지");
-    mail.innerHTML = `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <rect x="2.5" y="4.5" width="19" height="15" rx="2.6"/>
-      <path d="M3.5 7.2 12 13l8.5-5.8"/>
-    </svg><span class="nav-badge" style="display:none;"></span>`;
-    gnb.insertBefore(mail, wrap);
-    const mailBadge = mail.querySelector(".nav-badge");
+    // ----- 멤버: 드롭다운 "메시지" 항목의 안 읽음 배지 -----
+    // (상단바에 따로 떠 있던 ✉ 아이콘을 이름 메뉴 안, 스터디 아래로 옮겼습니다)
+    const mailBadge = document.createElement("span");
+    mailBadge.className = "nav-badge";
+    mailBadge.style.display = "none";
+    mailItem.appendChild(mailBadge);
     const mailCounts = { dm: 0, room: 0 };
     const refreshMail = () => {
       const total = mailCounts.dm + mailCounts.room;
       mailBadge.textContent = total > 99 ? "99+" : total || "";
       mailBadge.style.display = total ? "" : "none";
+      mailBadge.title = total ? `안 읽은 메시지 ${total}` : "";
+      btnTotals.mail = total;
+      refreshBtnBadge();
     };
     onSnapshot(query(collection(db, "dms"), where("participants", "array-contains", user.uid)), (snap) => {
       mailCounts.dm = snap.docs.reduce((n, d) => n + ((d.data().unread || {})[user.uid] || 0), 0);
